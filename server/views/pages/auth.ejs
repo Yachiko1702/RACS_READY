@@ -1,0 +1,104 @@
+<div class="auth-panel-page">
+  <div class="auth-panel-container" id="authPanelRoot">
+
+    <div class="form-container sign-up-container">
+      <form id="auth-register-form" action="/api/auth/register" method="POST" novalidate>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+
+        <div class="auth-form-brand mb-3">
+          <a href="/" class="brand d-flex align-items-center justify-content-center">
+            <i class="bi bi-snow2 fs-3 text-primary me-2"></i>
+            <span class="fw-bold">CALIDRO RACS</span>
+          </a>
+        </div>
+
+        <h1>Create Account</h1>
+        <p class="text-muted">Register to manage appointments and service requests.</p>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input id="register-email" name="email" type="email" class="form-control" placeholder="Email" required autocomplete="email" maxlength="254" />
+        </div>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input id="register-password" name="password" type="password" class="form-control" placeholder="Password" required autocomplete="new-password" maxlength="128" />
+          <button type="button" class="btn input-toggle" id="togglePasswordReg" aria-label="Toggle password"><i class="bi bi-eye"></i></button>
+        </div>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+          <input id="register-confirm" name="confirmPassword" type="password" class="form-control" placeholder="Confirm Password" required autocomplete="new-password" maxlength="128" />
+          <button type="button" class="btn input-toggle" id="toggleConfirmPasswordReg" aria-label="Toggle password"><i class="bi bi-eye"></i></button>
+        </div>
+
+        <% if (recaptchaSiteKey) { %>
+          <div class="mb-3"><div class="g-recaptcha" data-sitekey="<%= recaptchaSiteKey %>"></div></div>
+        <% } %>
+
+        <button id="registerBtn" class="button" type="submit">Sign Up</button>
+        <p class="small mt-2 d-lg-none">Already have an account? <a href="/login">Sign In</a></p>
+      </form>
+    </div>
+
+    <div class="form-container sign-in-container">
+      <form id="auth-login-form" action="/api/auth/login" method="POST" novalidate>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+
+        <div class="auth-form-brand mb-3 text-center">
+          <a href="/" class="brand d-flex align-items-center justify-content-center gap-2" aria-label="CALIDRO RACS home">
+            <i class="bi bi-snow2 fs-3 text-primary" aria-hidden="true"></i>
+            <span class="fw-bold fs-5">CALIDRO RACS</span>
+          </a>
+        </div>
+
+        <h1>Sign In</h1>
+        <p class="text-muted">Use your account to access the dashboard and services.</p>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input id="email" name="email" type="email" class="form-control" placeholder="Email" required autocomplete="email" maxlength="254" />
+        </div>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input id="password" name="password" type="password" class="form-control" placeholder="Password" required autocomplete="current-password" maxlength="128" />
+          <button type="button" class="btn input-toggle" id="togglePassword" aria-label="Toggle password"><i class="bi bi-eye"></i></button>
+        </div>
+
+        <% if (recaptchaSiteKey) { %>
+          <div class="mb-3"><div class="g-recaptcha" data-sitekey="<%= recaptchaSiteKey %>"></div></div>
+        <% } %>
+
+        <a href="/forgot-password" class="small mb-2 d-inline-block">Forgot password?</a>
+        <button id="loginBtn" class="button" type="submit">Sign In</button>
+        <p class="small mt-2 d-lg-none">Don't have an account? <a href="/register">Sign Up</a></p>
+      </form>
+    </div>
+
+    <div class="overlay-container">
+      <div class="overlay">
+        <div class="overlay-panel overlay-left">
+          <h2>Welcome Back!</h2>
+          <p>To keep connected with your services, please sign in with your personal info.</p>
+          <button class="button ghost" id="signIn">Sign In</button>
+        </div>
+        <div class="overlay-panel overlay-right">
+          <h2>Hello, Friend!</h2>
+          <p>Enter your personal details and start your journey with us.</p>
+          <button class="button ghost" id="signUp">Sign Up</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  (function(){
+    var root = document.getElementById('authPanelRoot');
+    if (!root) return;
+    var active = '<%= active || "sign-in" %>';
+    if (active === 'sign-up') root.classList.add('right-panel-active');
+  })();
+</script>

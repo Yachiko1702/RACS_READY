@@ -1,0 +1,745 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+
+/* Scoped auth page styles */
+.auth-panel-page * { box-sizing: border-box; }
+.auth-panel-page { background: linear-gradient(135deg, #eaf4ff 0%, #d6ecff 46%, #f8fbff 100%); min-height: 100vh; /* remove fixed width for fluid responsiveness */ font-family: 'Montserrat', sans-serif; display: flex; align-items: center; justify-content: center; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overflow-x: hidden; }
+
+/* Subtle decorative glow for the page */
+.auth-panel-page::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(circle at 8% 18%, rgba(13,110,253,0.05), transparent 12%), radial-gradient(circle at 92% 82%, rgba(13,110,253,0.03), transparent 10%); z-index: 0; }
+
+/* Frosted, elevated container */
+.auth-panel-container { background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,250,255,0.92)); border-radius: 12px; box-shadow: 0 20px 50px rgba(9,30,66,0.08); border: 1px solid rgba(13,110,253,0.06); position: relative; z-index: 2; }
+
+
+.auth-panel-page h1 { font-weight: 800; margin: 0; }
+.auth-panel-page h2 { text-align: center; }
+.auth-panel-page p { font-size: 14px; font-weight: 300; line-height: 20px; letter-spacing: 0.5px; margin: 16px 0 24px; }
+
+.auth-panel-page a { color: #333; text-decoration: none; }
+
+.auth-panel-container {
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,250,255,0.88));
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(9,30,66,0.08);
+  position: relative;
+  overflow: hidden;
+  width: 920px;
+  max-width: 96%;
+  --auth-min-height: 680px; /* adjustable via CSS variable */
+  min-height: var(--auth-min-height);
+  border: 1px solid rgba(13,110,253,0.06);
+}
+
+/* Responsive height adjustments */
+@media (max-width: 1200px) {
+  /* Reduce the min-height so the card sizes to content and avoid forcing full-viewport panels */
+  .auth-panel-container { --auth-min-height: 640px; min-height: auto; overflow: visible; max-width: 760px; margin: 0 auto; }
+
+  /* Switch to single-column flow for medium and smaller devices */
+  .form-container { position: relative; height: auto; width: 100%; transition: none; }
+  .sign-in-container, .sign-up-container { position: relative; left: 0; width: 100%; transform: none; opacity: 1; visibility: visible; pointer-events: auto; z-index: 2; display: block; }
+  .sign-up-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-in-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-up-container { display: block; }
+
+  /* Hide the overlay panel starting at this breakpoint to avoid overlap/half-card artifacts */
+  .overlay-container { display: none !important; }
+  .overlay { display: none !important; }
+
+  /* Make page align to top so content can scroll naturally on mid-size screens */
+  .auth-panel-page { align-items: flex-start; padding-top: 1.25rem; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Ensure forms size to content and are comfortable to interact with */
+  .sign-in-container form, .sign-up-container form { padding: 1.15rem; max-width: 100%; height: auto; }
+  .sign-up-container form { padding-bottom: 2.5rem; }
+  .sign-up-container .input-group:last-of-type { margin-bottom: 2rem; }
+  .sign-up-container .button { margin-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+}
+
+/* Special-case: mid-width but short-height viewports (e.g., 800×500) */
+@media (max-width: 1024px) and (max-height: 600px) {
+  .form-container { position: relative !important; height: auto !important; }
+  form { height: auto !important; }
+  .auth-card { width: calc(100% - 2rem); padding: 0.75rem 1rem; margin-top: 0.25rem; }
+  form .input-group { max-width: 100%; width: 100%; margin: 6px 0; }
+  form .input-group .form-control { padding-right: 84px; }
+  .auth-inner .text-center.mb-4 { margin-bottom: 0.5rem; }
+  .sign-in-container .d-grid, .sign-up-container .d-grid { position: sticky; bottom: env(safe-area-inset-bottom, 10px); }
+  .auth-panel-page { overflow-y: auto; -webkit-overflow-scrolling: touch; align-items: flex-start; }
+}
+
+@media (max-width: 768px) {
+  .auth-panel-container { --auth-min-height: 560px; width: 100%; }
+}
+
+.form-container { position: absolute; top: 0; height: 100%; transition: all 0.6s ease-in-out; }
+
+.sign-in-container { left: 0; width: 50%; z-index: 2; }
+.auth-panel-container.right-panel-active .sign-in-container { transform: translateX(100%); }
+.sign-up-container { left: 0; width: 50%; opacity: 0; z-index: 1; }
+.auth-panel-container.right-panel-active .sign-up-container { transform: translateX(100%); opacity: 1; z-index: 5; animation: show 0.6s; }
+@keyframes show { 0%, 49.99% { opacity: 0; z-index: 1; } 50%,100% { opacity: 1; z-index: 5; } }
+
+.overlay-container { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; overflow: hidden; transition: transform 0.6s ease-in-out; z-index: 100; }
+.auth-panel-container.right-panel-active .overlay-container{ transform: translateX(-100%); }
+
+.overlay { background: linear-gradient(135deg, rgba(13,110,253,0.95) 0%, rgba(10,88,202,0.95) 100%); color: #fff; position: relative; left: -100%; height: 100%; width: 200%; transform: translateX(0); transition: transform 0.6s ease-in-out; }
+.auth-panel-container.right-panel-active .overlay { transform: translateX(50%); }
+
+/* Overlay typography */
+.overlay-panel h2 { color: #fff !important; font-size: 1.75rem; margin-bottom: .5rem; }
+.overlay-panel p { color: #ffffff !important; margin-bottom: 1rem; max-width: 380px; }
+
+/* Make sure overlay micro-copy is readable on any background variation */
+.auth-panel-container .overlay-panel h2, .auth-panel-container .overlay-panel p { text-shadow: 0 1px 2px rgba(0,0,0,0.28); }
+
+
+/* Brand/title shown in forms */
+.auth-form-brand { display: flex; align-items: center; justify-content: center; gap: .5rem; margin-bottom: 0.75rem; }
+.auth-form-brand .brand { color: #07203a; text-decoration: none; }
+.auth-form-brand .brand i { color: #0d6efd; transform: translateY(-1px); }
+.auth-form-brand .brand span { font-size: 1rem; font-weight: 700; letter-spacing: 0.6px; }
+@media (max-width: 576px) { .auth-form-brand .brand span { font-size: 0.95rem; } }
+
+/* Make ghost button white on blue overlay */
+.button.ghost { background-color: transparent; border-color: rgba(255,255,255,0.35); color: #fff; }
+.button.ghost:hover { background-color: rgba(255,255,255,0.06); }
+
+.overlay-panel { position: absolute; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 2rem 40px; top: 0; height: 100%; width: 50%; transform: translateX(0); transition: transform 0.6s ease-in-out; }
+.overlay-left { transform: translateX(-20%); align-items: flex-start; text-align: left; }
+.auth-panel-container.right-panel-active .overlay-left { transform: translateX(0); }
+.overlay-right { right: 0; transform: translateX(0); align-items: flex-end; text-align: right; }
+.auth-panel-container.right-panel-active .overlay-right { transform: translateX(20%); }
+/* Form layout */
+form { background: #fff; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 40px; height: 100%; text-align: center; }
+form .input-group { max-width: 520px; width: 100%; margin: 10px 0; position: relative; }
+form .input-group .form-control {
+  background: #f8fbff;
+  color: #07203a;
+  border-radius: 10px;
+  padding: 12px 16px;
+  padding-left: 36px; /* accommodate left icon (reduced) */
+  padding-right: 52px; /* accommodate right toggle when present */
+  border: 1px solid rgba(13,110,253,0.08);
+  min-height: 44px;
+  line-height: 1.35;
+  font-size: 0.98rem;
+  box-sizing: border-box;
+}
+
+form .input-group .form-control::placeholder {
+  color: rgba(7,32,58,0.72); /* stronger contrast for readability */
+}
+
+form .input-group .form-control:focus {
+  outline: none;
+  border-color: #0b5ed7;
+  box-shadow: 0 6px 18px rgba(11,94,215,0.06);
+} 
+form .input-group .input-group-text { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); background: transparent; border: none; width: 36px; justify-content: center; color: rgba(13,110,253,0.92); pointer-events: none; }
+/* Toggle buttons overlay the input so they don't reduce input width */
+form .input-group .input-toggle,
+.input-group > .btn.btn-outline-secondary {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(33,57,154,0.92);
+  z-index: 3;
+}
+.input-group > .btn.btn-outline-secondary { border: 1px solid rgba(13,110,253,0.12); background: rgba(255,255,255,0.9); }
+.input-group .input-toggle i, .input-group > .btn.btn-outline-secondary i { font-size: 1.05rem; }
+
+/* Ensure inputs leave enough space for overlay toggles */
+form .input-group .form-control { padding-right: 48px; }
+
+@media (max-width: 420px) {
+  form .input-group .input-toggle,
+  .input-group > .btn.btn-outline-secondary { right: 6px; height: 32px; width: 32px; }
+  form .input-group .form-control { padding-right: 44px; }
+} 
+input.form-control {
+  background: #fff;
+  color: #07203a;
+  border-radius: 8px;
+  padding: 12px 16px;
+  padding-left: 36px;
+  padding-right: 16px;
+  margin: 8px 0;
+  width: 100%;
+  border: 1px solid rgba(13,110,253,0.04);
+  line-height: 1.35;
+  box-sizing: border-box;
+}
+
+/* Ensure inputs inside input-groups reserve space for right-side toggles so text isn't clipped */
+.input-group .form-control,
+.form .input-group .form-control { padding-right: 56px; }
+
+@media (max-width: 420px) {
+  /* reduce padding slightly on very small screens while keeping text visible */
+  .input-group .form-control,
+  .form .input-group .form-control { padding-right: 48px; }
+}
+
+/* Make form content vertically centered and not stretched */
+.sign-in-container form, .sign-up-container form { justify-content: center; gap: 12px; max-width: 520px; margin: 0 auto; }
+.sign-in-container form h1, .sign-up-container form h1 { margin-bottom: 8px; color: #07203a; font-size: 1.6rem; line-height: 1.1; }
+.sign-in-container form p, .sign-up-container form p { margin-bottom: 12px; color: rgba(7,32,58,0.78); }
+
+/* Ensure clear spacing for actions and helper links */
+form .form-actions { width: 100%; margin-top: 10px; }
+form .small { color: rgba(7,32,58,0.6); }
+
+/* Autofill styles (better contrast when browser autofills fields) */
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
+  -webkit-text-fill-color: #07203a !important;
+  box-shadow: 0 0 0px 1000px #f8fbff inset !important;
+}
+
+/* Auth panel padding for icon-aware inputs */
+.auth-panel-page .floating-group .form-control { padding-left: 52px; }
+
+
+/* Buttons: clear, elevated primary */
+.button { border-radius: 10px; border: none; background: linear-gradient(90deg, #0d6efd 0%, #0b5ed7 100%); color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 12px 36px; letter-spacing: 1px; text-transform: uppercase; transition: transform 80ms ease-in, box-shadow .12s ease; box-shadow: 0 8px 24px rgba(11,94,215,0.12); }
+.button:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(11,94,215,0.14); }
+.button.ghost { background-color: transparent; border: 1px solid rgba(255,255,255,0.18); color: #fff; }
+
+@media (max-width: 768px) {
+  /* Make primary buttons full-width and larger tap areas */
+  .button { width: 100%; padding: 12px 18px; }
+  .input-group .form-control { height: 44px; padding-left: 44px; }
+  .input-group .input-toggle { right: 8px; }
+  .sign-in-container form, .sign-up-container form { padding: 1rem; }
+}
+
+
+
+.input-group .input-group-text { background: transparent; border: none; }
+
+.button { border-radius: 10px; border: 1px solid var(--cool-blue, #0d6efd); background-color: var(--cool-blue, #0d6efd); color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 10px 36px; letter-spacing: 1px; text-transform: uppercase; transition: transform 80ms ease-in, box-shadow .12s ease; box-shadow: 0 8px 20px rgba(13,110,253,0.12); }
+.button:active { transform: scale(0.98); }
+.button.ghost { background-color: transparent; border-color: rgba(255,255,255,0.18); color: #fff; }
+.button.ghost:hover { background-color: rgba(255,255,255,0.06); }
+
+/* Link appearance for blue theme */
+.auth-panel-page a { color: var(--cool-blue, #0d6efd); }
+
+/* Social icons */
+.social-container { margin: 20px 0; }
+.social-container a { border: 1px solid #DDD; border-radius: 50%; display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; margin: 0 5px; }
+
+/* Responsive tweaks */
+@media (max-width: 992px) {
+  .auth-panel-container { width: 880px; max-width: 92%; }
+}
+@media (max-width: 768px) {
+  /* Make panel full-bleed and remove rounded corners on mobile for a native feel */
+  .auth-panel-container { width: 100%; min-height: auto; border-radius: 0; padding: 0 0; overflow: visible !important; }
+  .overlay-container { display: none !important; }
+
+  /* Stack forms vertically and avoid overlapping; use display to ensure only one is visible */
+  .form-container { position: relative; height: auto; }
+  .sign-in-container, .sign-up-container { position: relative; left: 0; width: 100%; transform: none; opacity: 1; visibility: visible; pointer-events: auto; z-index: 2; display: block; }
+
+  /* Default: show sign-in and hide sign-up on mobile */
+  .sign-in-container { display: block; }
+  .sign-up-container { display: none; }
+
+  /* When toggled, swap visibility — this is explicit and avoids transparency bleed-through */
+  .auth-panel-container.right-panel-active .sign-in-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-up-container { display: block; }
+
+  /* Ensure forms size to content rather than 100% height to avoid clipping */
+  .sign-in-container form, .sign-up-container form { padding: 1.25rem; max-width: 100%; height: auto; }
+
+  /* Make page align to top so content can scroll naturally */
+  .auth-panel-page { align-items: flex-start; padding-top: 1.25rem; padding-bottom: calc(2.5rem + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Make the centered auth card fluid and comfortable on small screens */
+  .auth-card { max-width: 100%; width: calc(100% - 2rem); padding: 1rem 1.1rem; margin: 0 auto; border-radius: 10px; }
+  .auth-body-wrapper { padding: 0 0.5rem; }
+
+  /* Extra safe spacing so the last input and CTA remain visible on very small viewports */
+  .sign-up-container form { padding-bottom: calc(2.5rem + env(safe-area-inset-bottom)); }
+  .sign-up-container .input-group:last-of-type { margin-bottom: 2.5rem; }
+  .sign-up-container .button { margin-bottom: calc(1.25rem + env(safe-area-inset-bottom)); }
+
+  /* Reduce heading sizes and keep brand compact */
+  .sign-in-container form h1, .sign-up-container form h1 { font-size: 1.35rem; margin-bottom: 0.5rem; }
+  .auth-form-brand .brand span { font-size: 0.95rem; }
+
+  /* Larger tappable areas on mobile */
+  .button { width: 100%; padding: 14px 18px; font-size: 1rem; }
+  .form .input-group .form-control { min-height: 48px; font-size: 1rem; }
+  .btn-toggle { right: 8px; height: 40px; width: 40px; }
+
+  /* Reduce margins for tighter mobile layout */
+  .auth-form-brand { margin-bottom: 0.5rem; }
+  .form .input-group { margin: 8px 0; }
+
+  /* Ensure sign-up last fields don't get clipped and have spacing */
+  .sign-up-container .input-group:last-of-type { margin-bottom: 1rem; }
+  .sign-up-container .button { margin-bottom: 1rem; }
+
+  /* Extra small screens tweak */
+  @media (max-width: 420px) {
+    .auth-panel-page { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .auth-panel-container { padding: 0 8px; }
+    .sign-in-container form, .sign-up-container form { padding: 0.85rem 0.75rem 1.75rem; }
+    .button { padding: 12px 14px; }
+  }
+}
+
+/* --- Modernized small form tweaks (glass and motion) --- */
+.auth-inner { padding: 2.25rem; animation: slideUp .5s ease both; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Toggle button for password visibility */
+.btn-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: rgba(33,57,154,0.92); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; }
+
+/* Specific guard for the register form: ensure inputs reserve space for the toggle so typed text and placeholder are never obscured */
+#auth-register-form .input-group { overflow: visible; }
+#auth-register-form .input-group .form-control { padding-right: 84px; text-overflow: clip; }
+#auth-register-form .btn-toggle { right: -6px; width: 44px; height: 44px; border-radius: 8px; background: transparent; }
+
+/* Reduce font-size for confirm field and placeholder so full text is visible without changing layout */
+#auth-register-form #confirmPassword,
+#auth-register-form #register-confirm { font-size: 0.95rem; }
+#auth-register-form .form-control::placeholder { font-size: 0.95rem; }
+
+/* Make sure the toggle exhibits a clear hit area and doesn't obscure content */
+#auth-register-form .btn-toggle i { pointer-events: none; }
+
+@media (max-width: 768px) {
+  #auth-register-form .input-group .form-control { padding-right: 64px; }
+  #auth-register-form .btn-toggle { right: 6px; width: 40px; height: 40px; }
+}
+@media (max-width: 420px) {
+  #auth-register-form .input-group .form-control { padding-right: 52px; }
+  #auth-register-form .btn-toggle { right: 8px; width: 36px; height: 36px; }
+  /* slightly reduce the confirm font on very small screens */
+  #auth-register-form #confirmPassword,
+  #auth-register-form #register-confirm { font-size: 0.92rem; }
+}
+
+
+/* Slightly stronger label styling for clarity */
+.form-label.small { font-size: 0.85rem; color: rgba(7,32,58,0.72); margin-bottom: 6px; font-weight: 500; }
+
+/* Make primary call-to-action bolder and full-width */
+.button { width: 100%; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
+
+/* Improved input grouping for modern look */
+.input-group .input-group-text { background: transparent; border: 1px solid rgba(13,110,253,0.06); border-right: none; padding: 8px 10px; border-radius: 8px 0 0 8px; }
+.input-group .form-control { border-radius: 0 8px 8px 0; border-left: none; }
+
+@media (max-width: 576px) { .auth-inner { padding:1.25rem 1rem; } .auth-card { margin-top: 1rem; } }
+
+/* ===== Auth / Login ===== */
+
+/* Page layout */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.auth-illustration {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 2rem;
+}
+
+.auth-illustration .auth-features {
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.auth-illustration h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.auth-illustration p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.auth-brand {
+  opacity: 0.95;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+/* Card styling */
+.auth-card { /* neutralize legacy wrapper to avoid double container */
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100%;
+  max-width: none;
+}
+
+.auth-body-wrapper { width: 100%; display: block; }
+
+.auth-card .card {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(2,12,27,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-card .card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 34px 70px rgba(2,12,27,0.1);
+}
+
+.auth-card .card-body {
+  padding: 2.5rem;
+  line-height: 1.6;
+}
+
+/* Wider forgot-password card */
+.forgot-card { max-width: 760px; margin: 2rem auto; }
+.forgot-card .card { border-radius: 1rem; }
+.forgot-card .card-body { padding: 2.75rem; }
+
+@media (min-width: 992px) {
+  .forgot-card { max-width: 820px; }
+  .forgot-card .card-body { padding: 3rem; }
+}
+
+/* Ensure input-group icons sit inside inputs on main pages */
+.input-group { position: relative; }
+.input-group .input-group-text { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; width: 36px; justify-content: center; color: rgba(13,110,253,0.85); pointer-events: none; }
+.input-group .form-control { padding-left: 36px; padding-right: 48px; box-sizing: border-box; }
+
+/* Inline toggle buttons used on non-auth pages */
+.input-group > .btn.btn-outline-secondary { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 36px; width: 36px; padding: 0.35rem; display:flex; align-items:center; justify-content:center; z-index:3; border: 1px solid rgba(13,110,253,0.12); background: rgba(255,255,255,0.9); }
+.input-group > .btn.btn-outline-secondary i { font-size: 1rem; }
+
+@media (max-width: 420px) {
+  .input-group > .btn.btn-outline-secondary { right: 6px; height: 32px; width: 32px; }
+}
+
+/* Improve placeholder contrast on main auth pages */
+.auth-card .form-control::placeholder { color: rgba(7,32,58,0.72); }
+
+/* Floating / icon-aware layout */
+.floating-group { position: relative; }
+.floating-group .form-control { padding-left: 44px; }
+
+/* Auth panel specific nudges */
+.auth-panel-page .floating-group .form-control { padding-left: 44px; }
+
+
+
+/* Typography */
+.auth-card h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.auth-card p {
+  font-size: 1rem;
+  color: #495057;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs and controls */
+.auth-card .form-label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #07203a;
+}
+
+.auth-card .form-control {
+  border-radius: 0.85rem;
+  padding: 0.95rem 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #f7fbff;
+  color: #07203a;
+  border: 1px solid rgba(11,94,215,0.08);
+}
+
+.auth-card .form-control::placeholder { color: rgba(7,32,58,0.64); }
+
+.auth-card .form-control:focus {
+  border-color: #0b5ed7;
+  box-shadow: 0 6px 24px rgba(11,94,215,0.06);
+}
+
+.auth-card .btn-primary {
+  padding: 0.95rem 1.25rem;
+  font-weight: 700;
+  border-radius: 0.85rem;
+  letter-spacing: 0.4px;
+  transition: all 0.2s ease;
+  background: linear-gradient(90deg,#0d6efd,#0b5ed7);
+  border: none;
+  box-shadow: 0 10px 24px rgba(11,94,215,0.12);
+}
+
+.auth-card .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(11,94,215,0.14);
+}
+
+/* Mobile: make buttons full-width and increase tap targets */
+@media (max-width: 768px) {
+  .auth-card .btn-primary { width: 100%; padding: 12px; font-size: 1rem; }
+  .auth-card .card-body { padding: 1.25rem; }
+  .auth-card h1 { font-size: 1.5rem; }
+  .auth-card p { font-size: 0.95rem; }
+  .auth-card .form-control { font-size: 0.95rem; padding: 0.85rem 0.95rem; }
+}
+
+
+.auth-card .alert {
+  border-radius: 0.65rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+}
+
+/* Spacing */
+.card .mb-3 { margin-bottom: 1.25rem; }
+
+/* Desktop two-column layout */
+@media (min-width: 992px) {
+  .auth-illustration { padding: 4rem 3rem; min-height: 70vh; }
+  .auth-card { max-width: 720px; }
+  .auth-card .card-body { padding: 3rem; }
+}
+
+/* Extra large screens */
+@media (min-width: 1200px) {
+  .auth-illustration { padding: 5rem 4rem; }
+  .auth-card { max-width: 760px; }
+}
+
+/* Small niceties for reCAPTCHA */
+.g-recaptcha { display: inline-block; }
+.g-recaptcha + noscript { display: block; margin-top: 0.5rem; }
+
+
+/* Input group spacing */
+.input-group-text {
+  background-color: #f1f3f5;
+  border-radius: 0.5rem 0 0 0.5rem;
+  border-right: 0;
+}
+
+.input-group .form-control {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+#togglePassword {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* Card padding on mobile */
+@media (max-width: 767px) {
+  .auth-card .card-body {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* Button hover */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  transition: all 0.2s ease;
+}
+
+/* Alerts spacing */
+.alert {
+  margin-bottom: 1.5rem;
+}
+
+/* =====================
+   Strong responsive overrides
+   Ensures auth container is consistent and mobile-safe
+   ===================== */
+
+/* Prevent horizontal overflow for auth pages */
+html, body, .auth-panel-page { overflow-x: hidden; }
+
+/* Keep auth container consistent across login/register */
+.auth-panel-container { box-sizing: border-box; width: 100%; max-width: 920px; margin: 0 auto; }
+
+/* =====================
+   Device-specific breakpoints
+   ===================== */
+
+/* Desktop (>=1200px): generous spacing and larger headings */
+@media (min-width: 1200px) {
+  .auth-panel-container { --auth-min-height: 700px; }
+  .auth-card { padding: 1.5rem 2rem; }
+  .auth-card h1 { font-size: 1.8rem; }
+  .auth-card p { font-size: 1rem; }
+}
+
+/* Laptop (>=992px and <1200px): slightly reduced spacing to avoid clipping */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .auth-panel-container { --auth-min-height: 620px; max-width: 840px; }
+  .auth-card { padding: 1.25rem 1.5rem; }
+  .auth-card h1 { font-size: 1.6rem; }
+}
+
+/* Tablet (>=768 and <992): stack and increase vertical flow */
+@media (min-width: 768px) and (max-width: 991px) {
+  .auth-panel-container { --auth-min-height: 560px; max-width: 720px; }
+  .auth-card { padding: 1rem 1.25rem; }
+  .auth-card h1 { font-size: 1.5rem; }
+  .auth-panel-page { padding-top: 1.2rem; padding-bottom: 1.2rem; }
+}
+
+/* Mobile (<=767px): full-width card, large tappable controls, smooth scrolling */
+@media (max-width: 767px) {
+  .auth-panel-container { width: 100%; min-height: auto; border-radius: 0; padding: 0 0; }
+  .auth-card { width: calc(100% - 1.5rem); padding: 1rem; border-radius: 10px; }
+  .auth-card h1 { font-size: 1.35rem; }
+  .button { width: 100%; padding: 14px 16px; font-size: 1rem; }
+  .form .input-group .form-control { font-size: 1rem; min-height: 48px; }
+
+  /* sticky CTA for very short viewports to keep submit reachable */
+  @media (max-height: 540px) {
+    .sign-in-container form, .sign-up-container form { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+    .sign-in-container .d-grid, .sign-up-container .d-grid { position: sticky; bottom: env(safe-area-inset-bottom, 8px); z-index: 20; background: linear-gradient(transparent, rgba(255,255,255,0.98)); padding-top: 8px; }
+    .sign-in-container .d-grid .button, .sign-up-container .d-grid .button { box-shadow: 0 -8px 30px rgba(0,0,0,0.06); }
+  }
+}
+
+/* Short-height viewports (applies regardless of width) -- fixes overlapping content like at 800×500 */
+@media (max-height: 600px) {
+  /* Ensure forms get extra bottom padding so CTAs are reachable */
+  .sign-in-container form, .sign-up-container form { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+
+  /* Make CTA visible and reachable: fixed centered container with subtle backdrop */
+  .sign-in-container .d-grid, .sign-up-container .d-grid {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: env(safe-area-inset-bottom, 12px);
+    max-width: 760px;
+    margin: 0 auto;
+    z-index: 1200;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.98);
+    box-shadow: 0 -12px 40px rgba(0,0,0,0.08);
+    border-radius: 12px;
+  }
+  .sign-in-container .d-grid .button, .sign-up-container .d-grid .button { width: 100%; }
+
+  /* Slightly reduce card top margin to bring content higher on short screens */
+  .auth-card { margin-top: 0.6rem; }
+
+  /* Maintain scrollability */
+  .auth-panel-page { overflow-y: auto; -webkit-overflow-scrolling: touch; align-items: flex-start; }
+}
+
+/* Special-case for mid-width short-height screens (e.g., 800×500): prevent overlay artifacts and ensure elements occupy full width */
+@media (max-width: 820px) and (max-height: 520px) {
+  /* Avoid absolute positioned containers causing overlap */
+  .form-container { position: relative !important; height: auto !important; }
+  form { height: auto !important; }
+
+  /* Make auth card compact and higher on the page */
+  .auth-card { width: calc(100% - 2rem); padding: 0.85rem 1rem; margin-top: 0.4rem; }
+
+  /* Inputs should be full-width and not overflow */
+  form .input-group { max-width: 100%; width: 100%; margin: 6px 0; }
+  form .input-group .form-control { padding-right: 72px; }
+
+  /* Reduce vertical spacing around headings */
+  .auth-inner .text-center.mb-4 { margin-bottom: 0.75rem; }
+
+  /* Ensure the CTA is visible; use sticky region if needed */
+  .sign-in-container .d-grid, .sign-up-container .d-grid { position: sticky; bottom: env(safe-area-inset-bottom, 10px); }
+}
+
+/* Tiny screens (<=360px): compact font sizes and reduced gaps */
+@media (max-width: 360px) {
+  .auth-card { width: calc(100% - 1rem); padding: 0.75rem; }
+  .auth-card h1 { font-size: 1.15rem; }
+  .form .input-group .form-control { font-size: 0.95rem; padding-left: 40px; padding-right: 56px; }
+  .btn-toggle { width: 34px; height: 34px; right: 6px; }
+}
+
+/* Accessibility improvements: larger tap targets, contrast, and focus styles */
+.auth-card .form-label { font-weight: 700; font-size: 0.98rem; color: #0b2337; }
+.auth-card .small, .auth-card p { color: #223147; font-size: 0.97rem; }
+.auth-card .form-control { color: #07203a; font-size: 1rem; }
+
+/* Focus-visible outlines for keyboard users */
+.form-control:focus-visible, .button:focus-visible, .btn-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(13,110,253,0.12);
+  border-color: #0b5ed7;
+}
+
+/* Ensure form inputs inside the auth card reserve space and are readable on all breakpoints */
+.auth-card form .input-group .form-control { padding-right: 64px; }
+@media (max-width: 768px) {
+  .auth-card form .input-group .form-control { padding-right: 56px; }
+}
+@media (max-width: 420px) {
+  .auth-card form .input-group .form-control { padding-right: 48px; }
+}
+
+/* Make toggle buttons slightly offset so they don't overlap text */
+.auth-card form .btn-toggle { right: 6px; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.85); }
+.auth-card form .btn-toggle i { pointer-events: none; }
+
+/* Tablet-specific polish (768–991px): tighten spacing and font sizes slightly */
+@media (min-width: 768px) and (max-width: 991px) {
+  .auth-card { padding: 0.9rem 1rem; }
+  .auth-card h1 { font-size: 1.45rem; }
+  .auth-inner .text-center.mb-4 { margin-bottom: 0.6rem; }
+  form .input-group .form-control { font-size: 0.98rem; }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+
+
+/* Mobile-specific: stack panels & hide overlay to avoid overlap/scroll */
+@media (max-width: 768px) {
+  .auth-panel-container { width: 100%; padding: 0; min-height: var(--auth-min-height, 560px); border-radius: 0; }
+  .overlay-container { display: none !important; }
+
+  /* Use display to make only the active panel present in the flow */
+  .sign-in-container, .sign-up-container { position: relative; transform: none !important; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; width: 100%; display: block; }
+  .sign-in-container { display: block; }
+  .sign-up-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-in-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-up-container { display: block; }
+
+  /* Larger tap targets and tighter spacing */
+  .button { padding: 14px 18px; font-size: 1rem; }
+  form .input-group { margin: 8px 0; }
+  form .input-group .form-control { min-height: 48px; }
+}

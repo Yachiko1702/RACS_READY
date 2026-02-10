@@ -1,0 +1,224 @@
+/* ===== COLOR SYSTEM ===== */
+:root {
+  --blue-dark: #1a3d5d;
+  --blue-mid: #60c4ff;
+  --blue-ice: #c3f0ff;
+  --blue-soft: #e0f7ff;
+  --white-soft: rgba(255, 255, 255, 0.95);
+}
+
+/* ===== SERVICES POSTER SECTION ===== */
+.services-poster {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: clamp(2rem, 5vw, 5rem);
+  box-sizing: border-box;
+
+  background-image: url("/images/servicesbg/sect4.avif");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* Overlay for contrast */
+.services-poster::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 22, 33, 0.4); /* subtle dark overlay */
+}
+
+/* LEFT DETAILS PANEL */
+.poster-panel {
+  position: relative;
+  z-index: 2; /* above overlay */
+  max-width: 550px;
+  padding: clamp(2rem, 4vw, 3.5rem);
+  border-radius: 20px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.25),
+    rgba(255, 255, 255, 0.12)
+  );
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+
+  color: var(--white-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Accent stripe */
+.poster-panel::before {
+  content: "";
+  position: absolute;
+  top: 32px;
+  left: 0;
+  width: 6px;
+  height: 70px;
+  background: linear-gradient(
+    180deg,
+    var(--blue-ice),
+    var(--blue-mid)
+  );
+  box-shadow: 0 0 18px rgba(195, 240, 255, 0.8);
+  border-radius: 0 6px 6px 0;
+}
+
+/* TYPOGRAPHY */
+.poster-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--blue-dark);
+}
+
+.poster-subtitle {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--white-soft);
+}
+
+.poster-desc {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--white-soft);
+}
+
+/* SERVICES LIST */
+.poster-services {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1.6rem;
+}
+
+.poster-services li {
+  position: relative;
+  padding-left: 1.6rem;
+  color: var(--white-soft);
+  font-size: 0.95rem;
+}
+
+/* Icy bullet */
+.poster-services li::before {
+  content: "❄";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--blue-ice);
+  font-size: 0.9rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .services-poster {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+
+  .poster-panel {
+    max-width: 100%;
+  }
+
+  .poster-services {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ===== Repair Services Section ===== */
+.repair-services {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5rem 2rem;
+  overflow: hidden;
+}
+
+
+/* Background Image with Overlay */
+.repair-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/background/ok.png');
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+.repair-card {
+  background: rgba(48, 96, 252, 0.877); /* icy light blue */
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 1px solid rgba(79, 209, 255, 0.3); /* subtle blue border */
+  box-shadow: 0 10px 30px rgba(79, 209, 255, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+  cursor: pointer;
+}
+
+.repair-card:hover {
+  transform: translateY(-10px) scale(1.03);
+  box-shadow: 0 25px 50px rgba(79, 209, 255, 0.5), 0 0 15px rgba(79, 209, 255, 0.4) inset;
+  border: 1px solid rgba(79, 209, 255, 0.6);
+}
+.repair-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: linear-gradient(120deg, rgba(79,209,255,0.2), rgba(255,255,255,0.1), rgba(79,209,255,0.2));
+  transform: rotate(45deg) translateX(-100%);
+  transition: transform 2s ease-in-out;
+  pointer-events: none;
+}
+
+.repair-card:hover::before {
+  transform: rotate(45deg) translateX(100%);
+}
+
+
+.repair-icon i {
+  color: #4fd1ff; /* icy light blue */
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: #0e3a5a; /* deep blue for strong contrast */
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #0e3a5a; /* soft light blue for subtitle */
+}
+
+/* Make content above overlay */
+.z-2 {
+  position: relative;
+  z-index: 2;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .repair-card {
+    padding: 2rem 1.5rem;
+  }
+}

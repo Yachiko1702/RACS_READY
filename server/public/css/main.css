@@ -1,0 +1,332 @@
+body {
+  font-family: 'Avenir', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+
+
+.navbar-brand {
+  letter-spacing: 0.5px;
+}
+
+section {
+  scroll-margin-top: 80px;
+}
+
+/* Navbar links */
+.navbar-nav .nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  transition: color 0.3s ease;
+  padding-bottom: 8px;
+}
+
+.navbar-nav .nav-link::after {
+  content: '';
+  position: absolute;
+  left: var(--bs-nav-link-padding-x, 0);
+  right: var(--bs-nav-link-padding-x, 0);
+  height: 2px;
+  bottom: 0;
+  background: linear-gradient(90deg, #0d6efd, #0a58ca);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 2px;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #0d6efd;
+}
+
+.navbar-nav .nav-link:hover::after,
+.navbar-nav .nav-link.active::after {
+  transform: scaleX(1);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .navbar-nav .nav-link:hover::after {
+    transform: scaleX(0);
+  }
+}
+
+@media (max-width: 991.98px) {
+  .navbar .btn.btn-primary {
+    margin-top: 0.75rem;
+  }
+}
+
+/* Service cards */
+.service-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Section fade-up on scroll */
+section.animate-on-load {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: sectionFadeUp 0.7s forwards;
+}
+
+@keyframes sectionFadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+/* Container styling */
+#section2Carousel {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  transform: translateZ(0); /* GPU acceleration */
+}
+
+/* Images stable and same height */
+#section2Carousel .carousel-item img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  display: block;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+@media (min-width: 992px) {
+  #section2Carousel .carousel-item img {
+    height: 420px;
+  }
+}
+
+#section2Carousel .carousel-item {
+  backface-visibility: hidden;
+  transform: translate3d(0,0,0);
+}
+
+#section2Carousel .carousel-inner {
+  overflow: hidden;
+}
+
+
+#section2Carousel .carousel-item-next,
+#section2Carousel .carousel-item-prev,
+#section2Carousel .carousel-item.active {
+  opacity: 1 !important;
+}
+
+/* Prevent AOS scroll fade from affecting carousel slide */
+[data-aos] #section2Carousel {
+  transform: translateZ(0);
+}
+
+
+#section2Carousel [data-aos] {
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+
+
+.hero-blob {
+  background:
+    linear-gradient(
+      to right,
+      rgba(13, 110, 253, 0.100) 0%,
+      rgba(13, 110, 253, 0.30) 30%,
+      rgba(13, 110, 253, 0.10) 60%
+    ),
+    url('/images/background/ok.png') center / cover no-repeat;
+
+  overflow: hidden;
+}
+
+
+/* Badge */
+.hero-badge {
+  background: linear-gradient(90deg, #0d6efd, #0a58ca);
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+}
+
+/* Wrapper fills full column height */
+.blob-wrapper {
+  min-height: 520px;
+}
+
+/* Blob fills entire right side */
+.blob-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: url('/images/background/effbg.jfif') center / cover no-repeat;
+  border-radius: 60% 40% 45% 55% / 55% 45% 55% 45%;
+  box-shadow: 0 40px 70px rgba(1, 12, 27, 0.25);
+  transition: transform 0.6s ease;
+}
+
+
+
+/* Hover (desktop only) */
+@media (min-width: 992px) {
+  .blob-image:hover {
+    transform: scale(1.03);
+  }
+}
+
+/* Mobile fallback */
+@media (max-width: 991px) {
+  .blob-wrapper {
+    min-height: 300px;
+    margin-top: 2rem;
+  }
+
+  .blob-image {
+    position: relative;                             
+    border-radius: 40% 60% 55% 45% / 55% 45% 55% 45%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .blob-image {
+    right: -40px;
+  }
+}
+
+
+/* ===== AIRCON BRAND PALETTE ===== */
+:root {
+  --cool-blue: #0d6efd;
+  --ice-blue: #eaf2ff;
+  --frost: #f6faff;
+  --steel: #6c757d;
+}
+
+/* ===== SECTION BACKGROUNDS ===== */
+.bg-aircon {
+  background: linear-gradient(180deg, #eef5ff 0%, #ffffff 100%);
+}
+
+.bg-repair {
+  background: linear-gradient(180deg, #f8f9fb 0%, #eef2f6 100%);
+}
+/* ===== SECTION DIVIDER ===== */
+.section-divider {
+  position: relative;
+  text-align: center;
+  margin: 5rem 0;
+}
+
+.section-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(13,110,253,.4),
+    transparent
+  );
+}
+
+.section-divider span {
+  background: #fff;
+  padding: 0 1.25rem;
+  font-size: 1.5rem;
+  color: var(--cool-blue);
+}
+
+/* Section Titles */
+.section-title {
+  font-size: 2.5rem;   
+  font-weight: 700;             
+  text-transform: uppercase;    
+  letter-spacing: 1px;          
+  position: relative;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+/* Removed pseudo-underline to keep headings clean */
+.section-title::after {
+  content: none;
+}
+
+/* Section Subtitle */
+.section-subtitle {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #555;           
+  line-height: 1.6;
+  max-width: 600px;       
+  margin: 0 auto;
+  letter-spacing: 0.5px;
+}
+
+/* Optional: Add soft fade-up animation for headings */
+.section-title, .section-subtitle {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== CTA (reusable) ===== */
+.cta-hero .btn-cta {
+  box-shadow: 0 8px 24px rgba(13,110,253,0.18);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cta-hero .btn-cta:active {
+  transform: translateY(1px) scale(.995);
+}
+
+.cta-hero .btn-cta:focus {
+  outline: 3px solid rgba(13,110,253,0.12);
+  outline-offset: 3px;
+}
+
+.cta-hero .btn-primary.btn-lg {
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+}
+
+.cta-hero .btn-outline-primary.text-black {
+  background: transparent;
+  border-color: rgba(13,110,253,0.12);
+}
+
+.cta-hero .cta-meta { color: #556; font-size: 0.90rem; }
+.cta-hero .cta-meta i { opacity: .95; }
+
+@media (max-width: 575.98px) {
+  .cta-hero .btn-cta {
+    width: 100%;
+    justify-content: center;
+  }
+  .cta-hero .d-flex { gap: 0.6rem; }
+}
+
