@@ -2,6 +2,9 @@
   "name": "capstone_proj",
   "version": "1.0.0",
   "main": "index.js",
+    "engines": {
+    "node": "20.x"
+  },
   "directories": {
     "doc": "docs",
     "test": "tests"
