@@ -6,20 +6,25 @@
   <title><%= title %></title>
 
   <!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+ <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   
   <!-- AOS Animation (optional) -->
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link href="/vendor/aos/aos.css" rel="stylesheet">
+  <script src="/vendor/aos/aos.js"></script>
 
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/fonts/fonts.css">
+  <link rel="stylesheet" href="/css/auth/auth.css">
 
   <!-- Optional per-page auth styles -->
   <% if (typeof extraStyles !== 'undefined' && extraStyles) { %>
@@ -28,10 +33,7 @@
     <% }) %>
   <% } %>
 
-  <!-- reCAPTCHA script (sitekey required per-page) -->
-  <% if (recaptchaSiteKey) { %>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-  <% } %>
+
 
   <!-- SweetAlert2 for polished alerts -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -87,24 +89,34 @@
     .auth-features li i { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); border-radius: 6px; padding: 6px; margin-right: 8px; }
     .auth-illustration h2 { color: #fff; }
     .auth-illustration p { color: rgba(255,255,255,0.9); }
+
+    /* reCAPTCHA badge styling */
+    .grecaptcha-badge {
+      bottom: 10px !important;
+      right: 10px !important;
+      width: 70px !important;
+      height: 60px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      border-radius: 4px !important;
+    }
   </style>
 </head>
 <body>
 
-  <main class="auth-page">
-    <div class="container">
-      <div class="row g-0 align-items-center">
+  <main class="auth-page <%= typeof active !== 'undefined' ? 'auth-panel-layout' : '' %>" data-aos="fade-up" data-aos-duration="800">
+    <div class="container <%= typeof active !== 'undefined' ? 'p-0 m-0 auth-panel-shell' : '' %>">
+      <div class="row g-0 align-items-center <%= typeof active !== 'undefined' ? 'm-0' : '' %>">
 
 
         <!-- Centered form column (full width) -->
-        <div class="col-12 d-flex align-items-center justify-content-center p-5">
+        <div class="col-12 d-flex align-items-center justify-content-center <%= typeof active !== 'undefined' ? 'p-0 auth-panel-col' : 'p-5' %>">
           <div class="auth-body-wrapper w-100 d-flex align-items-center justify-content-center">
-            <div class="auth-card mx-auto" style="max-width:720px; width:100%;">
+            <div class="auth-card mx-auto">
               <div class="text-center mb-3 d-lg-none">
-                <a href="/" class="text-decoration-none brand text-dark fw-bold d-inline-flex align-items-center">
+                <span class="text-decoration-none brand text-dark fw-bold d-inline-flex align-items-center" aria-disabled="true" tabindex="-1">
                   <i class="bi bi-snow2 fs-4 text-primary me-2" aria-hidden="true"></i>
                   <span class="visually-hidden">CALIDRO RACS</span>
-                </a>
+                </span>
               </div>
 
               <%- body %>
@@ -118,8 +130,35 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- GSAP animation library -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
   <script src="/js/animations.js"></script>
+  <script>
+    window.recaptchaSiteKey = "<%= (typeof recaptchaSiteKey !== 'undefined' && recaptchaSiteKey) ? recaptchaSiteKey : '' %>";
+  </script>
+
+  <!-- initialize AOS (mirrors inline layout scripts on admin pages) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.AOS && typeof AOS.init === 'function') {
+        AOS.init({
+          duration: 800,
+          easing: 'ease-in-out',
+          once: true,
+        });
+      }
+    });
+  </script>
   <script src="/js/auth-common.js"></script>
+  <% if (typeof recaptchaSiteKey !== 'undefined' && recaptchaSiteKey) { %>
+    <script src="https://www.google.com/recaptcha/api.js?onload=initRecaptcha&render=explicit" async defer></script>
+  <% } else { %>
+    <style>.grecaptcha-badge{display:none!important;}</style>
+  <% } %>
+
+  <!-- PSGC Address Data and Handler -->
+  <script src="/js/psgc-data.js"></script>
+  <script src="/js/psgc-handler.js"></script>
 
   <!-- Optional per-page auth scripts -->
   <% if (typeof extraScripts !== 'undefined' && extraScripts) { %>

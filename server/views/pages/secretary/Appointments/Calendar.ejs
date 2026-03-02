@@ -1,0 +1,988 @@
+<div class="admin-dashboard container-fluid px-0 py-4 appointments-calendar">
+  <%- include('../../../partials/dashboard-styles') %>
+  <link
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    /* Appointments calendar — polished admin look */
+    .appointments-calendar {
+      --card-radius: 12px;
+    }
+    .appointments-calendar .main-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .appointments-calendar aside {
+      width: 100%;
+      min-width: 0;
+    }
+    .appointments-calendar .calendar-panel {
+      /* remains flex or block */
+    }
+
+    .mini-panel {
+      background: #fff;
+      border-radius: var(--card-radius);
+      padding: 12px;
+      box-shadow: 0 8px 30px rgba(2, 6, 23, 0.04);
+      border: 1px solid rgba(2, 6, 23, 0.04);
+    }
+    .mini-panel .cal-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .calendars-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cal-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+    .cal-item input {
+      margin-right: 6px;
+    }
+    .cal-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #fff;
+    }
+    .cal-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .cal-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .calendar-panel .card {
+      border-radius: var(--card-radius);
+      padding: 12px;
+      box-shadow: 0 8px 30px rgba(2, 6, 23, 0.04);
+      border: 1px solid rgba(2, 6, 23, 0.04);
+      background: #fff;
+    }
+    .calendar-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .view-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Event preview style used by FullCalendar content renderer */
+    .fc-event-custom {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      color: var(--text-primary);
+    }
+    .fc-event-custom .ev-time {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+    .fc-event-custom .ev-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .fc-avatars {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .ev-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(2, 6, 23, 0.12);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 991px) {
+      .appointments-calendar .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-calendar4-week me-2"></i>Bookings Calendar
+        </h1>
+        <p class="hero-sub">
+          Comprehensive, interactive calendar with per-technician views and
+          quick filters.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- calendar controls below header -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <button id="calToggleWeek" class="btn btn-outline-secondary">Today</button>
+    <div class="btn-group btn-group-sm" role="group" aria-label="views">
+      <button id="btn-day" class="btn btn-outline-secondary">Day</button>
+      <button id="btn-week" class="btn btn-outline-secondary">Week</button>
+      <button id="btn-month" class="btn btn-outline-secondary active">
+        Month
+      </button>
+    </div>
+    <button id="btn-add-event" class="btn btn-primary ms-auto">
+      <i class="bi bi-plus-lg me-1"></i>New
+    </button>
+  </div>
+
+  <div class="main-grid">
+    <section class="calendar-panel">
+      <div class="calendar-controls">
+        <div class="view-actions">
+          <div class="ms-2 text-muted small" id="calendarRange">&nbsp;</div>
+        </div>
+        <div>
+          <div id="calendarToolbar"></div>
+        </div>
+      </div>
+
+      <div id="fullCalendar"></div>
+    </section>
+  </div>
+
+  <!-- Event detail modal -->
+  <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="eventModalLabel">Appointment details</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body" id="eventModalBody">Loading…</div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            id="modalEditBtn"
+          >
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Availability modal (admin) -->
+  <div
+    class="modal fade"
+    id="availabilityModal"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            Configure availability for <span id="availabilityDateLabel"></span>
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="dayOffToggle" />
+            <label class="form-check-label" for="dayOffToggle"
+              >Mark as non-working day (full day)</label
+            >
+          </div>
+
+          <div id="timeslotOverridesList" class="mb-3">Loading…</div>
+
+          <form id="addTimeslotForm" class="row g-2">
+            <div class="col-5">
+              <input
+                id="tsStart"
+                type="time"
+                class="form-control form-control-sm"
+                required
+              />
+            </div>
+            <div class="col-5">
+              <input
+                id="tsEnd"
+                type="time"
+                class="form-control form-control-sm"
+              />
+            </div>
+            <div class="col-12">
+              <select id="tsStatus" class="form-select form-select-sm">
+                <option value="blocked">Blocked</option>
+                <option value="available">Available</option>
+              </select>
+            </div>
+            <div class="col-12 text-end">
+              <button id="addTimeslotBtn" class="btn btn-sm btn-primary">
+                Add slot
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      // helpers
+      const randColor = (i) =>
+        ["#7c3aed", "#06b6d4", "#ef4444", "#f59e0b", "#10b981", "#3b82f6"][
+          i % 6
+        ];
+      const el = (id) => document.getElementById(id);
+
+      // load staff/calendars
+      let calendars = [];
+      try {
+        const r = await fetch("/api/admin/staff", {
+          credentials: "same-origin",
+        });
+        if (r.ok) {
+          const json = await r.json();
+          calendars = (json.staff || []).map((s, i) => ({
+            id: s._id || "t" + i,
+            name: (s.firstName || "") + " " + (s.lastName || s.email || ""),
+            color: randColor(i),
+            checked: true,
+          }));
+        } else {
+          console.warn("Failed to load staff for calendars", r.status);
+        }
+      } catch (e) {
+        calendars = [
+          { id: "staff-1", name: "Jenny", color: "#7c3aed", checked: true },
+          { id: "staff-2", name: "Mark", color: "#06b6d4", checked: true },
+        ];
+      }
+
+      // render calendars list
+      const list = el("calendarsList");
+      calendars.forEach((c) => {
+        const item = document.createElement("label");
+        item.className = "cal-item";
+        item.innerHTML = `<input type="checkbox" data-id="${c.id}" ${c.checked ? "checked" : ""}><span class="cal-avatar" style="background:${c.color}">${(c.name || "")[0] || "U"}</span><div style="flex:1"><div class="cal-name">${c.name}</div><div class="cal-meta">Technician</div></div>`;
+        list.appendChild(item);
+        item.querySelector("input").addEventListener("change", () => {
+          renderEvents();
+        });
+      });
+
+      // initialize mini calendar (small FullCalendar instance)
+      const miniCalendarEl = el("miniCalendar");
+      const miniCal = new FullCalendar.Calendar(miniCalendarEl, {
+        initialView: "dayGridMonth",
+        headerToolbar: false,
+        height: 240,
+        selectable: false,
+        events: [],
+        dateClick: function (info) {
+          mainCalendar.gotoDate(info.date);
+        },
+      });
+      miniCal.render();
+
+      // main calendar
+      const fcEl = el("fullCalendar");
+      const mainCalendar = new FullCalendar.Calendar(fcEl, {
+        initialView: "dayGridMonth",
+        headerToolbar: false,
+        height: "auto",
+        selectable: true,
+        // allow clicking a date to configure availability (day-off / timeslots)
+        dateClick: function (info) {
+          openAvailabilityModal(info.date);
+        },
+        dayMaxEventRows: true,
+        eventDisplay: "block",
+        eventClassNames: function (arg) {
+          return ["fc-modern-event"];
+        },
+        eventContent: function (arg) {
+          const timeText = arg.timeText
+            ? `<div class="ev-time">${arg.timeText}</div>`
+            : "";
+          const title = `<div class="ev-title">${arg.event.title}</div>`;
+          let avatars = "";
+          if (arg.event.extendedProps && arg.event.extendedProps.avatars) {
+            avatars = `<div class="fc-avatars">${arg.event.extendedProps.avatars
+              .slice(0, 3)
+              .map((a) => `<img class='ev-avatar' src='${a.src}' alt=''>`)
+              .join(
+                "",
+              )} ${arg.event.extendedProps.avatars.length > 3 ? `<div class='ev-avatar' style='display:inline-flex;align-items:center;justify-content:center;background:#6b7280;color:#fff;font-size:11px'>+${arg.event.extendedProps.avatars.length - 3}</div>` : ""}</div>`;
+          }
+          return {
+            html: `<div class="fc-event-custom" style="background:${arg.event.backgroundColor};color:inherit">${timeText}<div style='flex:1'>${title}${avatars}</div></div>`,
+          };
+        },
+        eventClick: function (info) {
+          const e = info.event.extendedProps;
+          const modalBody = el("eventModalBody");
+          modalBody.innerHTML = `<div><strong>${info.event.title}</strong></div><div class='small text-muted mb-2'>${info.event.start.toLocaleString()}</div><div><strong>Customer:</strong> ${e.customerName || e.customer || "—"}</div><div><strong>Technician:</strong> ${e.technicianName || "—"}</div><div><strong>Service:</strong> ${e.service || "—"}</div><div class='mt-2 small text-muted'>Status: ${e.status || "—"}</div>`;
+          // wire Edit button to open Appointments -> Reschedule (preselect by id)
+          const editBtn = el("modalEditBtn");
+          if (editBtn) {
+            editBtn.onclick = function () {
+              location.href =
+                "/admin/appointments?sel=" + encodeURIComponent(info.event.id);
+            };
+          }
+          const modal = new bootstrap.Modal(
+            document.getElementById("eventModal"),
+          );
+          modal.show();
+        },
+      });
+      mainCalendar.render();
+
+      // navigation buttons
+      el("prevBtn").addEventListener("click", () => mainCalendar.prev());
+      el("nextBtn").addEventListener("click", () => mainCalendar.next());
+      el("btn-day").addEventListener("click", () =>
+        mainCalendar.changeView("timeGridDay"),
+      );
+      el("btn-week").addEventListener("click", () =>
+        mainCalendar.changeView("timeGridWeek"),
+      );
+      el("btn-month").addEventListener("click", () =>
+        mainCalendar.changeView("dayGridMonth"),
+      );
+      el("btn-add-event").addEventListener(
+        "click",
+        () => (location.href = "/admin/appointments/reschedule"),
+      );
+
+      // calendar toolbar actions (Add Holiday / Schedule / Regenerate)
+      const toolbar = el("calendarToolbar");
+      if (toolbar) {
+        toolbar.innerHTML = `<div class="btn-group btn-group-sm" role="group"><button id="btn-add-holiday" class="btn btn-outline-secondary">+ Add Holiday</button><button id="btn-manage-sched" class="btn btn-outline-secondary">Manage Schedule</button><button id="btn-regenerate-slots" class="btn btn-outline-secondary">Regenerate Slots</button></div>`;
+        document
+          .getElementById("btn-add-holiday")
+          .addEventListener("click", async () => {
+            const d = prompt("Enter holiday date (YYYY-MM-DD)");
+            if (!d) return;
+            const note = prompt("Optional note");
+            try {
+              const r = await fetch("/api/admin/dayoffs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date: d, note }),
+              });
+              if (r.ok) {
+                window.notify.success("Holiday added");
+                await loadEvents();
+              } else {
+                const t = await r.text();
+                window.notify.error("Failed: " + t);
+              }
+            } catch (e) {
+              window.notify.error("Failed to add holiday");
+            }
+          });
+        document
+          .getElementById("btn-manage-sched")
+          .addEventListener(
+            "click",
+            () => (location.href = "/admin/technicians/scheduling"),
+          );
+        document
+          .getElementById("btn-regenerate-slots")
+          .addEventListener("click", async () => {
+            const days =
+              parseInt(
+                prompt("Generate slots for how many days? (default 60)", "60"),
+                10,
+              ) || 60;
+            if (
+              !confirm(
+                `Regenerate slots for the next ${days} days? Existing booked slots will not be overwritten.`,
+              )
+            )
+              return;
+            try {
+              const r = await fetch("/api/admin/timeslots/regenerate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ days }),
+              });
+              if (r.ok) {
+                const j = await r.json();
+                window.notify.success(
+                  "Regenerated — created: " + (j.created || 0),
+                );
+                await loadEvents();
+              } else {
+                const t = await r.text();
+                window.notify.error("Failed: " + t);
+              }
+            } catch (e) {
+              window.notify.error("Regenerate failed");
+            }
+          });
+      }
+
+      // load events (TimeSlot-driven) — TimeSlot is source-of-truth for calendar statuses
+      let allEvents = [];
+      async function loadEvents() {
+        try {
+          // determine visible date range from calendar view
+          const view = mainCalendar.view;
+          const startDate = view.activeStart.toISOString().slice(0, 10);
+          const endDate = new Date(view.activeEnd.getTime() - 1); // view.activeEnd is exclusive
+          const endKey = endDate.toISOString().slice(0, 10);
+
+          // fetch timeslots + day-offs + public holidays + technician schedules for the range
+          const [tsRes, ndRes, phRes, tschedRes] = await Promise.all([
+            fetch(
+              "/api/admin/timeslots?startDate=" +
+                encodeURIComponent(startDate) +
+                "&endDate=" +
+                encodeURIComponent(endKey),
+            ),
+            fetch(
+              "/api/admin/dayoffs?startDate=" +
+                encodeURIComponent(startDate) +
+                "&endDate=" +
+                encodeURIComponent(endKey),
+            ),
+            fetch(
+              "/api/holidays?start=" +
+                encodeURIComponent(startDate) +
+                "&end=" +
+                encodeURIComponent(endKey),
+            ),
+            fetch("/api/admin/technician-schedules"),
+          ]);
+
+          const timeslots = tsRes.ok
+            ? (await tsRes.json()).timeslots || []
+            : [];
+          const dayoffs = ndRes.ok ? (await ndRes.json()).dayoffs || [] : [];
+          const publicHolidays = phRes.ok
+            ? (await phRes.json()).holidays || []
+            : [];
+          const techSchedules = tschedRes.ok
+            ? (await tschedRes.json()).schedules || []
+            : [];
+
+          // group timeslots by date
+          const byDate = {}; // { 'YYYY-MM-DD': { available: [], booked: [], blocked: [] } }
+          timeslots.forEach((ts) => {
+            const d = new Date(ts.date);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            byDate[key] = byDate[key] || {
+              available: [],
+              booked: [],
+              blocked: [],
+            };
+            if (ts.status === "booked") byDate[key].booked.push(ts);
+            else if (ts.status === "available") byDate[key].available.push(ts);
+            else byDate[key].blocked.push(ts);
+          });
+
+          const events = [];
+
+          // 1) booked events (render at their times)
+          timeslots
+            .filter((t) => t.status === "booked")
+            .forEach((ts, idx) => {
+              const d = new Date(ts.date);
+              d.setHours(0, 0, 0, 0);
+              const hh = Math.floor((ts.startMinutes || 0) / 60);
+              const mm = (ts.startMinutes || 0) % 60;
+              const start = new Date(d);
+              start.setHours(hh, mm, 0, 0);
+              const tech =
+                calendars.find((c) => c.id === (ts.technician || "")) ||
+                calendars[idx % Math.max(1, calendars.length)];
+              events.push({
+                id: ts._id || "tsb" + idx,
+                title:
+                  ts.meta && ts.meta.customerName
+                    ? ts.meta.customerName + " — Booked"
+                    : "Booked",
+                start: start.toISOString(),
+                backgroundColor: "#ef4444",
+                borderColor: "#ef4444",
+                extendedProps: Object.assign(
+                  { status: "booked", timeslot: ts },
+                  ts.meta || {},
+                ),
+              });
+            });
+
+          // 2) available indicator (all-day) when there is at least one available slot on that date
+          Object.keys(byDate).forEach((key) => {
+            const info = byDate[key];
+            if ((info.available || []).length > 0) {
+              const techs = Array.from(
+                new Set(
+                  (info.available || [])
+                    .map((t) => t.technician || "")
+                    .filter(Boolean),
+                ),
+              );
+              events.push({
+                id: "avail-" + key,
+                title: "Available",
+                start: key,
+                allDay: true,
+                display: "background",
+                backgroundColor: "#10b981",
+                extendedProps: {
+                  status: "available-day",
+                  availableTechnicians: techs,
+                },
+              });
+            }
+          });
+
+          // 3) server-managed day-offs (background full-day block)
+          dayoffs.forEach((d) => {
+            const key = new Date(d.date).toISOString().slice(0, 10);
+            events.push({
+              id: "dayoff-" + key,
+              title: d.note || "Non-working",
+              start: key,
+              allDay: true,
+              display: "background",
+              backgroundColor: "#6b7280",
+              extendedProps: { status: "dayoff", note: d.note },
+            });
+          });
+
+          // 4) public holidays (from Google Calendar provider) — visible to admin as distinct background events
+          (publicHolidays || []).forEach((h) => {
+            const key = h.date;
+            events.push({
+              id: "public-holiday-" + key,
+              title: h.name || h.summary || "Public holiday",
+              start: key,
+              allDay: true,
+              display: "background",
+              backgroundColor: "#f97316",
+              extendedProps: {
+                status: "public-holiday",
+                name: h.name || h.summary || "",
+              },
+            });
+          });
+
+          // 5) per-technician weekly rest days (background)
+          // - show a background "Rest day" on dates where a technician has no working rule for that weekday
+          // - don't add if there are explicit non-working dayoffs/public holidays/restDates or if timeslots already exist for that tech on the date
+          const dayKeys = [];
+          for (
+            let d = new Date(view.activeStart);
+            d < view.activeEnd;
+            d.setDate(d.getDate() + 1)
+          ) {
+            dayKeys.push(d.toISOString().slice(0, 10));
+          }
+          const dayoffSet = new Set(
+            (dayoffs || []).map((d) =>
+              new Date(d.date).toISOString().slice(0, 10),
+            ),
+          );
+          const publicHolidaySet = new Set(
+            (publicHolidays || []).map((h) => h.date),
+          );
+
+          techSchedules.forEach((sched) => {
+            const techId = String(sched.technicianId || sched.technician || "");
+            const workingDow = new Set(
+              (sched.workingDays || []).map((w) => Number(w.dayOfWeek)),
+            );
+            const restDatesSet = new Set(
+              (sched.restDates || []).map((r) =>
+                new Date(r.date).toISOString().slice(0, 10),
+              ),
+            );
+
+            dayKeys.forEach((key) => {
+              if (
+                dayoffSet.has(key) ||
+                publicHolidaySet.has(key) ||
+                restDatesSet.has(key)
+              )
+                return; // skip global/dayoff/explicit rest
+              const dow = new Date(key).getDay();
+              if (workingDow.has(dow)) return; // tech works this weekday
+              // if there are any timeslots for this tech on the date, skip (overrides weekly rule)
+              const dayInfo = byDate[key] || {
+                available: [],
+                booked: [],
+                blocked: [],
+              };
+              const hasTsForTech = (dayInfo.available || [])
+                .concat(dayInfo.booked || [], dayInfo.blocked || [])
+                .some((ts) => String(ts.technician || "") === techId);
+              if (hasTsForTech) return;
+              events.push({
+                id: "tech-rest-" + techId + "-" + key,
+                title: "Rest day",
+                start: key,
+                allDay: true,
+                display: "background",
+                backgroundColor: "#6b7280",
+                extendedProps: { status: "tech-rest", technicianId: techId },
+              });
+            });
+          });
+
+          allEvents = events;
+          renderEvents();
+        } catch (e) {
+          console.error("loadEvents failed (timeslots)", e);
+        }
+      }
+
+      function getVisibleCalendarIds() {
+        return Array.from(
+          document.querySelectorAll("#calendarsList input:checked"),
+        ).map((i) => i.getAttribute("data-id"));
+      }
+      function renderEvents() {
+        const visible = getVisibleCalendarIds();
+        mainCalendar.removeAllEvents();
+        const filtered = allEvents.filter((ev) => {
+          if (!visible.length) return true; // no filter => show all
+          const ep = ev.extendedProps || {};
+          // booked timeslot event -> check timeslot.technician or technicianId
+          if (ep.timeslot) {
+            const techId = String(
+              ep.timeslot.technician || ep.technicianId || "",
+            );
+            return (
+              visible.includes(techId) ||
+              visible.some((v) => (ep.technicianName || "").includes(v))
+            );
+          }
+          // available-day event -> check availableTechnicians (if provided)
+          if (ep.status === "available-day") {
+            const techs = ep.availableTechnicians || [];
+            if (!techs.length) return true; // available for all
+            return techs.some((t) => visible.includes(String(t)));
+          }
+          // dayoff/background — show regardless of tech filter (admin wants to see non-working days)
+          if (ep.status === "dayoff") return true;
+          // per-technician weekly rest day: show only when that tech calendar is visible
+          if (ep.status === "tech-rest")
+            return visible.includes(String(ep.technicianId));
+          // fallback: show
+          return true;
+        });
+        mainCalendar.addEventSource(filtered);
+        miniCal.removeAllEvents();
+        miniCal.addEventSource(filtered.slice(0, 40));
+      }
+
+      // --- Availability modal helpers (admin) ---------------------------------
+      const availabilityState = { dateKey: null, dayOffId: null };
+      function fmtYMD(date) {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      }
+      function minutesToLabel(m) {
+        const h = Math.floor(m / 60);
+        const mm = String(m % 60).padStart(2, "0");
+        return `${String(h).padStart(2, "0")}:${mm}`;
+      }
+
+      async function openAvailabilityModal(date) {
+        const modalEl = document.getElementById("availabilityModal");
+        const label = document.getElementById("availabilityDateLabel");
+        const dayOffToggle = document.getElementById("dayOffToggle");
+        availabilityState.dateKey = fmtYMD(date);
+        label.textContent = availabilityState.dateKey;
+        dayOffToggle.checked = false;
+        availabilityState.dayOffId = null;
+        // load existing day-off for that date (admin scope)
+        try {
+          const r = await fetch(
+            "/api/admin/dayoffs?date=" +
+              encodeURIComponent(availabilityState.dateKey),
+          );
+          if (r.ok) {
+            const j = await r.json();
+            const arr = j.dayoffs || [];
+            if (arr.length) {
+              dayOffToggle.checked = true;
+              availabilityState.dayOffId = arr[0]._id;
+            }
+          }
+        } catch (e) {
+          console.warn("failed to load dayoff");
+        }
+        // load timeslot overrides for that date
+        await loadTimeslotOverrides(availabilityState.dateKey);
+        // wire toggle
+        dayOffToggle.onchange = async function () {
+          if (this.checked) {
+            try {
+              const pr = await fetch("/api/admin/dayoffs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date: availabilityState.dateKey }),
+              });
+              if (pr.ok) {
+                const pj = await pr.json();
+                availabilityState.dayOffId = pj.dayoff._id;
+                alert("Marked as non-working day");
+                await loadTimeslotOverrides(availabilityState.dateKey);
+              } else if (pr.status === 409) {
+                // bookings exist — offer force option
+                const txt = await pr
+                  .json()
+                  .catch(() => ({ message: "Bookings exist on this date" }));
+                if (
+                  confirm(
+                    txt && txt.message
+                      ? txt.message +
+                          "\n\nForce block this date and tag timeslots?"
+                      : "Bookings exist on this date. Force block?",
+                  )
+                ) {
+                  const pf = await fetch("/api/admin/dayoffs", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      date: availabilityState.dateKey,
+                      force: true,
+                    }),
+                  });
+                  if (pf.ok) {
+                    const pj = await pf.json();
+                    availabilityState.dayOffId = pj.dayoff._id;
+                    alert("Marked as non-working day (forced)");
+                    await loadTimeslotOverrides(availabilityState.dateKey);
+                  } else {
+                    const t = await pf.text();
+                    alert("Failed: " + t);
+                    this.checked = false;
+                  }
+                } else {
+                  this.checked = false;
+                }
+              } else {
+                const t = await pr.text();
+                alert("Failed: " + t);
+                this.checked = false;
+              }
+            } catch (err) {
+              alert("Failed to create day-off");
+              this.checked = false;
+            }
+          } else {
+            if (!availabilityState.dayOffId) return;
+            try {
+              const pr = await fetch(
+                "/api/admin/dayoffs/" +
+                  encodeURIComponent(availabilityState.dayOffId),
+                { method: "DELETE" },
+              );
+              if (pr.ok) {
+                availabilityState.dayOffId = null;
+                alert("Day-off removed");
+                await loadTimeslotOverrides(availabilityState.dateKey);
+              } else {
+                const t = await pr.text();
+                alert("Failed: " + t);
+              }
+            } catch (err) {
+              alert("Failed");
+            }
+          }
+        };
+        // show modal
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+      }
+
+      async function loadTimeslotOverrides(dateKey) {
+        const container = document.getElementById("timeslotOverridesList");
+        container.innerHTML = "Loading…";
+        try {
+          const r = await fetch(
+            "/api/admin/timeslots?date=" + encodeURIComponent(dateKey),
+          );
+          if (!r.ok) {
+            container.innerHTML =
+              '<div class="text-muted small">Failed to load overrides.</div>';
+            return;
+          }
+          const j = await r.json();
+          const list = j.timeslots || [];
+          if (!list.length) {
+            container.innerHTML =
+              '<div class="text-muted small">No overrides for this date.</div>';
+            return;
+          }
+          container.innerHTML = "";
+          list.forEach((ts) => {
+            const div = document.createElement("div");
+            div.className =
+              "d-flex align-items-center justify-content-between mb-2";
+            const left = document.createElement("div");
+            left.innerHTML = `<div><strong>${minutesToLabel(ts.startMinutes || 0)} - ${minutesToLabel(ts.endMinutes || ts.startMinutes + 60 || 0)}</strong></div><div class='small text-muted'>${ts.status || "blocked"}</div>`;
+            const right = document.createElement("div");
+            right.innerHTML = `<button class='btn btn-sm btn-outline-danger ms-2 delete-ts' data-id='${ts._id}'>Delete</button>`;
+            div.appendChild(left);
+            div.appendChild(right);
+            container.appendChild(div);
+          });
+          container.querySelectorAll(".delete-ts").forEach((b) =>
+            b.addEventListener("click", async function () {
+              const id = this.getAttribute("data-id");
+              if (!(await window.notify.confirm("Delete this override?")))
+                return;
+              try {
+                const resp = await fetch(
+                  "/api/admin/timeslots/" + encodeURIComponent(id),
+                  { method: "DELETE" },
+                );
+                if (resp.ok) {
+                  window.notify.success("Deleted");
+                  await loadTimeslotOverrides(availabilityState.dateKey);
+                  await loadEvents();
+                } else {
+                  const t = await resp.text();
+                  window.notify.error("Failed: " + t);
+                }
+              } catch (err) {
+                window.notify.error("Failed");
+              }
+            }),
+          );
+        } catch (e) {
+          container.innerHTML =
+            '<div class="text-muted small">Failed to load overrides.</div>';
+        }
+      }
+
+      // add-timeslot handler
+      const addForm = document.getElementById("addTimeslotForm");
+      addForm.addEventListener("submit", async function (ev) {
+        ev.preventDefault();
+        const start = document.getElementById("tsStart").value;
+        if (!start) {
+          window.notify.warn("Select start time");
+          return;
+        }
+        const end = document.getElementById("tsEnd").value || null;
+        const status = document.getElementById("tsStatus").value || "blocked";
+        const payload = {
+          date: availabilityState.dateKey,
+          startTime: start,
+          status,
+        };
+        if (end) payload.endTime = end;
+        try {
+          const r = await fetch("/api/admin/timeslots", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (r.ok) {
+            window.notify.success("Saved");
+            document.getElementById("tsStart").value = "";
+            document.getElementById("tsEnd").value = "";
+            await loadTimeslotOverrides(availabilityState.dateKey);
+            await loadEvents();
+          } else {
+            const t = await r.text();
+            window.notify.error("Failed: " + t);
+          }
+        } catch (err) {
+          alert("Failed");
+        }
+      });
+
+      // set calendar range text
+      function updateRangeText() {
+        const view = mainCalendar.view;
+        el("calendarRange").innerText = view.title;
+      }
+      mainCalendar.on("datesSet", function () {
+        updateRangeText();
+        loadEvents();
+      });
+
+      // listen for schedule updates (from Settings / Scheduling pages in other tabs)
+      window.addEventListener("storage", function (e) {
+        if (e.key !== "techScheduleUpdated") return;
+        try {
+          const msg = JSON.parse(e.newValue || "{}");
+          if (!msg) return;
+          if (msg.technicianId === "ALL") {
+            loadEvents();
+            if (window.notify)
+              window.notify.info("Schedules updated — calendar refreshed");
+            return;
+          }
+          const visible = getVisibleCalendarIds();
+          if (visible.includes(String(msg.technicianId))) {
+            loadEvents();
+            if (window.notify)
+              window.notify.info("Schedule updated — calendar refreshed");
+          }
+        } catch (err) {
+          /* ignore */
+        }
+      });
+
+      // initial load
+      await loadEvents();
+      updateRangeText();
+    });
+  </script>
+</div>

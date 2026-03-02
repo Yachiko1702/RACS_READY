@@ -1,0 +1,359 @@
+<link rel="stylesheet" href="/vendor/fullcalendar/main.min.css" />
+
+<div class="admin-dashboard container-fluid px-0 py-4">
+  <%- include('../../partials/dashboard-styles') %>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-calendar3 me-2"></i>Your Schedule
+        </h1>
+        <p class="hero-sub small">
+          Your assigned appointments for the last 30 days and upcoming jobs.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container pb-4">
+    <% if (technician && technician.name) { %>
+    <p class="text-center mb-3">Displaying schedule for <strong><%= technician.name %></strong>.</p>
+    <% } %>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-md-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small">Total</div>
+            <div id="kpiTotal" class="fs-4 fw-bold">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-3">
+        <div class="card shadow-sm h-100 border-success-subtle">
+          <div class="card-body">
+            <div class="text-muted small">Confirmed</div>
+            <div id="kpiConfirmed" class="fs-4 fw-bold text-success">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-3">
+        <div class="card shadow-sm h-100 border-warning-subtle">
+          <div class="card-body">
+            <div class="text-muted small">Pending</div>
+            <div id="kpiPending" class="fs-4 fw-bold text-warning">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-3">
+        <div class="card shadow-sm h-100 border-primary-subtle">
+          <div class="card-body">
+            <div class="text-muted small">Today</div>
+            <div id="kpiToday" class="fs-4 fw-bold text-primary">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Calendar</h6>
+          <div class="small text-muted">
+            <span class="legend-dot legend-confirmed"></span> Confirmed
+            <span class="legend-dot legend-pending ms-3"></span> Pending
+            <span class="legend-dot legend-completed ms-3"></span> Completed
+            <span class="legend-dot legend-cancelled ms-3"></span> Cancelled
+          </div>
+        </div>
+        <div id="technicianScheduleCalendar"></div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="mb-3">Assigned Appointments</h6>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Customer</th>
+                <th>Service</th>
+                <th>Location</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="techScheduleBody">
+              <tr><td colspan="6" class="text-center text-muted py-4">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #technicianScheduleCalendar {
+    min-height: 620px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  .legend-confirmed { background: #22c55e; }
+  .legend-pending { background: #f59e0b; }
+  .legend-completed { background: #0ea5e9; }
+  .legend-cancelled { background: #ef4444; }
+
+  .row-highlight-confirmed {
+    border-left: 4px solid #22c55e;
+  }
+  .row-highlight-pending {
+    border-left: 4px solid #f59e0b;
+  }
+  .row-highlight-completed {
+    border-left: 4px solid #0ea5e9;
+  }
+  .row-highlight-cancelled {
+    border-left: 4px solid #ef4444;
+  }
+</style>
+
+<script src="/vendor/fullcalendar/main.min.js"></script>
+<script>
+  (function () {
+    const appointments = <%- JSON.stringify(initialAppointments || []) %>;
+
+    function parseMinuteValue(value) {
+      if (value === null || value === undefined) return NaN;
+      const raw = String(value).trim();
+      if (!raw) return NaN;
+      if (/^\d{1,4}$/.test(raw)) return Number(raw);
+      const hm = raw.match(/^(\d{1,2}):(\d{2})$/);
+      if (hm) return Number(hm[1]) * 60 + Number(hm[2]);
+      const ampm = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (ampm) {
+        let hh = Number(ampm[1]) % 12;
+        if (ampm[3].toUpperCase() === "PM") hh += 12;
+        return hh * 60 + Number(ampm[2]);
+      }
+      return NaN;
+    }
+
+    function statusNorm(status) {
+      return String(status || "").trim().toLowerCase();
+    }
+
+    function statusClass(status) {
+      const s = statusNorm(status);
+      if (s === "confirmed") return "success";
+      if (s === "pending") return "warning";
+      if (s === "completed") return "info";
+      if (s === "cancelled") return "danger";
+      if (s === "re-scheduled") return "primary";
+      return "secondary";
+    }
+
+    function statusHighlightClass(status) {
+      const s = statusNorm(status);
+      if (s === "confirmed") return "row-highlight-confirmed";
+      if (s === "pending") return "row-highlight-pending";
+      if (s === "completed") return "row-highlight-completed";
+      if (s === "cancelled") return "row-highlight-cancelled";
+      return "";
+    }
+
+    function makeDate(baseDate, minuteValue) {
+      const day = new Date(baseDate || Date.now());
+      day.setHours(0, 0, 0, 0);
+      if (!Number.isFinite(minuteValue)) return day;
+      day.setMinutes(minuteValue);
+      return day;
+    }
+
+    function formatMinuteLabel(minuteValue) {
+      if (!Number.isFinite(minuteValue)) return "—";
+      const hh = Math.floor(minuteValue / 60);
+      const mm = minuteValue % 60;
+      const ampm = hh >= 12 ? "PM" : "AM";
+      const hh12 = ((hh + 11) % 12) + 1;
+      return `${String(hh12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${ampm}`;
+    }
+
+    function rowLocation(a) {
+      if (a.location && a.location.address) return a.location.address;
+      if (a.address) return a.address;
+      if (
+        a.location &&
+        a.location.coordinates &&
+        Array.isArray(a.location.coordinates.coordinates)
+      ) {
+        const [lng, lat] = a.location.coordinates.coordinates;
+        if (isFinite(lat) && isFinite(lng)) return `${lat}, ${lng}`;
+      }
+      return "—";
+    }
+
+    function toEvent(a) {
+      const startMin = parseMinuteValue(a.startTime);
+      const endMin = parseMinuteValue(a.endTime);
+      const hasEnd = Number.isFinite(endMin) && endMin > startMin;
+      const start = makeDate(a.bookingDate || a.date || a.start, startMin);
+      const end = hasEnd ? makeDate(a.bookingDate || a.date || a.start, endMin) : new Date(start.getTime() + 60 * 60000);
+      const service =
+        (a.service && typeof a.service === "object"
+          ? (a.service.name || a.service.title)
+          : a.service) ||
+        (a.serviceId && typeof a.serviceId === "object"
+          ? (a.serviceId.name || a.serviceId.title)
+          : a.serviceType) ||
+        "Service";
+      const customer =
+        a.customerName ||
+        (a.customer && (a.customer.name || a.customer.email)) ||
+        "Customer";
+      const status = statusNorm(a.status);
+      const colors = {
+        confirmed: "#22c55e",
+        pending: "#f59e0b",
+        completed: "#0ea5e9",
+        cancelled: "#ef4444",
+        "re-scheduled": "#6366f1",
+      };
+      const c = colors[status] || "#6b7280";
+      return {
+        id: String(a._id || a.id || ""),
+        title: `${service} • ${customer}`,
+        start,
+        end,
+        backgroundColor: c,
+        borderColor: c,
+        extendedProps: { status: status || "n/a", raw: a },
+      };
+    }
+
+    function updateKpis(list) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const confirmed = list.filter((a) => statusNorm(a.status) === "confirmed").length;
+      const pending = list.filter((a) => statusNorm(a.status) === "pending").length;
+      const todayCount = list.filter((a) => {
+        const d = new Date(a.bookingDate || a.date || a.start || 0);
+        return d >= today && d < tomorrow;
+      }).length;
+
+      document.getElementById("kpiTotal").innerText = String(list.length);
+      document.getElementById("kpiConfirmed").innerText = String(confirmed);
+      document.getElementById("kpiPending").innerText = String(pending);
+      document.getElementById("kpiToday").innerText = String(todayCount);
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById("techScheduleBody");
+      if (!tbody) return;
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No assigned appointments found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = "";
+      list.forEach((a) => {
+        const tr = document.createElement("tr");
+        tr.className = statusHighlightClass(a.status);
+
+        const d = new Date(a.bookingDate || a.date || a.start || Date.now());
+        const startMin = parseMinuteValue(a.startTime);
+        const endMin = parseMinuteValue(a.endTime);
+        const service =
+          (a.service && typeof a.service === "object"
+            ? (a.service.name || a.service.title)
+            : a.service) ||
+          (a.serviceId && typeof a.serviceId === "object"
+            ? (a.serviceId.name || a.serviceId.title)
+            : a.serviceType) ||
+          "Service";
+        const customer =
+          a.customerName ||
+          (a.customer && (a.customer.name || a.customer.email)) ||
+          "Customer";
+
+        tr.innerHTML = `
+          <td>${d.toLocaleDateString()}</td>
+          <td>${formatMinuteLabel(startMin)}${Number.isFinite(endMin) ? " – " + formatMinuteLabel(endMin) : ""}</td>
+          <td>${customer}</td>
+          <td>${service}</td>
+          <td>${rowLocation(a)}</td>
+          <td><span class="badge bg-${statusClass(a.status)}">${a.status || "n/a"}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function initCalendar(list) {
+      const calEl = document.getElementById("technicianScheduleCalendar");
+      if (!calEl || !window.FullCalendar) return;
+      const events = list.map(toEvent);
+
+      const calendar = new FullCalendar.Calendar(calEl, {
+        initialView: "dayGridMonth",
+        height: "auto",
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay",
+        },
+        events,
+        eventTimeFormat: {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        },
+        eventClick: (info) => {
+          const a = info.event.extendedProps.raw || {};
+          const status = a.status || "n/a";
+          const customer =
+            a.customerName ||
+            (a.customer && (a.customer.name || a.customer.email)) ||
+            "Customer";
+          const service =
+            (a.service && typeof a.service === "object"
+              ? (a.service.name || a.service.title)
+              : a.service) ||
+            (a.serviceId && typeof a.serviceId === "object"
+              ? (a.serviceId.name || a.serviceId.title)
+              : a.serviceType) ||
+            "Service";
+          const startMin = parseMinuteValue(a.startTime);
+          const endMin = parseMinuteValue(a.endTime);
+          const d = new Date(a.bookingDate || a.date || a.start || Date.now());
+          const details = `${d.toLocaleDateString()} • ${formatMinuteLabel(startMin)}${Number.isFinite(endMin) ? " – " + formatMinuteLabel(endMin) : ""}\n${service}\n${customer}\nStatus: ${status}`;
+          window.alert(details);
+        },
+      });
+
+      calendar.render();
+    }
+
+    const sorted = (appointments || []).slice().sort((a, b) => {
+      const da = new Date(a.bookingDate || a.date || a.start || 0).getTime();
+      const db = new Date(b.bookingDate || b.date || b.start || 0).getTime();
+      if (da !== db) return da - db;
+      return parseMinuteValue(a.startTime) - parseMinuteValue(b.startTime);
+    });
+
+    updateKpis(sorted);
+    renderTable(sorted);
+    initCalendar(sorted);
+  })();
+</script>

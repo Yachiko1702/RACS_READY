@@ -1,0 +1,377 @@
+:root{
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --muted: #6b7280;
+  --accent: #0b5cff;
+  --accent-600: #0e3c92;
+  --danger: #dc3545;
+  --shadow: 0 6px 20px rgba(12,18,36,0.08);
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --container-padding: 20px;
+  --sidebar-width: 260px;
+  --admin-topbar-height: 56px; /* used to position sticky/fixed sidebar and handle */
+}
+
+/* enforce Google font stack globally on admin pages */
+html.admin-layout, body.admin-layout {
+  font-family: 'Montserrat', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+
+/* Base layout */
+body.admin-layout{
+  /* try Montserrat first, fall back to Inter then system fonts */
+  font-family: 'Montserrat', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: var(--bg);
+  color: #0f172a;
+  -webkit-font-smoothing:antialiased;
+  font-weight: 400 !important; /* use normal weight globally */
+}
+
+/* prevent bold tags from rendering bold in admin pages */
+body.admin-layout b,
+body.admin-layout strong {
+  font-weight: 400 !important;
+}
+
+/* override Bootstrap utility classes that add bold weight */
+.admin-layout .fw-bold,
+.admin-layout .fw-semibold,
+.admin-layout .font-weight-bold,
+.admin-layout .fw-bolder {
+  font-weight: 400 !important;
+}
+
+/* also avoid automatically bolding headings - keep typography consistent */
+.admin-layout h1,
+.admin-layout h2,
+.admin-layout h3,
+.admin-layout h4,
+.admin-layout h5,
+.admin-layout h6 {
+  font-weight: 400;
+}
+
+/* reset table header weight which Bootstrap sets heavier */
+.admin-layout th {
+  font-weight: 400;
+}
+
+
+.admin-topbar{position:sticky;top:0;z-index:60;background:transparent}
+.admin-root{min-height:100vh;display:flex;position:relative}
+
+/* Sidebar */
+.admin-sidebar{
+  /* make the sidebar sticky on desktop so its content remains visible while the page scrolls */
+  position: sticky;
+  top: var(--admin-topbar-height);
+  align-self: flex-start; /* necessary for sticky inside flex container */
+  height: calc(100vh - var(--admin-topbar-height));
+  width:var(--sidebar-width);
+  background:var(--surface);
+  border-right:1px solid rgba(15,23,42,0.04);
+  box-shadow: none;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+
+  /* animate width/transform/opacity for a slow slide-right + fade effect */
+  transition: width .42s cubic-bezier(.2,.9,.2,1) .12s, transform .42s cubic-bezier(.2,.9,.2,1), opacity .42s ease, box-shadow .22s;
+  will-change: width, transform, opacity;
+  opacity: 1;
+}
+
+/* Ensure mobile behaviour (slide-in) still overrides sticky */
+@media (max-width:767px){
+  .admin-sidebar{ position: fixed; top: 0; height: 100vh; }
+}
+
+/* Sidebar handle (top of sidebar) — fixed so it's always visible while scrolling */
+.sidebar-handle{
+  position: fixed;
+  top: calc(var(--admin-topbar-height, 56px) + 12px); /* place below sticky topbar */
+  left: calc(var(--sidebar-width) - 18px); /* align with sidebar right edge */
+  width: 44px;
+  height: 44px;
+  margin-top: 10px;
+  border-radius: 12px;
+  display:flex;align-items:center;justify-content:center;
+  background: #1A0F3E; /* match sidebar header color */
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 12px 30px rgba(2,6,23,0.6);
+  cursor: pointer;
+  z-index: 50; /* keep beneath topbar (z-index:60) */
+  transition: transform .14s ease, background .14s ease, left .18s ease, color .14s ease, box-shadow .14s;
+  will-change: left, transform;
+}
+
+/* small visual accent (bar) — white on dark handle */
+.sidebar-handle .handle-mark{
+  width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,0.95);opacity:.95;display:block;
+}
+
+.sidebar-handle .bi{ transition: transform .18s ease, color .14s; font-size:1.05rem; color:#fff; }
+
+.sidebar-handle:hover{
+  transform: translateY(0) scale(1.03);
+  background: #1A0F3E;
+  box-shadow: 0 18px 44px rgba(2,6,23,0.7);
+}
+
+/* when sidebar is collapsed keep handle visible near left edge (still dark) */
+.admin-root.sidebar-collapsed .sidebar-handle{ left: 12px; background: #1A0F3E; border-color: rgba(255,255,255,0.06); }
+.admin-root.sidebar-collapsed .sidebar-handle .bi{ transform: rotate(180deg); color: #fff; }
+.admin-root.sidebar-collapsed .sidebar-handle .handle-mark{ opacity:0.0; }
+
+/* hide handle on very small screens where mobile slide-in is used */
+@media (max-width:767px){ .sidebar-handle{ display:none; } }
+.admin-sidebar .sidebar-inner{padding:1rem 0 6rem; transition: opacity .28s ease, transform .32s cubic-bezier(.2,.9,.2,1); will-change: opacity, transform;}
+.admin-sidebar .sidebar-header{padding:1rem 1.25rem}
+.admin-sidebar .nav{padding:0.25rem}
+.admin-sidebar .nav-link{color:var(--muted);padding:.65rem 1.25rem;border-radius:8px;margin:.15rem .5rem;display:block;font-family:'Montserrat','Inter',system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-weight:400;}
+.admin-sidebar .nav-link:hover,.admin-sidebar .nav-link.active{background:rgba(11,92,255,0.06);color:var(--accent);text-decoration:none;font-weight:400;}
+/* ensure clicking/focus/active state never makes text bold */
+.admin-sidebar .nav-link:active,
+.admin-sidebar .nav-link:focus,
+.admin-sidebar .nav-link:visited {
+    font-weight:400;
+}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi-card{background:var(--surface);border-radius:8px;padding:18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 2px rgba(16,24,40,0.03);}
+.kpi-title{color:var(--muted);font-size:12px}
+.kpi-value{font-size:20px;font-weight:700;margin-top:6px}
+.kpi-icon{font-size:28px;opacity:0.85}
+
+.activity-feed{max-height:420px;overflow:auto}
+.activity-item{display:flex;gap:12px}
+
+#mini-calendar{background:linear-gradient(180deg,#fbfdff,#f5f8ff);border-radius:6px}
+
+.list-group-item{background:transparent;border:0;padding:.55rem 0}
+.admin-sidebar .nav-section{padding:.6rem 1.25rem;color:#94a3b8}
+
+/* Sidebar groups: collapsible submenus */
+.nav-group{margin:0 .25rem 0.25rem 0}
+.nav-section-toggle{display:block;width:100%;text-align:left;background:transparent;border:0;color:#94a3b8;padding:.65rem 1.25rem;border-radius:8px}
+.nav-section-toggle:hover,.nav-group.expanded .nav-section-toggle{background:rgba(11,92,255,0.04);color:var(--accent)}
+.nav-submenu{max-height:0;overflow:hidden;transition:max-height .22s ease;padding-left:.25rem}
+.nav-group.expanded .nav-submenu{max-height:600px}
+.admin-sidebar .nav-submenu .nav-link{padding-left:2.05rem;font-size:.95rem;color:var(--muted)}
+
+/* Desktop collapse (hamburger) — hides sidebar and expands content */
+.admin-root.sidebar-collapsed .admin-sidebar{width:0;min-width:0;padding:0;border-right:0;transform:translateX(-12px);box-shadow:none;overflow:hidden;opacity:0;}
+.admin-root.sidebar-collapsed .admin-sidebar .sidebar-inner{opacity:0; transform: translateX(-6px); pointer-events:none;}
+.admin-root.sidebar-collapsed .admin-content{transition:margin-left .22s}
+
+/* Content area */
+.admin-content{flex:1;padding:var(--container-padding)}
+.admin-content main{max-width:1400px;margin:0 auto}
+
+/* Cards */
+.card{background:var(--surface);border:0;border-radius:var(--radius-md);box-shadow:var(--shadow);overflow:hidden}
+.card-header{background:transparent;border-bottom:0;padding:.85rem 1rem;font-weight:600;color:#0f172a}
+.card-body{padding:1rem}
+
+/* KPI cards grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem}
+.kpi-card{padding:1rem 1rem;display:flex;align-items:center;justify-content:space-between}
+.kpi-card .meta{color:var(--muted);font-size:.875rem}
+.kpi-card .value{font-size:1.5rem;font-weight:700}
+
+/* Make all KPI cards equal height and vertically centered */
+.admin-dashboard .kpi-row{align-items:stretch;justify-content:space-around;flex-wrap:wrap;}
+.admin-dashboard .kpi-row > [class*="col-"]{display:flex}
+.admin-dashboard .kpi-row .card{height:100%;min-height:120px;display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem;flex:0 0 180px;max-width:220px;}
+.admin-dashboard .kpi-row .card .d-flex{width:100%;align-items:center;justify-content:center;gap:12px}
+
+/* Slightly smaller KPI height on narrow screens */
+@media (max-width:640px){
+  .admin-dashboard .kpi-row .card{min-height:72px}
+}
+
+/* Themed KPI card backgrounds (subtle tints matching each KPI accent) */
+.card.border-start.border-4.border-primary{background:linear-gradient(180deg, rgba(13,110,253,0.04), rgba(13,110,253,0.01));}
+.card.border-start.border-4.border-warning{background:linear-gradient(180deg, rgba(245,158,11,0.04), rgba(245,158,11,0.01));}
+.card.border-start.border-4.border-info{background:linear-gradient(180deg, rgba(14,165,233,0.04), rgba(14,165,233,0.01));}
+.card.border-start.border-4.border-success{background:linear-gradient(180deg, rgba(16,163,74,0.04), rgba(16,163,74,0.01));}
+.card.border-start.border-4.border-danger{background:linear-gradient(180deg, rgba(239,68,68,0.04), rgba(239,68,68,0.01));}
+.card.border-start.border-4.border-dark{background:linear-gradient(180deg, rgba(17,24,39,0.03), rgba(17,24,39,0.01));}
+
+/* Slightly intensify tint on hover for KPI cards */
+.card.border-start.border-4:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(2,6,23,0.08);}
+
+/* Activity table */
+.activity-table tbody tr td{vertical-align:middle}
+.activity-item{display:flex;align-items:center;gap:.75rem}
+.activity-item .who{font-weight:600}
+.activity-item .when{font-size:.8rem;color:#94a3b8}
+
+/* Topbar elements */
+.navbar-brand{font-weight:700;color:#0f172a}
+.avatar{width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+.btn-ghost{background:transparent;border:0;color:var(--muted)}
+
+/* Action bar (dashboard quick actions) */
+.admin-actions{display:flex;gap:.5rem;align-items:center;justify-content:flex-end;margin-bottom:1rem}
+.admin-actions .btn{border-radius:10px;background:rgba(255,255,255,0.95);border:1px solid rgba(2,6,23,0.06);color:#0f172a;padding:.45rem .75rem;font-weight:600}
+.admin-actions .btn.btn-primary{background:linear-gradient(180deg,#0d6efd,#084bcc);border-color:#084bcc;color:#fff}
+
+/* Schedule / mini-calendar */
+#mini-calendar{background:linear-gradient(180deg,#fbfdff,#f5f8ff);border-radius:8px;padding:10px}
+#mini-calendar div {box-sizing:border-box}
+#mini-calendar .text-center{background:transparent}
+#mini-calendar .day-cell{background:#fff;border-radius:8px;box-shadow:inset 0 -1px 0 rgba(2,6,23,0.03);padding:8px;font-size:13px;color:#56657a}
+
+
+/* Buttons and small utilities */
+.btn-ghost:focus{outline:2px solid rgba(11,92,255,0.15);outline-offset:2px}
+.badge{font-size:.65rem}
+
+/* Sidebar mobile behavior */
+@media (max-width:767px){
+  .admin-sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-120%);z-index:70;width:80%;max-width:320px;border-right:1px solid rgba(15,23,42,0.06);box-shadow:0 20px 40px rgba(2,6,23,0.2)}
+  .admin-sidebar.open{transform:translateX(0); opacity:1;}
+  .admin-content{margin-left:0;padding:16px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+
+  /* backdrop shown when sidebar slides in on small screens */
+  .sidebar-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.45);z-index:65;opacity:0;transition:opacity .22s ease;pointer-events:none}
+  .sidebar-backdrop.visible{opacity:1;pointer-events:auto}
+}
+
+@media (max-width:640px){
+  .kpi-grid{grid-template-columns:1fr}
+}
+
+/* Focus state for accessibility */
+a:focus,button:focus{outline:3px solid rgba(11,92,255,0.12);outline-offset:2px}
+
+/* Small helpers */
+.muted{color:var(--muted)}
+.text-accent{color:var(--accent)}
+
+/* ===== Dashboard Base ===== */
+.admin-dashboard {
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* ===== Cards ===== */
+.admin-dashboard .card {
+  border: none;
+  border-radius: 16px;
+  transition: all 0.25s ease;
+}
+
+.admin-dashboard .card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.75rem 1.5rem rgba(0,0,0,.08) !important;
+}
+
+/* ===== KPI Cards ===== */
+.admin-dashboard .card .display-6 {
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d6efd; /* solid blue for visibility */
+  border-radius: 12px;
+  font-size: 1.5rem;
+  color: #fff; /* ensure icon is white */
+}
+
+/* custom purple utilities */
+.bg-purple {
+  background-color: #6f42c1 !important;
+}
+.text-purple {
+  color: #6f42c1 !important;
+}
+
+.admin-dashboard .card .h4 {
+  font-weight: 600;
+}
+
+/* ===== Headings ===== */
+.admin-dashboard h1,
+.admin-dashboard h5,
+.admin-dashboard h6 {
+  font-weight: 600;
+}
+
+/* ===== Chart Cards ===== */
+.admin-dashboard canvas {
+  padding-top: 10px;
+}
+
+/* ===== Scroll Areas ===== */
+#recent-activities,
+#today-appointments,
+#lowstock-list {
+  scrollbar-width: thin;
+}
+
+#recent-activities::-webkit-scrollbar,
+#today-appointments::-webkit-scrollbar,
+#lowstock-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#recent-activities::-webkit-scrollbar-thumb,
+#today-appointments::-webkit-scrollbar-thumb,
+#lowstock-list::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.15);
+  border-radius: 4px;
+}
+
+/* ===== Activity Feed ===== */
+#recent-activities div {
+  transition: background 0.2s ease;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+#recent-activities div:hover {
+  background: rgba(13,110,253,.05);
+}
+
+/* ===== Appointment List ===== */
+#today-appointments .list-group-item {
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+#today-appointments .list-group-item:hover {
+  background: rgba(13,110,253,.06);
+}
+
+
+
+
+/* ===== Low Stock Items ===== */
+#lowstock-list div {
+  padding: 8px;
+  border-radius: 8px;
+  background: #fff3cd;
+  margin-bottom: 8px;
+}
+
+/* ===== Refresh Button ===== */
+#btn-refresh {
+  border-radius: 30px;
+  padding: 6px 18px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+#btn-refresh:hover {
+  background-color: #0d6efd;
+  color: #fff;
+  border-color: #0d6efd;
+}

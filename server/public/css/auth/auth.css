@@ -1,0 +1,2629 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+
+/* Scoped auth page styles */
+.auth-panel-page * { box-sizing: border-box; }
+.auth-panel-page { background: linear-gradient(135deg, #eaf4ff 0%, #d6ecff 46%, #f8fbff 100%); height: 100vh; /* lock to viewport so page itself does not scroll */ font-family: 'Montserrat', sans-serif; display: flex; align-items: center; justify-content: center; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overflow: hidden; }
+
+/* Full-screen auth mode (Sign In / Sign Up): remove any leftover space */
+.auth-page,
+.auth-page .container,
+.auth-page .row,
+.auth-page .col-12,
+.auth-page .auth-body-wrapper,
+.auth-page .auth-card {
+  height: 100% !important;
+  min-height: 100% !important;
+}
+
+.auth-page .container {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+.auth-page .row,
+.auth-page .col-12 {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.auth-page .col-12.d-flex {
+  padding: 0 !important;
+}
+
+.auth-page .auth-card {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.auth-panel-page {
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.auth-panel-container {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Subtle decorative glow for the page */
+.auth-panel-page::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(circle at 8% 18%, rgba(13,110,253,0.05), transparent 12%), radial-gradient(circle at 92% 82%, rgba(13,110,253,0.03), transparent 10%); z-index: 0; }
+
+/* Frosted, elevated container */
+.auth-panel-container {
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,250,255,0.88));
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(9,30,66,0.08);
+  position: relative;
+  overflow: hidden;
+  width: 970px;
+  max-width: 96%;
+  --auth-min-height: 680px; /* adjustable via CSS variable */
+  min-height: var(--auth-min-height);
+  max-height: calc(100vh - 32px); /* keep container within viewport so page won't scroll */
+  border: 1px solid rgba(13,110,253,0.06);
+  z-index: 220500;
+}
+
+/* Wide, modern single-card for forgot/reset pages */
+.auth-card-wide {
+  max-width: 960px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: 0 30px 60px rgba(2,6,23,0.12);
+  border: 1px solid rgba(13,110,253,0.06);
+  overflow: hidden;
+  position: relative;
+  /* static card: no animation or hover movement */
+}
+.auth-card-wide::before {
+  content: "";
+  display: block;
+  height: 6px;
+  background: linear-gradient(90deg,#2b7be9,#0b5ed7);
+}
+.auth-card-wide .card-body { padding: 3rem; }
+.auth-card-wide h1.h4, .auth-card-wide h1.h3 { color: #07203a; }
+.auth-card-wide .form-control { min-height: 52px; border-radius: 10px; }
+
+/* Landscape / small-height friendly adjustments */
+@media (max-width: 900px) and (orientation: landscape), (max-height: 520px) {
+  .auth-card-wide { max-width: 100%; border-radius: 12px; }
+  .auth-card-wide .card-body { padding: 1.25rem; }
+  .auth-card-wide .form-control { min-height: 48px; font-size: 0.98rem; }
+  .auth-card-wide .button { padding: 10px 14px; }
+}
+
+@media (max-width: 992px) {
+  .auth-card-wide { max-width: 780px; }
+  .auth-card-wide .card-body { padding: 2rem; }
+}
+@media (max-width: 576px) {
+  .auth-card-wide { border-radius: 12px; }
+  .auth-card-wide .card-body { padding: 1.25rem; }
+}
+
+
+/* Responsive height adjustments */
+@media (max-width: 1200px) {
+  /* Reduce the min-height so the card sizes to content and avoid forcing full-viewport panels */
+  .auth-panel-container { --auth-min-height: 700px; min-height: auto; overflow: visible; max-width: 760px; margin: 0 auto; }
+
+  /* Switch to single-column flow for medium and smaller devices */
+  .form-container { position: relative; height: auto; width: 100%; transition: none; }
+  .sign-in-container, .sign-up-container { position: relative; left: 0; width: 100%; transform: none; opacity: 1; visibility: visible; pointer-events: auto; z-index: 2; display: block; }
+  .sign-up-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-in-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-up-container { display: block; }
+
+  /* Hide the overlay panel starting at this breakpoint to avoid overlap/half-card artifacts */
+  .overlay-container { display: none !important; }
+  .overlay { display: none !important; }
+
+  /* Make page center so content is centered on mid-size screens */
+  .auth-panel-page { align-items: center; padding-top: 0; padding-bottom: 0; }
+
+  /* Ensure forms size to content and are comfortable to interact with */
+  .sign-in-container form, .sign-up-container form { padding: 1.15rem; max-width: 100%; height: auto; align-items: stretch; justify-content: flex-start; }
+  .sign-up-container form { padding-bottom: 2.5rem; }
+  .sign-up-container .input-group:last-of-type { margin-bottom: 2rem; }
+  .sign-up-container .button { margin-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+
+  /* Make primary CTA stretch full-width on tablets/mobiles so Sign In/Sign Up match */
+  .sign-in-container form .button,
+  .sign-up-container form .button {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block;
+    align-self: stretch;
+  }
+}
+
+/* Special-case: mid-width but short-height viewports (e.g., 800×500) */
+@media (max-width: 1024px) and (max-height: 600px) {
+  .form-container { position: relative !important; height: auto !important; }
+  form { height: auto !important; }
+  .auth-card { width: calc(100% - 2rem); padding: 0.75rem 1rem; margin-top: 0.25rem; }
+  form .input-group { max-width: 100%; width: 100%; margin: 6px 0; }
+  form .input-group .form-control { padding-right: 84px; }
+  .auth-inner .text-center.mb-4 { margin-bottom: 0.5rem; }
+  .sign-in-container .d-grid, .sign-up-container .d-grid { position: sticky; bottom: env(safe-area-inset-bottom, 10px); }
+  .auth-panel-page { align-items: center; }
+}
+
+@media (max-width: 768px) {
+  .auth-panel-container { --auth-min-height: 560px; width: 100%; }
+}
+
+.form-container { position: absolute; top: 0; height: 100%; transition: all 0.6s ease-in-out; transform: translateY(-20px); }
+
+.sign-in-container { left: 0; width: 50%; z-index: 2; }
+.auth-panel-container.right-panel-active .sign-in-container { transform: translateX(100%); }
+.sign-up-container { left: 0; width: 50%; opacity: 0; z-index: 1; transition: opacity 0.6s ease, transform 0.6s ease; }
+.auth-panel-container.right-panel-active .sign-up-container { transform: translateX(100%); opacity: 1; z-index: 5; animation: show 0.6s; }
+
+/* fade the sign-in container when switching back */
+.auth-panel-container .sign-in-container { transition: opacity 0.6s ease, transform 0.6s ease; }
+.auth-panel-container.right-panel-active .sign-in-container { opacity: 0; transform: translateX(-100%); }
+@keyframes show { 0%, 49.99% { opacity: 0; z-index: 1; } 50%,100% { opacity: 1; z-index: 5; } }
+
+/* generic fade-in for other elements if needed */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* final overrides at bottom to ensure fade works despite earlier display:none rules */
+.auth-page.auth-panel-layout .sign-in-container,
+.auth-page.auth-panel-layout .sign-up-container {
+  display: block !important;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .5s ease;
+}
+.auth-page.auth-panel-layout .sign-in-container.active,
+.auth-page.auth-panel-layout .sign-up-container.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ensure both panels stay in flow and fade rather than flicker */
+.auth-panel-container .sign-in-container,
+.auth-panel-container .sign-up-container {
+  display: block !important;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.auth-panel-container .sign-in-container { opacity: 1; pointer-events: auto; }
+
+.auth-panel-container.right-panel-active .sign-in-container {
+  opacity: 0;
+  pointer-events: none;
+}
+.auth-panel-container.right-panel-active .sign-up-container {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.overlay-container { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; overflow: hidden; transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out; z-index: 100; opacity: 1; }
+.auth-panel-container.right-panel-active .overlay-container{ transform: translateX(-100%); opacity: 1; }
+
+/* support fading overlay on toggle */
+.auth-panel-container:not(.right-panel-active) .overlay-container { opacity: 1; }
+.auth-panel-container.right-panel-active .overlay-container { opacity: 1; }
+
+.overlay { background: linear-gradient(135deg, rgba(13,110,253,0.95) 0%, rgba(10,88,202,0.95) 100%); color: #fff; position: relative; left: -100%; height: 100%; width: 200%; transform: translateX(0); transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out; opacity: 1; }
+.auth-panel-container.right-panel-active .overlay { transform: translateX(50%); opacity: 1; }
+/* Make the decorative overlay non-intercepting so underlying form controls stay clickable */
+.overlay { pointer-events: none; }
+.overlay .button, .overlay-panel .button, .overlay .button.ghost { pointer-events: auto; }
+
+/* Ensure selects and form containers are above the overlay and accept pointer events */
+.form-container, .form-container * { pointer-events: auto !important; }
+.form-select { position: relative; z-index: 9999 !important; pointer-events: auto !important; }
+
+/* Overlay typography */
+.overlay-panel h2 { color: #fff !important; font-size: 1.75rem; margin-bottom: .5rem; }
+.overlay-panel p { color: #ffffff !important; margin-bottom: 1rem; max-width: 380px; }
+
+/* fade overlay-panel text when switching */
+.overlay-panel {
+  transition: opacity 0.6s ease-in-out;
+  opacity: 1;
+}
+.auth-panel-container.right-panel-active .overlay-left .overlay-panel,
+.auth-panel-container:not(.right-panel-active) .overlay-right .overlay-panel {
+  opacity: 0;
+}
+
+/* Make sure overlay micro-copy is readable on any background variation */
+.auth-panel-container .overlay-panel h2, .auth-panel-container .overlay-panel p { text-shadow: 0 1px 2px rgba(0,0,0,0.28); }
+
+
+/* Brand/title shown in forms */
+.auth-form-brand { display: flex; align-items: center; justify-content: center; gap: .5rem; margin-bottom: 0.75rem; }
+
+/* Push brand further down inside the sign-in card (desktop) with a modest mobile offset */
+.sign-in-container .auth-form-brand { margin-top: 36px; }
+@media (max-width: 768px) { .sign-in-container .auth-form-brand { margin-top: 14px; } }
+.auth-form-brand .brand { color: #07203a; text-decoration: none; }
+.auth-form-brand .brand i { color: #0d6efd; transform: translateY(-1px); }
+.auth-form-brand .brand span { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.6px; }
+@media (max-width: 576px) { .auth-form-brand .brand span { font-size: 0.95rem; } }
+
+/* Make ghost button white on blue overlay */
+.button.ghost { background-color: transparent; border-color: rgba(255,255,255,0.35); color: #fff; }
+.button.ghost:hover { background-color: rgba(255,255,255,0.06); }
+
+.overlay-panel { position: absolute; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 2rem 40px; top: 0; height: 100%; width: 50%; transform: translateX(0); transition: transform 0.6s ease-in-out; }
+.overlay-left { transform: translateX(-20%); align-items: flex-start; text-align: left; }
+.auth-panel-container.right-panel-active .overlay-left { transform: translateX(0); }
+.overlay-right { right: 0; transform: translateX(0); align-items: flex-end; text-align: right; }
+.auth-panel-container.right-panel-active .overlay-right { transform: translateX(20%); }
+/* Form layout */
+form { background: #fff; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 40px; height: 100%; text-align: center; }
+form .input-group { max-width: 520px; width: 100%; margin: 10px 0; position: relative; }
+form .input-group .form-control {
+  background: #f8fbff;
+  color: #07203a;
+  border-radius: 10px;
+  padding: 12px 16px;
+  padding-left: 44px; /* increased to ensure left icons are visible */
+  padding-right: 52px; /* accommodate right toggle when present */
+  border: 1px solid rgba(13,110,253,0.08);
+  min-height: 44px;
+  line-height: 1.35;
+  font-size: 0.98rem;
+  box-sizing: border-box;
+}
+
+form .input-group .form-control::placeholder {
+  color: rgba(7,32,58,0.72); /* stronger contrast for readability */
+}
+
+form .input-group .form-control:focus {
+  outline: none;
+  border-color: #0b5ed7;
+  box-shadow: 0 6px 18px rgba(11,94,215,0.06);
+} 
+form .input-group .input-group-text { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; width: 36px; justify-content: center; color: rgba(13,110,253,0.95) !important; pointer-events: none; z-index: 5; }
+form .input-group .input-group-text i { font-size: 1rem; display: inline-block; line-height: 1; color: inherit; }
+/* Toggle buttons overlay the input so they don't reduce input width */
+form .input-group .input-toggle,
+.input-group > .btn.btn-outline-secondary {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(33,57,154,0.92);
+  z-index: 6;
+}
+.input-group > .btn.btn-outline-secondary { border: 1px solid rgba(13,110,253,0.12); background: rgba(255,255,255,0.9); }
+.input-group .input-toggle i, .input-group > .btn.btn-outline-secondary i { font-size: 1.05rem; }
+
+/* Ensure inputs leave enough space for overlay toggles */
+form .input-group .form-control { padding-right: 84px; }
+
+/* match indicator (check/X) sits left of the visibility toggle */
+.input-group .match-indicator {
+  position: absolute;
+  right: 48px; /* a little left of the toggle button */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  z-index: 5; /* above input but below toggle */
+  pointer-events: none;
+}
+
+@media (max-width: 420px) {
+  .input-group .match-indicator { right: 44px; }
+}
+
+/* always keep visibility toggle and match indicator visible */
+.input-group .input-toggle,
+.input-group .match-indicator {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.input-group:focus-within .input-toggle,
+.input-group:focus-within .match-indicator,
+.input-group:active .input-toggle,
+.input-group:active .match-indicator {
+  opacity: 1 !important;
+}
+
+@media (max-width: 420px) {
+  form .input-group .input-toggle,
+  .input-group > .btn.btn-outline-secondary { right: 6px; height: 32px; width: 32px; }
+  form .input-group .form-control { padding-right: 44px; }
+}
+
+/* Strong override: ensure left icons never overlap input text */
+.auth-panel-container .input-group .input-group-text {
+  left: 12px !important;
+  width: 44px !important;
+}
+.auth-panel-container .input-group .form-control,
+.form .input-group .form-control,
+.input-group .form-control {
+  padding-left: 56px !important; /* leaves space for 44px icon + 12px gap */
+}
+
+/* Support input-groups that include multiple left addons (country code + icon) */
+.input-group.input-has-addon .input-group-text {
+  position: relative !important;
+  left: auto !important;
+  width: auto !important;
+  background: transparent !important;
+  border: 1px solid rgba(13,110,253,0.06) !important;
+  border-right: none !important;
+  padding: 8px 10px !important;
+  border-radius: 8px 0 0 8px !important;
+  color: rgba(13,110,253,0.92) !important;
+}
+.input-group.input-has-addon .form-control {
+  padding-left: 12px !important; /* restore default when multiple addons are present */
+}
+
+/* smaller inputs (very narrow screens) keep readable padding */
+@media (max-width: 420px) {
+  .auth-panel-container .input-group .form-control { padding-left: 44px !important; }
+  .input-group.input-has-addon .form-control { padding-left: 12px !important; }
+} 
+input.form-control {
+  background: #fff;
+  color: #07203a;
+  border-radius: 8px;
+  padding: 12px 16px;
+  padding-left: 36px;
+  padding-right: 16px;
+  margin: 8px 0;
+  width: 100%;
+  border: 1px solid rgba(13,110,253,0.04);
+  line-height: 1.35;
+  box-sizing: border-box;
+}
+
+/* Ensure inputs inside input-groups reserve space for right-side toggles so text isn't clipped */
+.input-group .form-control,
+.form .input-group .form-control { padding-right: 56px; }
+
+@media (max-width: 420px) {
+  /* reduce padding slightly on very small screens while keeping text visible */
+  .input-group .form-control,
+  .form .input-group .form-control { padding-right: 84px; }
+}
+
+/* Make form content vertically centered and not stretched */
+.sign-in-container form, .sign-up-container form { justify-content: center; gap: 12px; max-width: 520px; margin: 0 auto; }
+.sign-in-container form h1, .sign-up-container form h1 { margin-bottom: 8px; color: #07203a; font-size: 1.8rem; line-height: 1.05; }
+
+/* Scoped improvements for Sign‑In form (only) */
+.sign-in-container form h1 {
+  font-size: 1.6rem; /* do not enlarge — keep original size */
+  font-weight: 700;
+  margin: 12px 0 6px; /* push header down */
+}
+.sign-in-container form p.text-muted {
+  color: rgba(7,32,58,0.72);
+  margin-bottom: 12px;
+}
+.sign-in-container .input-group .form-control {
+  min-height: 44px; /* restore original touch target */
+}
+.sign-in-container .input-group .form-control::placeholder {
+  color: rgba(7,32,58,0.56);
+}
+.sign-in-container #loginBtn {
+  padding: 12px 18px;
+  font-size: 13px;
+  min-height: 44px;
+}
+@media (max-width: 768px) {
+  .sign-in-container form h1 { font-size: 1.35rem; }
+  .sign-in-container #loginBtn { padding: 14px 18px; }
+}
+.sign-in-container form p, .sign-up-container form p { margin-bottom: 12px; color: rgba(7,32,58,0.78); }
+
+/* Ensure clear spacing for actions and helper links */
+form .form-actions { width: 100%; margin-top: 10px; }
+form .small { color: rgba(7,32,58,0.6); }
+
+/* Autofill styles (better contrast when browser autofills fields) */
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
+  -webkit-text-fill-color: #07203a !important;
+  box-shadow: 0 0 0px 1000px #f8fbff inset !important;
+}
+
+/* Auth panel padding for icon-aware inputs */
+.auth-panel-page .floating-group .form-control { padding-left: 52px; }
+
+
+/* Buttons: clear, elevated primary */
+.button { border-radius: 10px; border: none; background: linear-gradient(90deg, #0d6efd 0%, #0b5ed7 100%); color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 12px 36px; letter-spacing: 1px; text-transform: uppercase; transition: transform 80ms ease-in, box-shadow .12s ease; box-shadow: 0 8px 24px rgba(11,94,215,0.12); }
+.button:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(11,94,215,0.14); }
+
+/* Accent sliding sheen — compact adaptation of .repair-card hover */
+.accent-slide {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px; /* match primary button */
+  transition: transform 360ms cubic-bezier(0.22,1,0.36,1), box-shadow 360ms cubic-bezier(0.22,1,0.36,1), border-color 360ms ease;
+  z-index: 0;
+  will-change: transform, box-shadow;
+}
+.accent-slide:hover,
+.accent-slide:focus {
+  transform: translateY(-3px) scale(1.008);
+  box-shadow: 0 14px 36px rgba(11,94,215,0.14);
+}
+.accent-slide::before {
+  /* sheen removed — pseudo-element inert */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent; /* no moving white */
+  transform: none;
+  transition: none;
+  pointer-events: none;
+  mix-blend-mode: normal;
+  opacity: 0;
+}
+.accent-slide:hover::before,
+.accent-slide:focus::before,
+.accent-slide:active::before {
+  /* keep pseudo-element inert on hover/focus/active */
+  transform: none;
+  opacity: 0;
+}
+.accent-slide:disabled,
+.accent-slide[disabled] {
+  opacity: 0.75;
+  transform: none;
+  box-shadow: none;
+}
+.accent-slide:focus-visible { outline: 3px solid rgba(13,110,253,0.12); outline-offset: 2px; }
+.button.ghost { background-color: transparent; border: 1px solid rgba(255,255,255,0.18); color: #fff; }
+
+@media (max-width: 768px) {
+  /* Make primary buttons full-width and larger tap areas */
+  .button { width: 100%; padding: 12px 18px; }
+  .input-group .form-control { height: 44px; padding-left: 44px; }
+  .input-group .input-toggle { right: 8px; }
+  .sign-in-container form, .sign-up-container form { padding: 1rem; align-items: stretch; justify-content: flex-start; }
+}
+
+
+
+.input-group .input-group-text { background: transparent; border: none; }
+
+/* Link appearance for blue theme */
+.auth-panel-page a { color: var(--cool-blue, #0d6efd); }
+
+/* Math Captcha Styling */
+.math-captcha {
+  text-align: center; /* center question, input and icon */
+}
+.math-captcha .form-label {
+  font-weight: 600;
+  color: #0d6efd;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  display: inline-flex; /* allow flex centering */
+  justify-content: center;
+  align-items: center;
+}
+.math-captcha .form-label .refresh-captcha {
+  margin-left: 0.5rem;
+}
+.math-captcha .input-group {
+  justify-content: center;
+}
+.math-captcha .form-control {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.math-captcha .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Social icons */
+.social-container { margin: 20px 0; }
+.social-container a { border: 1px solid #DDD; border-radius: 50%; display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; margin: 0 5px; }
+
+/* Responsive tweaks */
+@media (max-width: 992px) {
+  .auth-panel-container { width: 880px; max-width: 92%; }
+}
+@media (max-width: 768px) {
+  /* Make panel full-bleed and remove rounded corners on mobile for a native feel */
+  .auth-panel-container { width: 100%; min-height: auto; border-radius: 0; padding: 0 0; overflow: visible !important; }
+  .overlay-container { display: none !important; }
+
+  /* Stack forms vertically and avoid overlapping; use display to ensure only one is visible */
+  .form-container { position: relative; height: auto; }
+  .sign-in-container, .sign-up-container { position: relative; left: 0; width: 100%; transform: none; opacity: 1; visibility: visible; pointer-events: auto; z-index: 2; display: block; }
+
+  /* Default: show sign-in and hide sign-up on mobile */
+  .sign-in-container { display: block; }
+  .sign-up-container { display: none; }
+
+  /* When toggled, swap visibility — this is explicit and avoids transparency bleed-through */
+  .auth-panel-container.right-panel-active .sign-in-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-up-container { display: block; }
+
+  /* Ensure forms size to content rather than 100% height to avoid clipping */
+  .sign-in-container form, .sign-up-container form { padding: 1.25rem; max-width: 100%; height: auto; }
+
+  /* Make page center so content is centered */
+  .auth-panel-page { align-items: center; padding-top: 0; padding-bottom: 0; }
+
+  /* Make the centered auth card fluid and comfortable on small screens */
+  .auth-card { max-width: 100%; width: calc(100% - 2rem); padding: 1rem 1.1rem; margin: 0 auto; border-radius: 10px; }
+  .auth-body-wrapper { padding: 0 0.5rem; }
+
+  /* Extra safe spacing so the last input and CTA remain visible on very small viewports */
+  .sign-up-container form { padding-bottom: calc(2.5rem + env(safe-area-inset-bottom)); }
+  .sign-up-container .input-group:last-of-type { margin-bottom: 2.5rem; }
+  .sign-up-container .button { margin-bottom: calc(1.25rem + env(safe-area-inset-bottom)); }
+
+  /* Reduce heading sizes and keep brand compact */
+  .sign-in-container form h1, .sign-up-container form h1 { font-size: 1.35rem; margin-bottom: 0.5rem; }
+  .auth-form-brand .brand span { font-size: 0.95rem; }
+
+  /* Larger tappable areas on mobile */
+  .button { width: 100%; padding: 14px 18px; font-size: 1rem; }
+  .form .input-group .form-control { min-height: 48px; font-size: 1rem; }
+  .btn-toggle { right: 8px; height: 40px; width: 40px; }
+
+  /* Reduce margins for tighter mobile layout */
+  .auth-form-brand { margin-bottom: 0.5rem; }
+  .form .input-group { margin: 8px 0; }
+
+  /* Ensure sign-up last fields don't get clipped and have spacing */
+  .sign-up-container .input-group:last-of-type { margin-bottom: 1rem; }
+  .sign-up-container .button { margin-bottom: 1rem; }
+
+  /* Extra small screens tweak */
+  @media (max-width: 420px) {
+    .auth-panel-page { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .auth-panel-container { padding: 0 8px; }
+    .sign-in-container form, .sign-up-container form { padding: 0.85rem 0.75rem 1.75rem; }
+    .button { padding: 12px 14px; }
+  }
+}
+
+/* --- Modernized small form tweaks (glass and motion) --- */
+.auth-inner { padding: 2.25rem; animation: slideUp .5s ease both; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Toggle button for password visibility */
+.btn-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: rgba(33,57,154,0.92); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; }
+
+/* Specific guard for the register form: ensure inputs reserve space for the toggle so typed text and placeholder are never obscured */
+#auth-register-form .input-group { overflow: visible; }
+#auth-register-form .input-group .form-control { padding-right: 84px; text-overflow: clip; }
+#auth-register-form .btn-toggle { right: -6px; width: 44px; height: 44px; border-radius: 8px; background: transparent; }
+
+/* Reduce font-size for confirm field and placeholder so full text is visible without changing layout */
+#auth-register-form #confirmPassword,
+#auth-register-form #register-confirm { font-size: 0.95rem; }
+#auth-register-form .form-control::placeholder { font-size: 0.95rem; }
+
+/* Make sure the toggle exhibits a clear hit area and doesn't obscure content */
+#auth-register-form .btn-toggle i { pointer-events: none; }
+
+@media (max-width: 768px) {
+  #auth-register-form .input-group .form-control { padding-right: 64px; }
+  #auth-register-form .btn-toggle { right: 6px; width: 40px; height: 40px; }
+}
+@media (max-width: 420px) {
+  #auth-register-form .input-group .form-control { padding-right: 52px; }
+  #auth-register-form .btn-toggle { right: 8px; width: 36px; height: 36px; }
+  /* slightly reduce the confirm font on very small screens */
+  #auth-register-form #confirmPassword,
+  #auth-register-form #register-confirm { font-size: 0.92rem; }
+}
+
+
+/* Slightly stronger label styling for clarity */
+.form-label.small { font-size: 0.85rem; color: rgba(7,32,58,0.72); margin-bottom: 6px; font-weight: 500; }
+
+/* Make primary call-to-action bolder and full-width */
+.button { width: 100%; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
+
+/* Ensure Sign In and Sign Up submit buttons are identical in size */
+#registerBtn, #loginBtn {
+  display: block;
+  width: 100%;              /* full-width within the form */
+  padding: 12px 36px;       /* match prominent CTA spacing */
+  font-size: 13px;
+  min-height: 48px;         /* consistent touch target */
+  box-sizing: border-box;
+}
+
+/* Keep mobile responsiveness consistent */
+@media (max-width: 768px) {
+  #registerBtn, #loginBtn { padding: 14px 18px; min-height: 48px; }
+}
+
+/* Improved input grouping for modern look */
+.input-group .input-group-text { background: transparent; border: 1px solid rgba(13,110,253,0.06); border-right: none; padding: 8px 10px; border-radius: 8px 0 0 8px; }
+.input-group .form-control { border-radius: 0 8px 8px 0; border-left: none; }
+
+@media (max-width: 576px) { .auth-inner { padding:1.25rem 1rem; } .auth-card { margin-top: 1rem; } }
+
+/* ===== Auth / Login ===== */
+
+/* Page layout */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.auth-illustration {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 2rem;
+}
+
+.auth-illustration .auth-features {
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.auth-illustration h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.auth-illustration p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.auth-brand {
+  opacity: 0.95;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+/* Card styling */
+.auth-card { /* neutralize legacy wrapper to avoid double container */
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100%;
+  max-width: none;
+}
+
+.auth-body-wrapper { width: 100%; display: block; }
+
+.auth-card .card {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(2,12,27,0.06);
+  transition: box-shadow 0.3s ease; /* no transform - static card */
+}
+
+.auth-card .card:hover {
+  /* keep shadow lift on hover but remove any positional movement */
+  box-shadow: 0 34px 70px rgba(2,12,27,0.1);
+}
+
+.auth-card .card-body {
+  padding: 2.5rem;
+  line-height: 1.6;
+}
+
+/* Wider forgot-password card */
+.forgot-card { max-width: 760px; margin: 2rem auto; }
+.forgot-card .card { border-radius: 1rem; }
+.forgot-card .card-body { padding: 2.75rem; }
+
+@media (min-width: 992px) {
+  .forgot-card { max-width: 820px; }
+  .forgot-card .card-body { padding: 3rem; }
+}
+
+/* Ensure input-group icons sit inside inputs on main pages */
+.input-group { position: relative; }
+.input-group .input-group-text { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; width: 36px; justify-content: center; color: rgba(13,110,253,0.85); pointer-events: none; }
+.input-group .form-control { padding-left: 36px; padding-right: 84px; box-sizing: border-box; }
+
+/* Inline toggle buttons used on non-auth pages */
+.input-group > .btn.btn-outline-secondary { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 36px; width: 36px; padding: 0.35rem; display:flex; align-items:center; justify-content:center; z-index:3; border: 1px solid rgba(13,110,253,0.12); background: rgba(255,255,255,0.9); }
+.input-group > .btn.btn-outline-secondary i { font-size: 1rem; }
+
+@media (max-width: 420px) {
+  .input-group > .btn.btn-outline-secondary { right: 6px; height: 32px; width: 32px; }
+}
+
+/* Improve placeholder contrast on main auth pages */
+.auth-card .form-control::placeholder { color: rgba(7,32,58,0.72); }
+
+/* Floating / icon-aware layout */
+.floating-group { position: relative; }
+.floating-group .form-control { padding-left: 44px; }
+
+/* Auth panel specific nudges */
+.auth-panel-page .floating-group .form-control { padding-left: 44px; }
+
+
+
+/* Typography */
+.auth-card h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.auth-card p {
+  font-size: 1rem;
+  color: #495057;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs and controls */
+.auth-card .form-label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #07203a;
+}
+
+.auth-card .form-control {
+  border-radius: 0.85rem;
+  padding: 0.95rem 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #f7fbff;
+  color: #07203a;
+  border: 1px solid rgba(11,94,215,0.08);
+}
+
+.auth-card .form-control::placeholder { color: rgba(7,32,58,0.64); }
+
+.auth-card .form-control:focus {
+  border-color: #0b5ed7;
+  box-shadow: 0 6px 24px rgba(11,94,215,0.06);
+}
+
+.auth-card .btn-primary {
+  padding: 0.95rem 1.25rem;
+  font-weight: 700;
+  border-radius: 0.85rem;
+  letter-spacing: 0.4px;
+  transition: all 0.2s ease;
+  background: linear-gradient(90deg,#0d6efd,#0b5ed7);
+  border: none;
+  box-shadow: 0 10px 24px rgba(11,94,215,0.12);
+}
+
+.auth-card .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(11,94,215,0.14);
+}
+
+/* Mobile: make buttons full-width and increase tap targets */
+@media (max-width: 768px) {
+  .auth-card .btn-primary { width: 100%; padding: 12px; font-size: 1rem; }
+  .auth-card .card-body { padding: 1.25rem; }
+  .auth-card h1 { font-size: 1.5rem; }
+  .auth-card p { font-size: 0.95rem; }
+  .auth-card .form-control { font-size: 0.95rem; padding: 0.85rem 0.95rem; }
+}
+
+
+.auth-card .alert {
+  border-radius: 0.65rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+}
+
+/* Spacing */
+.card .mb-3 { margin-bottom: 1.25rem; }
+
+/* Desktop two-column layout */
+@media (min-width: 992px) {
+  .auth-illustration { padding: 4rem 3rem; min-height: 70vh; }
+  .auth-card { max-width: 720px; }
+  .auth-card .card-body { padding: 3rem; }
+}
+
+/* Extra large screens */
+@media (min-width: 1200px) {
+  .auth-illustration { padding: 5rem 4rem; }
+  .auth-card { max-width: 760px; }
+}
+
+/* Small niceties for reCAPTCHA */
+.g-recaptcha { display: inline-block; }
+.g-recaptcha + noscript { display: block; margin-top: 0.5rem; }
+
+
+/* Input group spacing */
+.input-group-text {
+  background-color: #f1f3f5;
+  border-radius: 0.5rem 0 0 0.5rem;
+  border-right: 0;
+}
+
+.input-group .form-control {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+#togglePassword {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* Card padding on mobile */
+@media (max-width: 767px) {
+  .auth-card .card-body {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* Button hover */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  transition: all 0.2s ease;
+}
+
+/* Alerts spacing */
+.alert {
+  margin-bottom: 1.5rem;
+}
+
+/* =====================
+   Strong responsive overrides
+   Ensures auth container is consistent and mobile-safe
+   ===================== */
+
+/* Prevent horizontal overflow for auth pages */
+html, body, .auth-panel-page { overflow-x: hidden; }
+
+/* Keep auth container consistent across login/register */
+.auth-panel-container { box-sizing: border-box; width: 100%; max-width: 1000px; height:800px; margin: 0 auto; }
+
+/* =====================
+   Device-specific breakpoints
+   ===================== */
+
+/* Desktop (>=1200px): generous spacing and larger headings */
+@media (min-width: 1200px) {
+  .auth-panel-container { --auth-min-height: 700px; }
+  .auth-card { padding: 1.5rem 2rem; }
+  .auth-card h1 { font-size: 1.8rem; }
+  .auth-card p { font-size: 1rem; }
+}
+
+/* Laptop (>=992px and <1200px): slightly reduced spacing to avoid clipping */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .auth-panel-container { --auth-min-height: 620px; max-width: 840px; }
+  .auth-card { padding: 1.25rem 1.5rem; }
+  .auth-card h1 { font-size: 1.6rem; }
+}
+
+/* Tablet (>=768 and <992): stack and increase vertical flow */
+@media (min-width: 768px) and (max-width: 991px) {
+  .auth-panel-container { --auth-min-height: 560px; max-width: 720px; }
+  .auth-card { padding: 1rem 1.25rem; }
+  .auth-card h1 { font-size: 1.5rem; }
+  .auth-panel-page { padding-top: 0; padding-bottom: 0; }
+}
+
+/* Mobile (<=767px): full-width card, large tappable controls, smooth scrolling */
+@media (max-width: 767px) {
+  .auth-panel-container { width: 100%; min-height: auto; border-radius: 0; padding: 0 0; }
+  .auth-card { width: calc(100% - 1.5rem); padding: 1rem; border-radius: 10px; }
+  .auth-card h1 { font-size: 1.35rem; }
+  .button { width: 100%; padding: 14px 16px; font-size: 1rem; }
+  .form .input-group .form-control { font-size: 1rem; min-height: 48px; }
+
+  /* sticky CTA for very short viewports to keep submit reachable */
+  @media (max-height: 540px) {
+    .sign-in-container form, .sign-up-container form { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+    .sign-in-container .d-grid, .sign-up-container .d-grid { position: sticky; bottom: env(safe-area-inset-bottom, 8px); z-index: 20; background: linear-gradient(transparent, rgba(255,255,255,0.98)); padding-top: 8px; }
+    .sign-in-container .d-grid .button, .sign-up-container .d-grid .button { box-shadow: 0 -8px 30px rgba(0,0,0,0.06); }
+  }
+}
+
+/* Short-height viewports (applies regardless of width) -- fixes overlapping content like at 800×500 */
+@media (max-height: 600px) {
+  /* Ensure forms get extra bottom padding so CTAs are reachable */
+  .sign-in-container form, .sign-up-container form { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+
+  /* Make CTA visible and reachable: fixed centered container with subtle backdrop */
+  .sign-in-container .d-grid, .sign-up-container .d-grid {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: env(safe-area-inset-bottom, 12px);
+    max-width: 760px;
+    margin: 0 auto;
+    z-index: 1200;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.98);
+    box-shadow: 0 -12px 40px rgba(0,0,0,0.08);
+    border-radius: 12px;
+  }
+  .sign-in-container .d-grid .button, .sign-up-container .d-grid .button { width: 100%; }
+
+  /* Slightly reduce card top margin to bring content higher on short screens */
+  .auth-card { margin-top: 0.6rem; }
+
+  /* Maintain centering */
+  .auth-panel-page { align-items: center; }
+}
+
+/* Special-case for mid-width short-height screens (e.g., 800×500): prevent overlay artifacts and ensure elements occupy full width */
+@media (max-width: 820px) and (max-height: 520px) {
+  /* Avoid absolute positioned containers causing overlap */
+  .form-container { position: relative !important; height: auto !important; }
+  form { height: auto !important; }
+
+  /* Make auth card compact and higher on the page */
+  .auth-card { width: calc(100% - 2rem); padding: 0.85rem 1rem; margin-top: 0.4rem; }
+
+  /* Inputs should be full-width and not overflow */
+  form .input-group { max-width: 100%; width: 100%; margin: 6px 0; }
+  form .input-group .form-control { padding-right: 72px; }
+
+  /* Reduce vertical spacing around headings */
+  .auth-inner .text-center.mb-4 { margin-bottom: 0.75rem; }
+
+  /* Ensure the CTA is visible; use sticky region if needed */
+  .sign-in-container .d-grid, .sign-up-container .d-grid { position: sticky; bottom: env(safe-area-inset-bottom, 10px); }
+}
+
+/* Tiny screens (<=360px): compact font sizes and reduced gaps */
+@media (max-width: 360px) {
+  .auth-card { width: calc(100% - 1rem); padding: 0.75rem; }
+  .auth-card h1 { font-size: 1.15rem; }
+  .form .input-group .form-control { font-size: 0.95rem; padding-left: 40px; padding-right: 56px; }
+  .btn-toggle { width: 34px; height: 34px; right: 6px; }
+}
+
+/* Accessibility improvements: larger tap targets, contrast, and focus styles */
+.auth-card .form-label { font-weight: 700; font-size: 0.98rem; color: #0b2337; }
+.auth-card .small, .auth-card p { color: #223147; font-size: 0.97rem; }
+.auth-card .form-control { color: #07203a; font-size: 1rem; }
+
+/* Focus-visible outlines for keyboard users */
+.form-control:focus-visible, .button:focus-visible, .btn-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(13,110,253,0.12);
+  border-color: #0b5ed7;
+}
+
+/* Ensure form inputs inside the auth card reserve space and are readable on all breakpoints */
+.auth-card form .input-group .form-control { padding-right: 64px; }
+@media (max-width: 768px) {
+  .auth-card form .input-group .form-control { padding-right: 56px; }
+}
+@media (max-width: 420px) {
+  .auth-card form .input-group .form-control { padding-right: 84px; }
+}
+
+/* Make toggle buttons slightly offset so they don't overlap text */
+.auth-card form .btn-toggle { right: 6px; width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.85); }
+.auth-card form .btn-toggle i { pointer-events: none; }
+
+/* Tablet-specific polish (768–991px): tighten spacing and font sizes slightly */
+@media (min-width: 768px) and (max-width: 991px) {
+  .auth-card { padding: 0.9rem 1rem; }
+  .auth-card h1 { font-size: 1.45rem; }
+  .auth-inner .text-center.mb-4 { margin-bottom: 0.6rem; }
+  form .input-group .form-control { font-size: 0.98rem; }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+
+
+/* Mobile-specific: stack panels & hide overlay to avoid overlap/scroll */
+@media (max-width: 768px) {
+  .auth-panel-container { width: 100%; padding: 0; min-height: var(--auth-min-height, 560px); border-radius: 0; }
+  .overlay-container { display: none !important; }
+
+  /* Use display to make only the active panel present in the flow */
+  .sign-in-container, .sign-up-container { position: relative; transform: none !important; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; width: 100%; display: block; }
+  .sign-in-container { display: block; }
+  .sign-up-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-in-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-up-container { display: block; }
+
+  /* Larger tap targets and tighter spacing */
+  .button { padding: 14px 18px; font-size: 1rem; }
+  form .input-group { margin: 8px 0; }
+  form .input-group .form-control { min-height: 48px; }
+}
+
+/* Desktop: remove overall page scrolling, tighten paddings/gaps, and ensure both
+   sign-in and sign-up panels fit the viewport without internal scroll. Mobile
+   behavior remains unchanged. */
+@media (min-width: 769px) {
+  /* Make the page exactly viewport height and prevent page-level scroll */
+  html, body, .auth-panel-page { height: 100vh; overflow: hidden; }
+
+  /* Center container and limit its height to viewport minus small margin */
+  .auth-panel-container {
+    max-height: calc(100vh - 32px);
+    width: 880px;
+    max-width: 94%;
+    margin: 0 auto;
+    border-radius: 10px;
+  }
+
+  /* Ensure form areas occupy full panel height and distribute content compactly */
+  .form-container { height: 100%; }
+  .sign-in-container, .sign-up-container { height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; }
+
+  /* Make form content more compact and remove large vertical gaps */
+  .sign-in-container form, .sign-up-container form {
+    padding: 18px 26px;
+    max-width: 520px;
+    width: 100%;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .auth-form-brand { margin-bottom: 0.5rem; }
+  .sign-in-container form h1, .sign-up-container form h1 { margin-bottom: 6px; font-size: 1.45rem; }
+  .overlay-panel { padding: 18px 28px; }
+  .overlay-panel h2 { font-size: 1.5rem; margin-bottom: 6px; }
+
+  /* Slightly tighter input spacing */
+  form .input-group { margin: 6px 0; }
+  form .input-group .form-control { padding: 10px 14px; min-height: 40px; }
+
+  /* Slightly smaller primary button so it doesn't create large whitespace */
+  .button { padding: 10px 20px; font-size: 13px; }
+
+  /* Hide any leftover page-level scrollbars from the page only.
+     Keep container-level scrollbars visible so form scrollbars can show. */
+  .auth-panel-page::-webkit-scrollbar { display: none; }
+}
+
+/* Ensure sign-up form is fully reachable on desktop by allowing internal scrolling
+   Keeps mobile stacking and small-screen fallbacks unchanged */
+@media (min-width: 769px) {
+  .auth-panel-container { --auth-min-height: 560px; }
+
+  /* keep form container full height so inner form can scroll independently */
+  .form-container { height: 100%; }
+
+  /* sign-up column: allow internal scroll for long forms */
+  .sign-up-container { overflow: hidden; }
+  .sign-up-container form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    padding: 28px 36px;
+    max-height: calc(100% - 40px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 18px; /* reserve space for scrollbar */
+  }
+
+  /* Let the Sign Up CTA flow with the form (no longer sticky) */
+  .sign-up-container form .button {
+    position: static;
+    margin-top: 12px;
+    align-self: stretch;
+  }
+}
+
+/* Keep auth panel sizing stable on medium widths without clipping */
+@media (min-width: 651px) and (max-width: 1200px) {
+  .auth-panel-page {
+    margin-top: 0 !important;
+    align-items: flex-start !important;
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
+
+  .auth-panel-container { min-height: min(695px, calc(100vh - 32px)) !important; max-width: 760px; }
+  .form-container { height: 100% !important; position: relative; transform: none !important; }
+  .sign-in-container, .sign-up-container { height: 100% !important; display: flex; align-items: flex-start; justify-content: flex-start; overflow: hidden; }
+  .sign-in-container form, .sign-up-container form {
+    width: 100%;
+    max-height: calc(100% - 48px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    scroll-padding-top: 12px; /* ensure content scrolled-to shows the top inputs */
+    overscroll-behavior: contain; /* prevent body scrolling when form reaches boundary */
+  }
+  .sign-up-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-in-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-up-container { display: flex !important; }
+}
+
+/* Prevent sign-up clipping on narrow responsive screens (320–650×695) */
+@media (min-width: 320px) and (max-width: 650px) {
+  .auth-panel-page {
+    margin-top: 0 !important;
+    align-items: flex-start !important;
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
+
+  .auth-panel-container {
+    min-height: auto !important;
+    height: auto !important;
+    max-height: calc(100vh - 20px) !important; /* ensure container fits viewport */
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0;
+    overflow: hidden !important; /* prevent page-level scroll — forms will scroll internally */
+  }
+
+  .form-container,
+  .sign-in-container,
+  .sign-up-container {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .form-container { transform: none !important; }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    width: 100%;
+    max-height: calc(100dvh - 96px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    padding-top: 0.9rem;
+    padding-bottom: 1rem;
+    scroll-padding-top: 12px;
+    overscroll-behavior: contain;
+    align-items: stretch;    /* top-align form children */
+    justify-content: flex-start; /* ensure contents start at the top */
+  }
+
+  .sign-up-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-in-container { display: none; }
+  .auth-panel-container.right-panel-active .sign-up-container { display: block !important; }
+}
+
+/* Professional Snow Theme SweetAlert2 Styling */
+.swal2-popup {
+  font-family: 'Montserrat', sans-serif;
+  border-radius: 16px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 0 30px rgba(173, 216, 230, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(173, 216, 230, 0.3);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 30%, #e6f3ff 70%, #f0f8ff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.swal2-popup::before {
+  content: '';
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #87ceeb 0%, #4682b4 50%, #87ceeb 100%);
+  opacity: 0.8;
+}
+
+.swal2-popup::after {
+  content: '❄';
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 12px;
+  color: rgba(173, 216, 230, 0.4);
+  transform: rotate(15deg);
+  pointer-events: none;
+}
+
+.swal2-title {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.swal2-html-container {
+  color: #34495e;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+.swal2-icon {
+  margin: 1.5rem auto 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.swal2-icon.swal2-error {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.swal2-icon.swal2-success {
+  border-color: #27ae60;
+  color: #27ae60;
+}
+
+.swal2-icon.swal2-warning {
+  border-color: #f39c12;
+  color: #f39c12;
+}
+
+.swal2-confirm {
+  background: linear-gradient(135deg, #4682b4 0%, #5dade2 50%, #85c1e9 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(70, 130, 180, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.swal2-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(70, 130, 180, 0.4);
+  background: linear-gradient(135deg, #5dade2 0%, #85c1e9 50%, #aed6f1 100%);
+}
+
+.swal2-confirm:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(70, 130, 180, 0.3);
+}
+
+.swal2-cancel {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(127, 140, 141, 0.3);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.swal2-cancel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(127, 140, 141, 0.4);
+}
+
+/* Snow backdrop */
+.swal2-backdrop {
+  background: rgba(240, 248, 255, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.swal2-backdrop::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  animation: snow-fall 20s linear infinite;
+}
+
+@keyframes snow-fall {
+  0% { transform: translateY(-100vh); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Fix: show both auth form and overlay on narrow tablet landscape (around 760×695) */
+@media (min-width: 992px) and (max-width: 1199px) {
+  /* allow the panel to use two columns for tablet/desktop mid-range widths */
+  .auth-panel-container { width: 920px; max-width: 96%; min-height: 560px; overflow: visible; }
+  .form-container { position: absolute; top: 0; height: 100%; }
+
+  /* place the sign-in on the left and sign-up on the right explicitly */
+  .sign-in-container { position: absolute; left: 0; width: 50%; transform: none !important; opacity: 1 !important; visibility: visible; pointer-events: auto; z-index: 2; display: block; }
+  /* keep sign-up out of view by default (overlay covers it) so it doesn't 'bleed' through */
+  .sign-up-container { position: absolute; left: 50%; width: 50%; transform: translateX(5%); opacity: 0; visibility: hidden; pointer-events: none; z-index: 1; display: block; transition: opacity .28s ease, transform .32s ease, visibility .01s linear .28s; }
+
+  /* ensure both columns occupy the same height and keep form content top-visible */
+  .sign-in-container, .sign-up-container { height: 100%; display: flex; align-items: flex-start; justify-content: flex-start; overflow: hidden; }
+
+  /* ensure forms inside each column can scroll independently and match sizes */
+  .sign-in-container form, .sign-up-container form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 1.25rem;
+    max-width: 460px;
+    width: 100%;
+    max-height: calc(100% - 48px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    padding-right: 18px; /* reserve space for potential scrollbar */
+    scroll-padding-top: 12px;
+    overscroll-behavior: contain;
+  }
+
+  /* explicitly show overlay in this breakpoint (overrides earlier hide rules) */
+  .overlay-container { display: block !important; left: 50%; width: 50%; }
+  .overlay { display: block !important; }
+  .overlay-panel { padding: 1.25rem 24px; }
+
+  /* visual tweaks retained */
+  .sign-in-container form h1 { font-size: 1.45rem; }
+  .auth-form-brand .brand span { font-size: 1.08rem; }
+  .form .input-group .form-control { min-height: 46px; }
+  #loginBtn, #registerBtn { min-height: 46px; padding: 10px 20px; }
+  .overlay-panel h2 { font-size: 1.35rem; }
+  .overlay-panel p { font-size: 1rem; max-width: 360px; }
+
+  /* ensure overlay doesn't intercept pointer events for underlying controls */
+  .overlay { pointer-events: none; }
+  .overlay .button { pointer-events: auto; }
+
+  /* Override transform-based swapping used on larger screens so responsive layout keeps left=Sign In */
+  .auth-panel-container.right-panel-active .sign-in-container { transform: none !important; left: 0 !important; }
+  .auth-panel-container.right-panel-active .sign-up-container { transform: none !important; left: 50% !important; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; z-index: 5 !important; transition: opacity .28s ease, transform .32s ease; }
+
+  /* Remove vertical scrollbar on Sign In at this range (e.g. 1172px) */
+  .sign-in-container {
+    overflow: hidden !important;
+  }
+
+  .sign-in-container form,
+  #auth-login-form {
+    overflow-y: hidden !important;
+    max-height: none !important;
+    padding-right: 1.25rem !important;
+  }
+}
+
+/* 992–1172: remove extra bottom gap under "Go back home" by vertically centering form content and tightening bottom padding */
+@media (min-width: 992px) and (max-width: 1172px) {
+  .auth-page.auth-panel-layout .sign-in-container,
+  .auth-page.auth-panel-layout .sign-up-container {
+    align-items: center !important; /* center vertically to eliminate large bottom space */
+    justify-content: center !important;
+  }
+
+  .auth-page.auth-panel-layout .sign-in-container form,
+  .auth-page.auth-panel-layout .sign-up-container form {
+    padding-bottom: 14px !important; /* reduce bottom padding so links/CTA sit closer to card bottom */
+    margin-bottom: 0 !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-card {
+    padding-bottom: 8px !important;
+  }
+
+  /* tighten spacing for the small helper text/link under the CTA */
+  .auth-page.auth-panel-layout .sign-in-container .small.mt-2,
+  .auth-page.auth-panel-layout .sign-up-container .small.mt-2,
+  .auth-page.auth-panel-layout .sign-in-container p.small,
+  .auth-page.auth-panel-layout .sign-up-container p.small {
+    margin-top: 6px !important;
+    margin-bottom: 6px !important;
+  }
+}
+
+
+/* Final auth-field icon lock: keep icons visible while typing (Sign In + Sign Up + Forgot) */
+#auth-register-form .input-group,
+#auth-login-form .input-group,
+#forgotForm .input-group {
+  position: relative;
+}
+
+#auth-register-form .input-group .input-group-text,
+#auth-login-form .input-group .input-group-text,
+#forgotForm .input-group .input-group-text {
+  position: absolute !important;
+  left: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: rgba(13, 110, 253, 0.95) !important;
+  opacity: 1 !important;
+  z-index: 6 !important;
+  pointer-events: none !important;
+}
+
+#auth-register-form .input-group .input-group-text i,
+#auth-login-form .input-group .input-group-text i,
+#forgotForm .input-group .input-group-text i {
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  color: inherit !important;
+  opacity: 1 !important;
+}
+
+#auth-register-form .input-group .form-control,
+#auth-register-form .input-group .form-select,
+#auth-login-form .input-group .form-control,
+#auth-login-form .input-group .form-select,
+#forgotForm .input-group .form-control {
+  padding-left: 52px !important;
+}
+
+/* ==================================================
+   Final canonical auth-panel layout/container rules
+   (kept at end to win against earlier duplicate rules)
+   ================================================== */
+
+.auth-page.auth-panel-layout,
+.auth-page.auth-panel-layout .auth-panel-shell,
+.auth-page.auth-panel-layout .auth-panel-shell > .row,
+.auth-page.auth-panel-layout .auth-panel-col,
+.auth-page.auth-panel-layout .auth-body-wrapper,
+.auth-page.auth-panel-layout .auth-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.auth-page.auth-panel-layout {
+  min-height: 100dvh !important;
+}
+
+.auth-page.auth-panel-layout .auth-card {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.auth-page.auth-panel-layout .auth-panel-page {
+  margin: 0 !important;
+  width: 100vw !important;
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+.auth-page.auth-panel-layout .auth-panel-container {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Keep full card feel on phones/tablets while preserving the toggle behavior */
+@media (max-width: 1200px) {
+  .auth-page.auth-panel-layout .auth-panel-container {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Fixes: remove frozen snowflake icon at top + eliminate tiny top gap
+   - hide the decorative `.bi-snow2` used in auth layout on this page
+   - ensure the auth container/card is flush to the top on desktop
+   Scoped to `.auth-page` so other pages are unaffected.
+   ------------------------------------------------------------------ */
+
+/* hide the small frozen snowflake (Bootstrap icon) inside auth card */
+.auth-page .auth-card .bi-snow2,
+.auth-page .text-center.mb-3 .bi-snow2 {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  line-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* remove leftover top gap on larger screens so auth panel sits flush */
+@media (min-width: 769px) {
+  .auth-page .auth-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  .auth-page, .auth-panel-page, .auth-panel-container {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  .auth-panel-container { max-height: 100dvh !important; height: 100dvh !important; }
+}
+
+/* ==================================================
+   Full Responsive Dimension Range (Auth-specific)
+   240px -> 2560px (+ optional 3440px ultrawide)
+   ================================================== */
+
+:root {
+  --auth-viewport-range: "default";
+}
+
+/* 📱 Smallest phones: 240px – 320px */
+@media (min-width: 240px) and (max-width: 320px) {
+  :root { --auth-viewport-range: "smallest-phone-240-320"; }
+
+  .auth-page.auth-panel-layout .auth-panel-container {
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+  }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    padding: 0.75rem !important;
+    gap: 8px !important;
+  }
+
+  .sign-in-container form h1,
+  .sign-up-container form h1 {
+    font-size: 1.1rem !important;
+  }
+
+  #auth-register-form .input-group .form-control,
+  #auth-register-form .input-group .form-select,
+  #auth-login-form .input-group .form-control,
+  #auth-login-form .input-group .form-select {
+    min-height: 42px !important;
+    padding-left: 44px !important;
+    font-size: 0.9rem !important;
+  }
+}
+
+/* 📱 Standard phones: 360px – 480px */
+@media (min-width: 360px) and (max-width: 480px) {
+  :root { --auth-viewport-range: "standard-phone-360-480"; }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    padding: 0.95rem !important;
+    gap: 10px !important;
+  }
+
+  .sign-in-container form h1,
+  .sign-up-container form h1 {
+    font-size: 1.25rem !important;
+  }
+
+  #auth-register-form .input-group .form-control,
+  #auth-register-form .input-group .form-select,
+  #auth-login-form .input-group .form-control,
+  #auth-login-form .input-group .form-select {
+    min-height: 44px !important;
+    padding-left: 48px !important;
+  }
+}
+
+/* 📱 Large phones / small tablets: 481px – 768px */
+@media (min-width: 481px) and (max-width: 768px) {
+  :root { --auth-viewport-range: "large-phone-small-tablet-481-768"; }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    padding: 1.1rem !important;
+  }
+
+  .sign-in-container form h1,
+  .sign-up-container form h1 {
+    font-size: 1.35rem !important;
+  }
+}
+
+/* Fixed layout for narrow tablets / large phones (567px — 767px)
+   — match screenshot: single-column white card, overlay hidden; Sign Up shown when active
+*/
+@media (min-width: 567px) and (max-width: 767px) {
+  :root { --auth-viewport-range: "narrow-tablet-567-762"; }
+
+  /* keep the outer panel full-viewport but render a solid white card centered */
+  .auth-page.auth-panel-layout .auth-panel-container {
+    background: transparent !important; /* prevent underlying gradient from bleeding through */
+    padding: 0 !important;
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* force the auth card to be a solid white panel matching screenshot */
+  .auth-page.auth-panel-layout .auth-card {
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 20px 50px rgba(2,12,27,0.06) !important;
+    max-width: 720px !important;
+    width: calc(100% - 2rem) !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+
+  /* stack forms vertically and hide the blue overlay, but allow Sign Up when active */
+  .auth-page.auth-panel-layout .overlay-container,
+  .auth-page.auth-panel-layout .overlay { display: none !important; pointer-events: none !important; }
+
+  /* default: show Sign In; when `.right-panel-active` is present show Sign Up instead */
+  .auth-page.auth-panel-layout .sign-in-container { display: block !important; width: 100% !important; }
+  .auth-page.auth-panel-layout .sign-up-container { display: none !important; }
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container {
+    display: block !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    z-index: 1200 !important;
+  }
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-in-container { display: none !important; }
+
+  /* ensure form content is comfortably padded and scroll-safe */
+  .form-container { position: relative !important; height: auto !important; transform: none !important; padding: 1.25rem 0 !important; }
+  .sign-in-container form, .sign-up-container form { padding: 1.25rem !important; max-width: 520px !important; margin: 0 auto !important; }
+
+  /* remove any transparent card rules that could let background show through */
+  .auth-page.auth-panel-layout .auth-card { background-clip: padding-box !important; }
+}
+
+/* Fix for narrow screens: force single-column full-size panel and hide overlay */
+@media (max-width: 991px) {
+  .auth-page.auth-panel-layout .auth-panel-container,
+  .auth-page.auth-panel-layout .auth-panel-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+    background: transparent !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-page {
+    justify-content: stretch !important;
+    align-items: stretch !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .auth-page.auth-panel-layout .overlay,
+  .auth-page.auth-panel-layout .overlay-container { display: none !important; pointer-events: none !important; }
+
+  /* Remove decorative radial glows that create visible gutters at narrow widths */
+  .auth-panel-page::before,
+  .auth-page.auth-panel-layout .auth-panel-page::before {
+    display: none !important;
+    background-image: none !important;
+    opacity: 0 !important;
+  }
+
+  /* Make page and container backgrounds pure white at narrow widths so
+     leftover gradient/gutter space matches the card color */
+  html, body {
+    background: #ffffff !important;
+  }
+
+  .auth-panel-page,
+  .auth-page.auth-panel-layout .auth-panel-page,
+  .auth-page.auth-panel-layout .auth-panel-container {
+    background: #ffffff !important;
+    border: 0 !important;
+  }
+  .auth-page.auth-panel-layout .sign-in-container,
+  .auth-page.auth-panel-layout .sign-up-container {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    left: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    z-index: 2 !important;
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    padding: 1rem 1.25rem !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-body-wrapper {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Sign-up toggle behaviour for this range */
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-in-container { display: none !important; }
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container { display: block !important; }
+}
+
+/* Full-viewport white panel for small-to-medium screens (135px – 991px)
+   — removes leftover background space on top/right/left/bottom */
+@media (min-width: 135px) and (max-width: 991px) {
+  .auth-page.auth-panel-layout { background: #ffffff !important; }
+
+  .auth-page.auth-panel-layout .auth-panel-container,
+  .auth-page.auth-panel-layout .auth-panel-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: transparent !important;
+  }
+
+  /* make content occupy the full viewport */
+  .auth-page.auth-panel-layout .auth-body-wrapper {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* full-size single panel */
+  .auth-page.auth-panel-layout .auth-card {
+    background: #ffffff !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    padding: 1rem 1.25rem !important;
+  }
+
+  /* remove overlay at these sizes but keep Sign Up accessible via `.right-panel-active` */
+  .auth-page.auth-panel-layout .overlay,
+  .auth-page.auth-panel-layout .overlay-container { display: none !important; pointer-events: none !important; }
+
+  /* default: show Sign In; allow Sign Up when toggled */
+  .auth-page.auth-panel-layout .sign-in-container { display: block !important; width: 100% !important; }
+  .auth-page.auth-panel-layout .sign-up-container { display: none !important; }
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container {
+    display: block !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    z-index: 1200 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+  }
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-in-container { display: none !important; }
+}
+
+/* 📱 Tablets: 769px – 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root { --auth-viewport-range: "tablet-769-1024"; }
+
+  .auth-page.auth-panel-layout .auth-panel-container {
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+  }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    max-width: 480px !important;
+    padding: 1.25rem !important;
+  }
+}
+
+/* 💻 Small laptops: 1025px – 1280px */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  :root { --auth-viewport-range: "small-laptop-1025-1280"; }
+
+  .auth-page.auth-panel-layout .auth-panel-container {
+    max-width: 100vw !important;
+    min-height: 100dvh !important;
+  }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    max-width: 500px !important;
+  }
+}
+
+/* 💻 Standard laptops: 1281px – 1440px */
+@media (min-width: 1281px) and (max-width: 1440px) {
+  :root { --auth-viewport-range: "standard-laptop-1281-1440"; }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    max-width: 520px !important;
+  }
+}
+
+/* 🖥 Large screens: 1441px – 1920px */
+@media (min-width: 1441px) and (max-width: 1920px) {
+  :root { --auth-viewport-range: "large-screen-1441-1920"; }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    max-width: 560px !important;
+  }
+}
+
+/* 🖥 Ultra-wide monitors: 1921px – 2560px */
+@media (min-width: 1921px) and (max-width: 2560px) {
+  :root { --auth-viewport-range: "ultrawide-1921-2560"; }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    max-width: 620px !important;
+  }
+}
+
+/* Optional extra ultrawide extension */
+@media (min-width: 2561px) and (max-width: 3440px) {
+  :root { --auth-viewport-range: "ultrawide-2561-3440"; }
+
+  .sign-in-container form,
+  .sign-up-container form {
+    max-width: 680px !important;
+  }
+}
+
+/* ==================================================
+   FINAL HARD OVERRIDE: true full-card on all dimensions
+   (kept last so it wins against earlier breakpoint rules)
+   ================================================== */
+.auth-page.auth-panel-layout,
+.auth-page.auth-panel-layout > .container,
+.auth-page.auth-panel-layout .auth-panel-shell,
+.auth-page.auth-panel-layout .auth-panel-shell > .row,
+.auth-page.auth-panel-layout .auth-panel-col,
+.auth-page.auth-panel-layout .auth-body-wrapper,
+.auth-page.auth-panel-layout .auth-card,
+.auth-page.auth-panel-layout .auth-panel-page,
+.auth-page.auth-panel-layout .auth-panel-container {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+}
+
+.auth-page.auth-panel-layout .auth-panel-page {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+}
+
+.auth-page.auth-panel-layout .auth-panel-container {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  overflow: hidden !important;
+}
+
+.auth-page.auth-panel-layout .auth-body-wrapper {
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+.auth-page.auth-panel-layout .form-container {
+  top: 0 !important;
+  height: 100% !important;
+  transform: none !important;
+}
+
+.auth-page.auth-panel-layout .sign-in-container,
+.auth-page.auth-panel-layout .sign-up-container,
+.auth-page.auth-panel-layout .overlay-container,
+.auth-page.auth-panel-layout .overlay,
+.auth-page.auth-panel-layout .overlay-panel {
+  height: 100% !important;
+  min-height: 100% !important;
+}
+
+/* remove hidden-brand spacer on mobile when icon is hidden */
+.auth-page.auth-panel-layout .text-center.mb-3.d-lg-none {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ==================================================
+   SIGN-UP INTERACTION FIX (global, highest priority)
+   Ensure the Sign Up panel is visible and interactive
+   whenever the container has `right-panel-active`.
+   This overrides earlier `display:none` / `pointer-events:none` rules.
+   ================================================== */
+.auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container,
+.auth-page.auth-panel-layout.right-panel-active .auth-panel-container .sign-up-container,
+.auth-panel-container.right-panel-active .sign-up-container {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  z-index: 1200 !important; /* above overlay */
+}
+
+/* Ensure overlay never intercepts clicks on the sign-up form */
+.auth-page.auth-panel-layout .overlay,
+.auth-page.auth-panel-layout .overlay-container {
+  pointer-events: none !important;
+  z-index: 100 !important;
+}
+
+/* Hide sign-in when sign-up is active and keep it non-interactive */
+.auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-in-container {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ===============================
+   Sign-up form scrollbar behaviour
+   - overlay-style: hidden unless user scrolls or hovers
+   - compatible with touch and keyboard scrolling
+   =============================== */
+.auth-page.auth-panel-layout .sign-up-container,
+.auth-page.auth-panel-layout .sign-up-container form {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth !important;
+  /* hide native scrollbars by default */
+  scrollbar-width: none !important;    /* Firefox */
+  -ms-overflow-style: none !important; /* IE/Edge */
+}
+
+/* WebKit: zero-width scrollbar until interaction */
+.auth-page.auth-panel-layout .sign-up-container form::-webkit-scrollbar,
+.auth-page.auth-panel-layout .sign-up-container::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transition: width 0.25s ease, height 0.25s ease, opacity 0.25s ease;
+}
+
+/* show scrollbar when container is hovered/active or during scrolling */
+.auth-page.auth-panel-layout .sign-up-container.scrolling form::-webkit-scrollbar,
+.auth-page.auth-panel-layout .sign-up-container.scrolling::-webkit-scrollbar,
+.auth-page.auth-panel-layout .sign-up-container form:hover::-webkit-scrollbar,
+.auth-page.auth-panel-layout .sign-up-container:hover::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+  opacity: 1;
+}
+
+.auth-page.auth-panel-layout .sign-up-container.scrolling form::-webkit-scrollbar-track,
+.auth-page.auth-panel-layout .sign-up-container.scrolling::-webkit-scrollbar-track,
+.auth-page.auth-panel-layout .sign-up-container form:hover::-webkit-scrollbar-track,
+.auth-page.auth-panel-layout .sign-up-container:hover::-webkit-scrollbar-track {
+  background: rgba(13, 110, 253, 0.12);
+  border-radius: 8px;
+}
+
+.auth-page.auth-panel-layout .sign-up-container.scrolling form::-webkit-scrollbar-thumb,
+.auth-page.auth-panel-layout .sign-up-container.scrolling::-webkit-scrollbar-thumb,
+.auth-page.auth-panel-layout .sign-up-container form:hover::-webkit-scrollbar-thumb,
+.auth-page.auth-panel-layout .sign-up-container:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0d6efd, #0b5ed7);
+  border-radius: 8px;
+  border: 2px solid rgba(13, 110, 253, 0.15);
+  background-clip: padding-box;
+}
+
+/* make vertical scrollbar blue on non-webkit browsers too (color only)
+   uses transparent track since scrollbar is hidden initially */
+.auth-page.auth-panel-layout .sign-up-container,
+.auth-page.auth-panel-layout .sign-up-container form {
+  scrollbar-color: #0d6efd rgba(13, 110, 253, 0.12) !important;
+}
+
+
+
+/* Make sure the overlay never visually covers form scrollbars */
+.auth-page.auth-panel-layout .overlay,
+.auth-page.auth-panel-layout .overlay-container { pointer-events: none !important; z-index: 100 !important; }
+
+/* Ensure single-column (no two-column overlay) for small tablets so Sign Up doesn't show through */
+@media (min-width: 720px) and (max-width: 991px) {
+  .overlay-container { display: none !important; }
+  .overlay { display: none !important; }
+
+  /* Force single-column stacking and hide the sign-up panel */
+  .sign-in-container, .sign-up-container {
+    position: relative !important;
+    width: 100% !important;
+    left: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    display: block !important;
+  }
+
+  .sign-up-container { display: none !important; }
+}
+
+/* ==================================================
+   Desktop panel alignment fix
+   - keep auth container centered
+   - keep Sign Up form on the right when active
+   ================================================== */
+@media (min-width: 992px) {
+  .auth-page.auth-panel-layout .auth-panel-page {
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container {
+    width: min(1120px, 96vw) !important;
+    max-width: 1120px !important;
+    height: min(92dvh, 780px) !important;
+    min-height: 680px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 20px 50px rgba(9, 30, 66, 0.1) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(245,250,255,0.9)) !important;
+    border: 1px solid rgba(13,110,253,0.08) !important;
+  }
+
+  .auth-page.auth-panel-layout .form-container {
+    position: absolute !important;
+    top: 0 !important;
+    height: 100% !important;
+  }
+
+  .auth-page.auth-panel-layout .sign-in-container,
+  .auth-page.auth-panel-layout .sign-up-container {
+    width: 50% !important;
+    left: 0 !important;
+  }
+
+  .auth-page.auth-panel-layout .sign-up-container {
+    opacity: 0 !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container {
+    transform: translateX(100%) !important;
+    opacity: 1 !important;
+    z-index: 5 !important;
+    pointer-events: auto !important;
+  }
+
+  .auth-page.auth-panel-layout .overlay-container {
+    left: 50% !important;
+    width: 50% !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .overlay-container {
+    transform: translateX(-100%) !important;
+  }
+}
+
+/* Final fix: make leftover bottom area in Sign Up white (992–1199) */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .auth-page.auth-panel-layout .auth-panel-container,
+  .auth-panel-container {
+    overflow: hidden !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container .form-container,
+  .auth-page.auth-panel-layout .auth-panel-container .sign-in-container,
+  .auth-page.auth-panel-layout .auth-panel-container .sign-up-container,
+  .auth-page.auth-panel-layout .auth-panel-container .overlay-container,
+  .auth-page.auth-panel-layout .auth-panel-container .overlay {
+    height: 100% !important;
+    min-height: 100% !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container {
+    background: #ffffff !important;
+    align-items: stretch !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container form {
+    background: #ffffff !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 100% !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container .button,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container #registerBtn {
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Mobile/tablet scroll host color: make vertical scrollbar blue */
+@media (max-width: 991px) {
+  #authPanelRoot {
+    scrollbar-width: thin;
+    scrollbar-color: #0d6efd rgba(13, 110, 253, 0.12);
+  }
+
+  #authPanelRoot::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  #authPanelRoot::-webkit-scrollbar-track {
+    background: rgba(13, 110, 253, 0.12);
+    border-radius: 8px;
+  }
+
+  #authPanelRoot::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #0d6efd, #0b5ed7);
+    border-radius: 8px;
+    border: 2px solid rgba(13, 110, 253, 0.15);
+    background-clip: padding-box;
+  }
+}
+
+/* Target narrow tablets around the 767–768px width / ~695px height viewport
+   - avoid forcing a fixed 695px container that can exceed short tablet viewports
+   - allow the form to scroll internally without producing double scrollbars
+   - small spacing reductions so header + form fit comfortably */
+@media (min-width: 767px) and (max-width: 768px) {
+  .auth-panel-container,
+  .auth-panel-page,
+  #authPanelRoot {
+    min-height: min(695px, calc(100vh - 24px)) !important;
+    max-height: calc(100vh - 24px) !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    align-items: center !important;
+  }
+
+  #authPanelRoot .form-container,
+  #authPanelRoot .sign-in-container,
+  #authPanelRoot .sign-up-container {
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #authPanelRoot .sign-in-container form,
+  #authPanelRoot .sign-up-container form {
+    max-height: calc(100vh - 140px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  #authPanelRoot .sign-in-container form .input-group,
+  #authPanelRoot .sign-up-container form .input-group,
+  #authPanelRoot .sign-in-container form .math-captcha .input-group,
+  #authPanelRoot .sign-up-container form .math-captcha .input-group {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Make CTA buttons full-width on this narrow-tablet slice so both CTAs match visually */
+  .sign-in-container form .button,
+  .sign-up-container form .button {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block;
+    align-self: stretch;
+  }
+
+  .auth-form-brand { margin-top: 10px !important; }
+  .sign-in-container form h1, .sign-up-container form h1 { margin-top: 6px !important; }
+}
+
+/* 992–1172: force leftover card areas to white (color-only) */
+@media (min-width: 992px) and (max-width: 1172px) {
+  .auth-page.auth-panel-layout .auth-panel-container,
+  .auth-page.auth-panel-layout .auth-card,
+  .auth-page.auth-panel-layout .sign-in-container,
+  .auth-page.auth-panel-layout .sign-up-container,
+  .auth-page.auth-panel-layout #auth-login-form,
+  .auth-page.auth-panel-layout #auth-register-form {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+}
+
+/* Exact 1440px width: force leftover card areas to white (color-only) */
+@media (min-width: 1440px) and (max-width: 1440px) {
+  .auth-page.auth-panel-layout .auth-panel-container,
+  .auth-page.auth-panel-layout .auth-card,
+  .auth-page.auth-panel-layout .sign-in-container,
+  .auth-page.auth-panel-layout .sign-up-container,
+  .auth-page.auth-panel-layout #auth-login-form,
+  .auth-page.auth-panel-layout #auth-register-form {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+}
+
+/* 992–1439 Sign In: remove any remaining gray on left/right/bottom (color-only) */
+@media (min-width: 992px) and (max-width: 1439px) {
+  .auth-page.auth-panel-layout,
+  .auth-page.auth-panel-layout .auth-panel-page,
+  .auth-page.auth-panel-layout .auth-panel-container:not(.right-panel-active),
+  .auth-page.auth-panel-layout .auth-panel-container:not(.right-panel-active) .auth-card,
+  .auth-page.auth-panel-layout .auth-panel-container:not(.right-panel-active) .form-container,
+  .auth-page.auth-panel-layout .auth-panel-container:not(.right-panel-active) .sign-in-container,
+  .auth-page.auth-panel-layout .auth-panel-container:not(.right-panel-active) #auth-login-form {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-page::before,
+  .auth-panel-page::before {
+    display: none !important;
+    opacity: 0 !important;
+    background: none !important;
+    background-image: none !important;
+  }
+}
+
+/* 1199–1200: keep desktop two-panel mode and make blue overlay visible */
+@media (min-width: 1199px) and (max-width: 1200px) {
+  .overlay-container,
+  .auth-page.auth-panel-layout .overlay-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .overlay,
+  .auth-page.auth-panel-layout .overlay {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* 1199–1465 Sign Up: force gray card areas to white (color-only) */
+@media (min-width: 1199px) and (max-width: 1465px) {
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .auth-card,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .form-container,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active #auth-register-form {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+}
+
+/* 992–1920: make the area outside the auth card white (Sign In + Sign Up) */
+@media (min-width: 992px) and (max-width: 1920px) {
+  .auth-page.auth-panel-layout,
+  .auth-page.auth-panel-layout .auth-panel-page {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-page::before,
+  .auth-panel-page::before {
+    display: none !important;
+    opacity: 0 !important;
+    background: none !important;
+    background-image: none !important;
+  }
+}
+
+/* Desktop consistency: Sign Up scrollbar should stay visible even without DevTools */
+@media (min-width: 992px) {
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active #auth-register-form {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-gutter: stable both-edges !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container::-webkit-scrollbar,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active #auth-register-form::-webkit-scrollbar {
+    width: 12px !important;
+  }
+}
+
+/* FINAL DESKTOP FIX: keep Sign Up scroll visible without relying on F12 viewport shrink */
+@media (min-width: 992px) {
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container {
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container form,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active #auth-register-form {
+    height: calc(100% - 24px) !important;
+    max-height: calc(100% - 24px) !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-gutter: stable !important;
+    padding-right: 14px !important;
+  }
+
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active .sign-up-container form::-webkit-scrollbar,
+  .auth-page.auth-panel-layout .auth-panel-container.right-panel-active #auth-register-form::-webkit-scrollbar {
+    width: 12px !important;
+  }
+}
+
+/* FINAL FORGOT-PASSWORD LAYOUT: match login feel and keep card slightly lower */
+.auth-page:not(.auth-panel-layout) .auth-card {
+  max-width: 720px !important;
+  margin-top: 7vh !important;
+}
+
+/* Reset page card also should sit lower on the page */
+.reset-card {
+  margin-top: 10vh !important; /* more vertical offset */
+}
+
+.forgot-auth-content {
+  padding: 1.75rem 1.5rem 1.25rem;
+}
+
+.forgot-auth-content .forgot-card-header {
+  padding: 0.25rem 0.25rem 0.5rem;
+}
+
+.forgot-auth-content h1.h4 {
+  color: #000; /* black text for forgot page header */
+  font-size: 1.85rem;
+  line-height: 1.1;
+}
+
+/* also ensure reset page header is white */
+.auth-card-wide .card-header h1 {
+  color: #fff !important;
+}
+
+
+#forgotForm .input-group {
+  position: relative;
+}
+
+#forgotForm .input-group .input-group-text {
+  position: absolute !important;
+  left: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: rgba(13, 110, 253, 0.95) !important;
+  z-index: 8 !important;
+  pointer-events: none !important;
+}
+
+#forgotForm .input-group .form-control {
+  min-height: 48px;
+  padding-left: 56px !important;
+}
+
+@media (max-width: 991px) {
+  .auth-page:not(.auth-panel-layout) .auth-card {
+    margin-top: 5vh !important;
+  }
+
+  .forgot-auth-content {
+    padding: 1.25rem 1rem 1rem;
+  }
+}
+
+/* extra responsive tweaks for forgot/reset pages */
+@media (max-width: 768px) {
+  .auth-card-wide,
+  .reset-card {
+    max-width: 90% !important;
+  }
+  .auth-card-wide .card-body,
+  .reset-card .card-body {
+    padding: 1.5rem !important;
+  }
+  .forgot-auth-content {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .auth-card-wide {
+    max-width: 95% !important;
+    margin: 1rem;
+  }
+  .auth-card-wide .card-body {
+    padding: 1.25rem !important;
+  }
+  .input-group .input-group-text {
+    width: 30px !important;
+    left: 8px !important;
+  }
+  .input-group .form-control {
+    padding-left: 48px !important;
+  }
+}
+
+/* ultra-narrow phones (320-425px) tweaks */
+@media (min-width: 320px) and (max-width: 425px) {
+  .auth-card-wide {
+    padding: 0 !important;
+    margin: 0.5rem !important;
+    overflow-y: hidden !important;
+  }
+  .sign-in-container,
+  .sign-up-container {
+    overflow-y: hidden !important;
+  }
+  .reset-card {
+    overflow-y: hidden !important;
+  }
+  .auth-card-wide .card-body {
+    padding: 1rem !important;
+  }
+  .forgot-auth-content h1.h4,
+  .auth-card-wide .card-header h1 {
+    font-size: 1.4rem !important;
+    line-height: 1.2 !important;
+  }
+  .auth-card-wide .form-control {
+    font-size: 0.95rem !important;
+  }
+  .button {
+    font-size: 0.95rem !important;
+    padding: 8px 12px !important;
+  }
+  /* hide native scrollbar inside panel containers */
+  .auth-panel-page,
+  .auth-panel-container,
+  .auth-body-wrapper,
+  .sign-in-container,
+  .sign-up-container,
+  .sign-in-container form,
+  .sign-up-container form {
+    overflow-y: hidden !important;
+    height: 100dvh !important;
+  }
+  html, body {
+    overflow-y: hidden !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  /* compensate for webkit scrollbar display */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  .auth-panel-page::-webkit-scrollbar,
+  .auth-panel-container::-webkit-scrollbar,
+  .auth-body-wrapper::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  /* firefox */
+  html, body, .auth-panel-page, .auth-panel-container, .auth-body-wrapper {
+    scrollbar-width: none !important;
+  }
+}
+
+/* ===== fallback animation enforcement ===== */
+.auth-page.auth-panel-layout .sign-in-container,
+.auth-page.auth-panel-layout .sign-up-container {
+  display: block !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity .5s ease !important;
+}
+.auth-page.auth-panel-layout .sign-in-container.active,
+.auth-page.auth-panel-layout .sign-up-container.active {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+

@@ -1,0 +1,330 @@
+<div class="admin-dashboard container-fluid py-4">
+  <%- include('../../../partials/dashboard-styles') %>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-people-fill me-2"></i>Customer Directory
+        </h1>
+        <p class="hero-sub">
+          Manage customer records, lifecycle status, and account health
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="row mb-4 g-3 kpi-row">
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #4361ee, #3a0ca3)"
+          >
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Total Customers</div>
+            <div class="kpi-value">2,148</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #4361ee, #3a0ca3)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #2ec4b6, #1a8f85)"
+          >
+            <i class="bi bi-person-check-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Active Accounts</div>
+            <div class="kpi-value">2,021</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #2ec4b6, #1a8f85)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #ff9f1c, #ff7422)"
+          >
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Pending Verification</div>
+            <div class="kpi-value">97</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #ff9f1c, #ff7422)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #e63946, #b11226)"
+          >
+            <i class="bi bi-slash-circle-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Blocked Accounts</div>
+            <div class="kpi-value">30</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #e63946, #b11226)"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Search Customer</label
+          >
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"
+              ><i class="bi bi-search text-muted"></i
+            ></span>
+            <input
+              type="text"
+              class="form-control border-start-0 bg-light"
+              placeholder="Name, email, phone, or customer ID"
+            />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Status</label
+          >
+          <select class="form-select">
+            <option>All Status</option>
+            <option>Active</option>
+            <option>Pending Verification</option>
+            <option>Blocked</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Customer Type</label
+          >
+          <select class="form-select">
+            <option>All Types</option>
+            <option>Regular</option>
+            <option>VIP</option>
+            <option>Corporate</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-light w-100 border">
+            <i class="bi bi-funnel me-2"></i>Filter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div
+      class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center"
+    >
+      <h6 class="mb-0 fw-bold">Customer Records</h6>
+      <span class="text-muted small">Updated 5 min ago</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4">Customer</th>
+            <th>Contact</th>
+            <th>Address</th>
+            <th>Membership</th>
+            <th>Bookings</th>
+            <th>Status</th>
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="ps-4">
+              <div class="d-flex align-items-center">
+                <div
+                  class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold me-2"
+                  style="width: 34px; height: 34px"
+                >
+                  JD
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">John Dela Cruz</div>
+                  <div class="small text-muted">CUS-10234</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="small text-dark">john.delacruz@gmail.com</div>
+              <div class="small text-muted">+63 917 456 1123</div>
+            </td>
+            <td class="small text-muted">Quezon City, Metro Manila</td>
+            <td>
+              <span
+                class="badge bg-info-subtle text-info border border-info-subtle"
+                >Regular</span
+              >
+            </td>
+            <td><span class="fw-bold text-dark">16</span></td>
+            <td>
+              <span
+                class="badge bg-success-subtle text-success border border-success-subtle"
+                >Active</span
+              >
+            </td>
+            <td class="text-end pe-4">
+              <button class="btn btn-sm btn-light border">
+                <i class="bi bi-eye text-primary"></i>
+              </button>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="ps-4">
+              <div class="d-flex align-items-center">
+                <div
+                  class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center fw-bold me-2"
+                  style="width: 34px; height: 34px"
+                >
+                  MS
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">Maria Santos</div>
+                  <div class="small text-muted">CUS-10991</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="small text-dark">maria.santos@gmail.com</div>
+              <div class="small text-muted">+63 998 223 1105</div>
+            </td>
+            <td class="small text-muted">Makati City, Metro Manila</td>
+            <td>
+              <span
+                class="badge bg-warning-subtle text-warning border border-warning-subtle"
+                >VIP</span
+              >
+            </td>
+            <td><span class="fw-bold text-dark">34</span></td>
+            <td>
+              <span
+                class="badge bg-success-subtle text-success border border-success-subtle"
+                >Active</span
+              >
+            </td>
+            <td class="text-end pe-4">
+              <div class="dropdown">
+                <button
+                  class="btn btn-sm btn-light border dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  Action
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="#"
+                      ><i class="bi bi-eye me-2"></i>View Profile</a
+                    >
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#"
+                      ><i class="bi bi-stars me-2 text-warning"></i>Manage
+                      Privilege</a
+                    >
+                  </li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="ps-4">
+              <div class="d-flex align-items-center">
+                <div
+                  class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center fw-bold me-2"
+                  style="width: 34px; height: 34px"
+                >
+                  RL
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">Ramon Lim</div>
+                  <div class="small text-muted">CUS-11107</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="small text-dark">ramon.lim@gmail.com</div>
+              <div class="small text-muted">+63 966 900 7812</div>
+            </td>
+            <td class="small text-muted">Pasig City, Metro Manila</td>
+            <td>
+              <span class="badge bg-light text-dark border">Regular</span>
+            </td>
+            <td><span class="fw-bold text-dark">8</span></td>
+            <td>
+              <span
+                class="badge bg-danger-subtle text-danger border border-danger-subtle"
+                >Blocked</span
+              >
+            </td>
+            <td class="text-end pe-4">
+              <button class="btn btn-sm btn-outline-success">
+                <i class="bi bi-unlock me-1"></i>Restore
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer bg-white py-3 border-top">
+      <div class="row align-items-center">
+        <div class="col-md-6 small text-muted">
+          Showing 1 to 10 of 2,148 records
+        </div>
+        <div class="col-md-6">
+          <ul class="pagination justify-content-end mb-0">
+            <li class="page-item disabled">
+              <a class="page-link" href="#">Previous</a>
+            </li>
+            <li class="page-item active">
+              <a class="page-link" href="#">1</a>
+            </li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- wrapper end -->
+</div>

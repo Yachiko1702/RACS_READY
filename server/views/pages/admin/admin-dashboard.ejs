@@ -1,0 +1,249 @@
+<div class="admin-dashboard container-fluid py-4">
+  <%- include('../../partials/dashboard-styles') %>
+
+  <script>
+    function updateHeroTime() {
+      const now = new Date();
+      const hours = now.getHours() % 12 || 12;
+      const minutes = now.getMinutes().toString().padStart(2,'0');
+      const ampm = now.getHours() < 12 ? 'AM' : 'PM';
+      document.getElementById('hero-time').textContent = `${hours}:${minutes}${ampm}`;
+      document.getElementById('hero-date').textContent = now.toLocaleDateString();
+    }
+    setInterval(updateHeroTime, 1000 * 30);
+    document.addEventListener('DOMContentLoaded', updateHeroTime);
+  </script>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-3">
+          <div class="hero-avatar">
+            <%= user && user.name ? user.name.charAt(0).toUpperCase() : 'A' %>
+          </div>
+          <div class="d-flex flex-column">
+            <h1 class="page-title"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</h1>
+            <div class="d-flex flex-wrap align-items-center gap-3 small">
+              <span class="hero-email">Welcome back, <%= typeof user !== 'undefined' && user ? user.email : 'Admin' %></span>
+              <span id="hero-time"></span>
+              <span id="hero-date"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+    <!-- KPI SUMMARY -->
+    <div class="section-label">Key Metrics</div>
+    <div class="row mb-4 g-3 kpi-row align-items-stretch">
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#4361ee,#3a0ca3)">
+              <i class="bi bi-calendar3-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Appontments</div>
+              <div class="kpi-value" id="kpi-today-appointments" style="color:#4361ee">—</div>
+            </div>
+          </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#4361ee,#3a0ca3)"></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#ff9f1c,#e76f0d)">
+              <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Pending</div>
+              <div class="kpi-value" id="kpi-pending-bookings" style="color:#e76f0d">—</div>
+            </div>
+          </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#ff9f1c,#e76f0d)"></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#7b2d8b,#560bad)">
+              <i class="bi bi-tools"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Active Jobs</div>
+              <div class="kpi-value" id="kpi-active-jobs" style="color:#7b2d8b">—</div>
+            </div>
+          </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#7b2d8b,#560bad)"></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#2ec4b6,#1a8f85)">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Completed</div>
+              <div class="kpi-value" id="kpi-completed-jobs" style="color:#1a8f85">—</div>
+            </div>
+          </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#2ec4b6,#1a8f85)"></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#e63946,#b91c2a)">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Low Stock</div>
+              <div class="kpi-value" id="kpi-lowstock" style="color:#e63946">—</div>
+            </div>
+          </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#e63946,#b91c2a)"></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#212529,#495057)">
+              <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Revenue</div>
+              <div class="kpi-value" id="kpi-revenue-today" style="color:#212529">—</div>
+            </div>
+          </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#212529,#495057)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions bar -->
+    <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+      <span class="section-label me-1 mb-0">Quick Actions</span>
+      <button class="btn quick-action-btn"><i class="bi bi-plus-lg me-1"></i> Appointment</button>
+      <button class="btn quick-action-btn"><i class="bi bi-person-plus me-1"></i> Customer</button>
+      <button class="btn quick-action-btn"><i class="bi bi-briefcase me-1"></i> Job</button>
+    </div>
+
+    <!-- Main layout -->
+    <div class="row g-4">
+      <!-- LEFT col -->
+      <div class="col-xl-8 col-lg-7">
+
+        <!-- Schedule card -->
+        <div class="dash-card mb-4">
+          <div class="card-header-custom">
+            <div>
+              <h5>Schedule Overview</h5>
+              <div class="card-meta mt-1">Calendar &amp; booking trend</div>
+            </div>
+            <span class="status-pill" style="background:#eef0fd;color:#4361ee"><i class="bi bi-calendar3 me-1"></i>Live</span>
+          </div>
+          <div class="card-body-custom">
+            <div class="row align-items-start gx-4">
+              <div class="col-md-5">
+                <div id="mini-calendar">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span style="font-weight:700;font-size:.85rem;color:#374151">April 2024</span>
+                    <div class="d-flex gap-1">
+                      <button class="btn btn-sm" style="padding:2px 7px;border-radius:6px;border:1px solid #e5e7eb"><i class="bi bi-chevron-left" style="font-size:.65rem"></i></button>
+                      <button class="btn btn-sm" style="padding:2px 7px;border-radius:6px;border:1px solid #e5e7eb"><i class="bi bi-chevron-right" style="font-size:.65rem"></i></button>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px">
+                    <% ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{ %>
+                      <div style="text-align:center;font-size:.68rem;font-weight:700;color:#9ca3af;padding:2px 0"><%= d %></div>
+                    <% }) %>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+                    <% for(var d=1; d<=31; d++){ %>
+                      <div class="cal-day<%= d===23?' today':'' %>"><%= d %></div>
+                    <% } %>
+                  </div>
+                </div>
+
+              </div>
+              <div class="col-md-7 mt-3 mt-md-0">
+                <canvas id="chart-appointments" height="175"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New customers chart -->
+        <div class="dash-card">
+          <div class="card-header-custom">
+            <div>
+              <h5>New Customers</h5>
+              <div class="card-meta mt-1">User signups — last 7 days</div>
+            </div>
+            <span class="status-pill" style="background:#ecfdf5;color:#1a8f85"><i class="bi bi-people-fill me-1"></i>Signups</span>
+          </div>
+          <div class="card-body-custom">
+            <canvas id="chart-customers" height="120"></canvas>
+          </div>
+        </div>
+
+      </div><!-- /left -->
+
+      <!-- RIGHT col -->
+      <div class="col-xl-4 col-lg-5 d-flex flex-column gap-4">
+
+        <!-- Today's Appointments -->
+        <div class="dash-card">
+          <div class="card-header-custom">
+            <div>
+              <h6>Today's Appointments</h6>
+              <div class="card-meta mt-1">Today</div>
+            </div>
+            <span class="status-pill" style="background:#eef0fd;color:#4361ee">Live</span>
+          </div>
+          <div class="card-body-custom" id="today-appointments" style="min-height:80px">
+            <div class="dash-empty"><i class="bi bi-calendar-x"></i>No appointments for today.</div>
+          </div>
+        </div>
+
+        <!-- Active Jobs -->
+        <div class="dash-card">
+          <div class="card-header-custom">
+            <div>
+              <h6>Active Jobs</h6>
+              <div class="card-meta mt-1">Ongoing</div>
+            </div>
+            <span class="status-pill" style="background:#f5f0fe;color:#7b2d8b">In Progress</span>
+          </div>
+          <div class="card-body-custom" id="active-jobs-list" style="min-height:80px">
+            <div class="dash-empty"><i class="bi bi-tools"></i>No active jobs.</div>
+          </div>
+        </div>
+
+        <!-- Inventory Alerts -->
+        <div class="dash-card">
+          <div class="card-header-custom">
+            <div>
+              <h6>Inventory Alerts</h6>
+              <div class="card-meta mt-1">Stock warnings</div>
+            </div>
+            <span class="status-pill" style="background:#fff1f2;color:#e63946">Alerts</span>
+          </div>
+          <div class="card-body-custom" id="lowstock-list" style="min-height:80px">
+            <div class="dash-empty"><i class="bi bi-box-seam"></i>No low stock items.</div>
+          </div>
+        </div>
+
+      </div><!-- /right -->
+    </div>
+
+  </div>
+
+  <!-- Chart.js (CDN) and dashboard behavior -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
+</div>

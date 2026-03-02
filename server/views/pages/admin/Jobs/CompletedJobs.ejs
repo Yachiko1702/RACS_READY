@@ -1,0 +1,242 @@
+<div class="admin-dashboard container-fluid py-4">
+  <%- include('../../../partials/dashboard-styles') %>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-check-circle-fill me-2"></i>Completed Jobs
+        </h1>
+        <p class="hero-sub">
+          History of all successfully finished service requests
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Search</label
+          >
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"
+              ><i class="bi bi-search text-muted"></i
+            ></span>
+            <input
+              type="text"
+              class="form-control border-start-0 bg-light"
+              placeholder="Search by job ID, customer..."
+            />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Date Range</label
+          >
+          <input type="date" class="form-control" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Technician</label
+          >
+          <select class="form-select">
+            <option value="all">All Technicians</option>
+            <option value="tech1">Mike Ross</option>
+            <option value="tech2">Harvey Specter</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-light w-100 border">
+            <i class="bi bi-funnel me-2"></i>Apply
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completed Jobs Table -->
+  <div class="card border-0 shadow-sm">
+    <div
+      class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center"
+    >
+      <h6 class="mb-0 fw-bold">Historical Records</h6>
+      <span class="badge bg-success-subtle text-success rounded-pill px-3"
+        >Total: 450</span
+      >
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4">Job ID</th>
+            <th>Service</th>
+            <th>Customer</th>
+            <th>Technician</th>
+            <th>Completed On</th>
+            <th>Rating</th>
+            <th class="text-end pe-4">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Completed Row 1 -->
+          <tr>
+            <td class="ps-4">
+              <span class="fw-bold text-secondary">#JOB-2023-890</span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div
+                  class="icon-square bg-success-subtle text-success rounded me-2 d-flex align-items-center justify-content-center"
+                  style="width: 32px; height: 32px"
+                >
+                  <i class="bi bi-check-lg"></i>
+                </div>
+                <div>
+                  <div class="fw-bold">General Cleaning</div>
+                  <div class="small text-muted">Multi-split System</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div
+                  class="avatar-sm rounded-circle bg-info-subtle text-info me-2 d-flex align-items-center justify-content-center fw-bold"
+                  style="width: 32px; height: 32px"
+                >
+                  LJ
+                </div>
+                <div>
+                  <div class="fw-semibold">Lebron James</div>
+                  <div class="small text-muted">Taguig City</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <img
+                  src="/images/technicianWork/tech2.jpg"
+                  onerror="
+                    this.src =
+                      'https://ui-avatars.com/api/?name=Harvey+Specter&background=2ebd6f&color=fff'
+                  "
+                  class="rounded-circle me-2"
+                  width="32"
+                  height="32"
+                  alt="Tech"
+                />
+                <span>Harvey Specter</span>
+              </div>
+            </td>
+            <td>
+              <div class="text-dark">Jan 15, 2024</div>
+              <div class="small text-muted">Finished at 02:30 PM</div>
+            </td>
+            <td>
+              <div class="text-warning">
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+              </div>
+              <div class="small text-muted">"Excellent work!"</div>
+            </td>
+            <td class="text-end pe-4">
+              <button class="btn btn-sm btn-light border">
+                <i class="bi bi-eye text-primary"></i>
+              </button>
+            </td>
+          </tr>
+
+          <!-- Completed Row 2 -->
+          <tr>
+            <td class="ps-4">
+              <span class="fw-bold text-secondary">#JOB-2023-855</span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div
+                  class="icon-square bg-success-subtle text-success rounded me-2 d-flex align-items-center justify-content-center"
+                  style="width: 32px; height: 32px"
+                >
+                  <i class="bi bi-wrench"></i>
+                </div>
+                <div>
+                  <div class="fw-bold">Part Replacement</div>
+                  <div class="small text-muted">Compressor Fix</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div
+                  class="avatar-sm rounded-circle bg-danger-subtle text-danger me-2 d-flex align-items-center justify-content-center fw-bold"
+                  style="width: 32px; height: 32px"
+                >
+                  SC
+                </div>
+                <div>
+                  <div class="fw-semibold">Steph Curry</div>
+                  <div class="small text-muted">San Juan</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <img
+                  src="/images/technicianWork/tech1.jpg"
+                  onerror="
+                    this.src =
+                      'https://ui-avatars.com/api/?name=Mike+Ross&background=0D8ABC&color=fff'
+                  "
+                  class="rounded-circle me-2"
+                  width="32"
+                  height="32"
+                  alt="Tech"
+                />
+                <span>Mike Ross</span>
+              </div>
+            </td>
+            <td>
+              <div class="text-dark">Jan 10, 2024</div>
+              <div class="small text-muted">Finished at 10:45 AM</div>
+            </td>
+            <td>
+              <div class="text-warning">
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-half"></i>
+                <i class="bi bi-star"></i>
+              </div>
+              <div class="small text-muted">"Good job but late."</div>
+            </td>
+            <td class="text-end pe-4">
+              <button class="btn btn-sm btn-light border">
+                <i class="bi bi-eye text-primary"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer bg-white py-3 border-top">
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-end mb-0">
+          <li class="page-item disabled">
+            <a class="page-link" href="#">Previous</a>
+          </li>
+          <li class="page-item active"><a class="page-link" href="#">1</a></li>
+          <li class="page-item"><a class="page-link" href="#">2</a></li>
+          <li class="page-item"><a class="page-link" href="#">3</a></li>
+          <li class="page-item"><a class="page-link" href="#">Next</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+  \n
+</div>

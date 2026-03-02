@@ -1,74 +1,655 @@
 <section class="container py-5">
   <div class="text-center mb-5" data-aos="fade-up">
     <h1 class="display-5 fw-bold text-primary">Contact Us</h1>
-    <p class="lead text-muted">We're here to help — reach out for bookings, support, or questions</p>
+    <p class="lead text-muted">
+      We're here to help — reach out for bookings, support, or questions
+    </p>
   </div>
 
-  <div class="row g-4">
-    <div class="col-lg-6" data-aos="fade-right">
-      <div class="card border-0 shadow-sm p-4">
-        <h5 class="fw-semibold">Get in touch</h5>
-        <p class="text-muted">Call, message, or visit our office during business hours.</p>
+  <div
+    class="d-flex flex-wrap justify-content-center gap-2 mb-4"
+    aria-label="Contact options"
+  >
+    <button type="button" class="btn contact-toggle" data-target="contact-info">
+      Support & Bookings
+    </button>
+    <button
+      type="button"
+      class="btn contact-toggle"
+      data-target="contact-feedback"
+    >
+      Service feedback
+    </button>
+  </div>
 
-        <ul class="list-unstyled mt-3">
-          <li class="mb-2"><strong>Phone:</strong> <a href="tel:+639000000000">09656056495</a></li>
-          <li class="mb-2"><strong>Email:</strong> <a href="mailto:info@calidro.com">info@calidro.com</a></li>
-          <li class="mb-2"><strong>Hours:</strong> Mon–Sat 8:00 AM – 6:00 PM</li>
-          <li class="mb-2"><strong>Address:</strong> San Leonardo, Nueva Ecija</li>
-        </ul>
+  <div class="row g-4" id="contactPanels">
+    <div
+      class="col-12 contact-panel d-none"
+      id="contact-info"
+      data-aos="fade-right"
+    >
+      <div class="card border-0 shadow-sm p-4 contact-card stacked">
+        <div class="card-title-row">
+          <div class="icon-circle text-primary">
+            <i class="bi bi-headset"></i>
+          </div>
+          <div>
+            <p class="eyebrow mb-1">Support & Bookings</p>
+            <h5 class="fw-semibold mb-0">Get in touch</h5>
+          </div>
+        </div>
 
-        <h6 class="mt-3">Follow us</h6>
-        <div class="d-flex gap-2">
-          <a class="btn btn-outline-primary btn-sm" href="#"><i class="bi bi-facebook"></i></a>
-          <a class="btn btn-outline-primary btn-sm" href="#"><i class="bi bi-instagram"></i></a>
-          <a class="btn btn-outline-primary btn-sm" href="#"><i class="bi bi-youtube"></i></a>
+        <div class="card-body">
+          <div class="fields-box">
+            <p class="text-muted mb-3">Call, message, or visit during business hours.</p>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Phone</label>
+                <div class="fw-semibold"><a href="tel:+639000000000">09656056495</a></div>
+                <div class="small text-muted">Quick bookings and urgent support</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <div class="fw-semibold"><a href="mailto:info@calidro.com">info@calidro.com</a></div>
+                <div class="small text-muted">Send details and attachments</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Hours</label>
+                <div class="fw-semibold">Mon–Sat · 8:00 AM – 6:00 PM</div>
+                <div class="small text-muted">Reach us within business hours</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Address</label>
+                <div class="fw-semibold">San Leonardo, Nueva Ecija</div>
+                <div class="small text-muted">Drop by or schedule on-site service</div>
+              </div>
+            </div>
+
+            <div class="divider my-2"></div>
+
+            <div class="contact-actions">
+              <div class="contact-label small text-muted">Follow us</div>
+              <div class="social-stack">
+                <a
+                  class="btn btn-outline-primary btn-sm"
+                  href="#"
+                  aria-label="Facebook"
+                  ><i class="bi bi-facebook"></i
+                ></a>
+                <a
+                  class="btn btn-outline-primary btn-sm"
+                  href="#"
+                  aria-label="Instagram"
+                  ><i class="bi bi-instagram"></i
+                ></a>
+                <a
+                  class="btn btn-outline-primary btn-sm"
+                  href="#"
+                  aria-label="YouTube"
+                  ><i class="bi bi-youtube"></i
+                ></a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="col-lg-6" data-aos="fade-left">
-      <div class="card border-0 shadow-sm p-4">
-        <h5 class="fw-semibold">Send us a message</h5>
-        <form id="contactForm">
-          <div class="mb-3">
-            <label for="cName" class="form-label">Your name</label>
-            <input type="text" id="cName" class="form-control" required>
+
+
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div
+      class="col-12 contact-panel d-none"
+      id="contact-feedback"
+      data-aos="fade-left"
+    >
+      <div class="card border-0 shadow-sm p-4 contact-card stacked">
+        <div class="card-title-row">
+          <div class="icon-circle text-warning">
+            <i class="bi bi-stars"></i>
           </div>
-          <div class="mb-3">
-            <label for="cEmail" class="form-label">Email</label>
-            <input type="email" id="cEmail" class="form-control" required>
+          <div>
+            <p class="eyebrow mb-1">Service feedback</p>
+            <h5 class="fw-semibold mb-0">Send us your feedback</h5>
           </div>
-          <div class="mb-3">
-            <label for="cMessage" class="form-label">Message</label>
-            <textarea id="cMessage" class="form-control" rows="5" required></textarea>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <button type="submit" class="btn btn-primary" id="contactSubmit">Send Message</button>
-            <div id="contactStatus" class="text-muted small"></div>
+        </div>
+
+        <form id="feedbackForm">
+          <div class="fields-box">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="fName" class="form-label">Your name</label>
+                <input
+                  type="text"
+                  id="fName"
+                  class="form-control"
+                  maxlength="20"
+                  pattern="[A-Za-z\s]{1,20}"
+                  title="Letters/spaces only, max 20 characters"
+                  required
+                />
+              </div>
+              <div class="col-md-6">
+                <label for="fEmail" class="form-label">Email</label>
+                <input
+                  type="email"
+                  id="fEmail"
+                  class="form-control"
+                  maxlength="50"
+                  pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"
+                  title="Valid email with one @ and one ."
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="row g-3 mt-2 align-items-start">
+              <div class="col-md-5">
+                <label for="fRating" class="form-label"
+                  >Rate your experience</label
+                >
+                <select id="fRating" class="form-select" required>
+                  <option value="" selected disabled>Choose...</option>
+                  <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                  <option value="4">⭐⭐⭐⭐ Good</option>
+                  <option value="3">⭐⭐⭐ Okay</option>
+                  <option value="2">⭐⭐ Needs work</option>
+                  <option value="1">⭐ Poor</option>
+                </select>
+              </div>
+              <div class="col-md-7">
+                <label for="fComments" class="form-label">Comments</label>
+                <textarea
+                  id="fComments"
+                  class="form-control auto-resize"
+                  rows="3"
+                  maxlength="100"
+                  placeholder="Share details so we can improve..."
+                  pattern="[A-Za-z\s]{1,100}"
+                  title="No numbers or special characters, max 100"
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mt-3">
+              <button type="submit" class="btn btn-primary" id="feedbackSubmit">
+                Submit Feedback
+              </button>
+              <div id="feedbackStatus" class="text-muted small ms-2"></div>
+            </div>
           </div>
         </form>
       </div>
     </div>
   </div>
 
+  <style>
+    .contact-toggle {
+      border: 1px solid #d0d7e2;
+      background: #fff;
+      color: #0d1b2a;
+      border-radius: 999px;
+      padding: 0.55rem 1.1rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    .contact-toggle.active {
+      background: linear-gradient(90deg, #0d6efd, #4f9dff);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 8px 22px rgba(13, 110, 253, 0.18);
+    }
+    .contact-toggle:hover {
+      transform: translateY(-1px);
+    }
+
+    .contact-card {
+      border: 1px solid rgba(2,6,23,0.06) !important; /* neutral outline */
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.98),
+        rgba(255, 255, 255, 0.96)
+      );
+      box-shadow: 0 8px 20px rgba(2,6,23,0.06); /* subtle neutral shadow */
+      border-radius: 14px;
+      transition:
+        transform 0.22s cubic-bezier(0.2, 0.9, 0.2, 1),
+        box-shadow 0.22s ease,
+        border-color 0.22s ease;
+    }
+
+    .contact-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 14px 36px rgba(2,6,23,0.08);
+      border-color: rgba(2,6,23,0.12);
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .icon-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(13, 110, 253, 0.08);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .icon-circle.text-success {
+      background: rgba(25, 135, 84, 0.1);
+      color: #198754 !important;
+    }
+    .icon-circle.text-warning {
+      background: rgba(255, 193, 7, 0.18);
+      color: #d08700 !important;
+    }
+    .eyebrow {
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      color: #6c757d;
+      font-weight: 700;
+    }
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .contact-card h5 {
+      margin-bottom: 0.5rem;
+    }
+    .contact-card .form-label {
+      font-weight: 600;
+      color: #4b5563;
+    }
+    .contact-card .form-control,
+    .contact-card .form-select {
+      border-radius: 10px;
+      border: 1px solid #e6e9ee;
+      background: #fbfcfe;
+      padding: 0.72rem 0.85rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      transition:
+        border-color 0.16s ease,
+        box-shadow 0.16s ease,
+        transform 0.12s ease;
+    }
+    .contact-card .form-control:focus,
+    .contact-card .form-select:focus {
+      border-color: #0d6efd;
+      box-shadow:
+        0 6px 24px rgba(13, 110, 253, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    .fields-box {
+      background: linear-gradient(180deg, #fff, #fbfcff);
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(13, 110, 253, 0.03);
+    }
+    .fields-box.compact {
+      padding: 18px;
+      background: linear-gradient(
+        180deg,
+        rgba(247, 250, 255, 1),
+        rgba(250, 252, 255, 0.98)
+      );
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      border: 1px solid rgba(13, 110, 253, 0.04);
+      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04);
+    }
+    .fields-box.compact p.text-muted {
+      margin-bottom: 8px;
+      font-size: 1rem;
+      color: #6b7280;
+    }
+    /* force a single horizontal row on wide screens and allow items to shrink */
+    .info-grid {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+      align-items: stretch;
+      flex-wrap: nowrap;
+    }
+    .info-item {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(13, 110, 253, 0.08);
+      background: #fff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      height: 100%;
+    }
+    .info-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(13, 110, 253, 0.06);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .info-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      justify-content: center;
+    }
+    .info-label {
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      color: #6b7280;
+      font-weight: 700;
+    }
+    .info-value {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+    .info-value a {
+      color: #0d6efd;
+      text-decoration: none;
+    }
+    .info-value a:hover {
+      text-decoration: underline;
+    }
+    .info-sub {
+      font-size: 0.82rem;
+      color: #6b7280;
+    }
+
+    /* responsive: wrap on smaller viewports */
+    @media (max-width: 991px) {
+      .info-grid {
+        flex-wrap: wrap;
+      }
+      .info-item {
+        flex: 1 1 100%;
+      }
+    }
+    .divider {
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        rgba(13, 110, 253, 0.06),
+        rgba(13, 110, 253, 0.02)
+      );
+      border-radius: 2px;
+      margin: 8px 0;
+    }
+
+    /* larger social buttons inside the boxed area */
+    .fields-box.compact .btn-outline-primary.btn-sm {
+      padding: 0.45rem 0.65rem;
+      font-size: 0.95rem;
+      border-radius: 8px;
+    }
+    .fields-box.compact .btn-outline-primary.btn-sm i {
+      font-size: 1.05rem;
+    }
+    .fields-box.compact .btn-outline-primary.btn-sm:hover {
+      background: rgba(13, 110, 253, 0.06);
+      border-color: rgba(13, 110, 253, 0.12);
+    }
+    .contact-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .social-stack {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .fields-box .form-control,
+    .fields-box .form-select {
+      background: transparent;
+      width: 100%;
+    }
+    textarea.form-control {
+      min-height: 118px;
+      overflow: hidden; /* hide scrollbar when auto-resizing */
+      resize: none; /* enforce JS-controlled resizing */
+    }
+    .fields-box .mb-3 {
+      margin-bottom: 0.6rem;
+    }
+
+    .form-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .form-actions .flex-fill {
+      margin-right: 1rem;
+      color: #6b7280;
+    }
+
+    @media (min-width: 992px) {
+      .form-actions {
+        justify-content: flex-end;
+      }
+      .form-actions .flex-fill {
+        margin-right: auto;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+      .info-item {
+        padding: 10px;
+      }
+      .fields-box.compact {
+        padding: 10px;
+      }
+      .form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+      .form-actions button {
+        width: 100%;
+      }
+    }
+
+    /* wide / horizontal presentation for selected panel (more compact) */
+    .contact-panel .card {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      margin-top: 1rem; /* consistent gap under toggle buttons */      min-height: 220px; /* prevent footer rising when panel contents are small */    }
+    @media (min-width: 992px) {
+      .contact-panel .card {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1rem 1.25rem;
+      }
+      /* keep form cards stacked (title above form) even on wide screens */
+      .contact-panel .card.stacked {
+        display: block;
+      }
+      .contact-panel .card .card-title-row {
+        flex: 0 0 220px;
+        align-items: flex-start;
+      }
+      .contact-panel .card .card-body {
+        flex: 1 1 auto;
+        padding-top: 0.25rem;
+      }
+      .contact-panel .card .icon-circle {
+        width: 48px;
+        height: 48px;
+        font-size: 1.05rem;
+      }
+      .contact-card {
+        padding: 0.9rem !important;
+      }
+    }
+
+    /* ensure form content never exceeds the card width */
+    .contact-panel .card .fields-box {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .contact-panel .card .form-control,
+    .contact-panel .card .form-select,
+    .contact-panel .card textarea {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    #feedbackStatus { min-width: 180px; }
+
+    @media (max-width: 767px) {
+      .contact-card {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+
   <script>
-    (function(){
-      document.getElementById('contactForm').addEventListener('submit', function(e){
-        e.preventDefault();
-        const name = document.getElementById('cName').value.trim();
-        const email = document.getElementById('cEmail').value.trim();
-        const message = document.getElementById('cMessage').value.trim();
-        if(!name || !email || !message){
-          document.getElementById('contactStatus').textContent = 'Please complete all fields.';
-          return;
-        }
-        // Stubbed: replace with API call
-        document.getElementById('contactStatus').textContent = 'Sending...';
-        setTimeout(()=>{
-          document.getElementById('contactStatus').textContent = 'Message sent. We will get back to you shortly.';
-          document.getElementById('contactForm').reset();
-        }, 700);
+    (function () {
+      // Toggle contact panels
+      const toggles = Array.from(document.querySelectorAll(".contact-toggle"));
+      const panels = Array.from(document.querySelectorAll(".contact-panel"));
+      const showPanel = (id) => {
+        panels.forEach((p) => {
+          if (p.id === id) {
+            p.classList.remove("d-none");
+          } else {
+            p.classList.add("d-none");
+          }
+        });
+      };
+      toggles.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          toggles.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          showPanel(btn.dataset.target);
+          // reveal and focus first input when panel appears
+          const panel = document.getElementById(btn.dataset.target);
+          const firstInput = panel.querySelector("input, textarea, select");
+          if (firstInput) firstInput.focus();
+        });
       });
+
+      // Keep all panels hidden initially until user selects a toggle
+      panels.forEach((p) => p.classList.add("d-none"));      // --- Show the first panel by default so page has proper height (prevents footer shifting)
+      if (toggles.length) {
+        toggles[0].classList.add('active');
+        showPanel(toggles[0].dataset.target);
+      }
+
+
+// Sanitization helpers for feedback inputs
+      (function() {
+        function sanitizeName(v) {
+          return v.replace(/[^A-Za-z\s]/g, "").slice(0,20);
+        }
+        function sanitizeComments(v) {
+          return v.replace(/[^A-Za-z\s]/g, "").slice(0,100);
+        }
+        function sanitizeEmail(v) {
+          // allow only one @ and one .
+          v = v.replace(/[\s]/g, "");
+          var parts = v.split('@');
+          if (parts.length>2) v = parts[0]+'@'+parts.slice(1).join('');
+          // ensure single dot in domain portion
+          if (v.indexOf('@') !== -1) {
+            var at = v.indexOf('@');
+            var before = v.slice(0,at+1);
+            var after = v.slice(at+1);
+            var dots = after.split('.');
+            if (dots.length>2) after = dots.slice(0,2).join('.');
+            v = before+after;
+          }
+          return v.slice(0,50);
+        }
+        var nameField = document.getElementById('fName');
+        var emailField = document.getElementById('fEmail');
+        var commentField = document.getElementById('fComments');
+        if (nameField) nameField.addEventListener('input', function(){ this.value=sanitizeName(this.value); });
+        if (emailField) emailField.addEventListener('input', function(){ this.value=sanitizeEmail(this.value); });
+        if (commentField) commentField.addEventListener('input', function(){ this.value=sanitizeComments(this.value); });
+      })();
+
+        // Feedback form handler (stubbed)
+      document
+        .getElementById("feedbackForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const rating = document.getElementById("fRating").value;
+          const name = document.getElementById("fName").value.trim();
+          const email = document.getElementById("fEmail").value.trim();
+          const comments = document.getElementById("fComments").value.trim();
+          const statusEl = document.getElementById("feedbackStatus");
+          if (!rating || !comments || !name || !email) {
+            statusEl.textContent = "Please complete all required fields.";
+            return;
+          }
+          statusEl.textContent = "Submitting...";
+          setTimeout(() => {
+            statusEl.textContent = "Thank you for your feedback!";
+            document.getElementById("feedbackForm").reset();
+            // reset comment counter and textarea height
+            const fComments = document.getElementById('fComments');
+            if (fComments) {
+              fComments.style.height = null;
+              const counter = document.getElementById('fCommentsCount');
+              if (counter) counter.textContent = '(100 left)';
+            }
+          }, 700);
+        });
+
+        // auto-resize + character counter for feedback comments
+        (function(){
+          const textarea = document.getElementById('fComments');
+          const counter = document.getElementById('fCommentsCount');
+          const MAX = 100;
+          if (!textarea) return;
+          const update = () => {
+            // auto-resize
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 600) + 'px';
+            // counter
+            const remaining = MAX - textarea.value.length;
+            if (counter) counter.textContent = `(${remaining} left)`;
+          };
+          textarea.addEventListener('input', update);
+          // initialize
+          update();
+        })();
     })();
   </script>
 </section>

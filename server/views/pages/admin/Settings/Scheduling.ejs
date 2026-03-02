@@ -1,0 +1,413 @@
+<div class="admin-dashboard container-fluid py-4 scheduling-settings">
+  <style>
+    /* copy professional scheduler styles from Technicians/Scheduling.ejs */
+    .scheduling-settings {
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --line: rgba(15, 23, 42, 0.08);
+      --line-strong: rgba(15, 23, 42, 0.14);
+      --text-muted: #64748b;
+      --brand: #0d6efd;
+      --ok: #16a34a;
+    }
+    .scheduling-settings .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+    }
+    .scheduling-settings .card strong {
+      color: #0f172a;
+      letter-spacing: 0.2px;
+    }
+    .scheduling-settings .text-muted {
+      color: var(--text-muted) !important;
+    }
+    .scheduling-settings .form-select,
+    .scheduling-settings .form-control {
+      border-radius: 10px;
+      border-color: var(--line-strong);
+      background: #fff;
+    }
+    .scheduling-settings .form-select:focus,
+    .scheduling-settings .form-control:focus {
+      border-color: rgba(13, 110, 253, 0.45);
+      box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.16);
+    }
+    .scheduling-settings .table {
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-bottom: 0;
+    }
+    .scheduling-settings .table thead th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
+      color: #475569;
+      background: var(--surface-soft);
+      border-bottom: 1px solid var(--line-strong);
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    .scheduling-settings .table tbody td {
+      vertical-align: middle;
+      border-bottom: 1px solid var(--line);
+    }
+    .scheduling-settings .table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+    .day-name {
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .toggle-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 42px;
+      height: 24px;
+      margin: 0;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      background: #cbd5e1;
+      border-radius: 999px;
+      transition: 0.22s ease;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+    }
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      top: 3px;
+      border-radius: 50%;
+      background: white;
+      transition: 0.22s ease;
+      box-shadow: 0 2px 6px rgba(2, 6, 23, 0.25);
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--ok);
+    }
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(18px);
+    }
+    .toggle-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      min-width: 32px;
+    }
+    .toggle-label.on {
+      color: #166534;
+    }
+    .toggle-label.off {
+      color: #64748b;
+    }
+    .time-disabled {
+      background: #f1f5f9 !important;
+      color: #94a3b8;
+    }
+  </style>
+  <div class="dashboard-hero mb-3">
+    <h1 class="page-title">Scheduling Settings</h1>
+    <p class="hero-sub">
+      Manage technician working hours, non-working days, and regenerate time
+      slots.
+    </p>
+  </div>
+
+  <div class="row g-3">
+    <!-- Left column: Editor -->
+    <div class="col-md-7">
+      <!-- Technician Working Hours -->
+      <div class="card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <strong>Technician Working Hours</strong>
+            <div class="small text-muted">
+              Edit default working days and hours
+            </div>
+          </div>
+          <div>
+            <select
+              id="schedTechSelect"
+              class="form-select form-select-sm"
+            ></select>
+            <div class="small text-muted mt-1">
+              Choose a technician to edit their schedule. Select
+              <strong>Apply to ALL technicians</strong> to overwrite every
+              technician's schedule.
+            </div>
+          </div>
+        </div>
+
+        <div id="workingDaysEditor">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th style="width: 140px">Enabled</th>
+                <th style="width: 140px">Start</th>
+                <th style="width: 140px">End</th>
+              </tr>
+            </thead>
+            <tbody id="workingDaysBody"></tbody>
+          </table>
+          <div class="d-flex gap-2 justify-content-end mt-2">
+            <button id="saveScheduleBtn" class="btn btn-sm btn-primary">
+              Save Schedule
+            </button>
+            <button id="previewScheduleBtn" class="btn btn-sm btn-secondary">
+              Preview Year
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Non-Working Days -->
+      <div class="card p-3 mt-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <strong>Non-Working Days Manager</strong>
+            <div class="small text-muted">Add/remove holidays</div>
+          </div>
+          <div>
+            <button
+              id="addNonWorkingBtn"
+              class="btn btn-sm btn-outline-primary"
+            >
+              Add day
+            </button>
+          </div>
+        </div>
+        <div id="nonWorkingList">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Right column: Calendar -->
+    <div class="col-md-5">
+      <div class="card p-3" id="schedulePreviewCard">
+        <div>
+          <strong>Effective Schedule Preview</strong>
+          <div class="small text-muted">
+            Preview the upcoming 12 months based on current schedule selection.
+          </div>
+        </div>
+        <div id="schedulePreview" class="mt-2" style="min-height: 150px">
+          Select a technician and click <strong>Preview Year</strong>.
+        </div>
+      </div>
+
+      <!-- calendar moved to full-width row below -->
+    </div>
+  </div>
+
+  <!-- calendar removed from this page; use Technician Schedules for visual calendar -->
+
+  <script>
+    (function () {
+      const qs = (s) => document.querySelector(s);
+      const qsa = (s) => Array.from(document.querySelectorAll(s));
+      const weekdays = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+
+      // --- UTILITIES ---
+      function minutesToTime(m) {
+        const hh = String(Math.floor(m / 60)).padStart(2, "0");
+        const mm = String(m % 60).padStart(2, "0");
+        return `${hh}:${mm}`;
+      }
+      function timeToMinutes(t) {
+        const m = String(t).split(":");
+        return parseInt(m[0] || 0, 10) * 60 + parseInt(m[1] || 0, 10);
+      }
+      function nextDateForDow(dow) {
+        const t = new Date();
+        t.setHours(0, 0, 0, 0);
+        const diff = (dow - t.getDay() + 7) % 7;
+        t.setDate(t.getDate() + diff);
+        return t.toISOString().slice(0, 10);
+      }
+
+      // --- LOAD TECHNICIANS ---
+      async function loadTechnicians() {
+        try {
+          const r = await fetch("/api/admin/technicians");
+          const sel = qs("#schedTechSelect");
+          sel.innerHTML =
+            '<option value="">-- select technician --</option><option value="ALL">-- Apply to ALL technicians --</option>';
+          if (r.ok) {
+            const j = await r.json();
+            (j.technicians || []).forEach((t) => {
+              const o = document.createElement("option");
+              o.value = t._id;
+              o.textContent = t.name || t.userEmail || t._id || "";
+              sel.appendChild(o);
+            });
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+
+      // --- RENDER WORKING DAYS TABLE ---
+      function renderWorkingRows(schedule) {
+        const tbody = qs("#workingDaysBody");
+        tbody.innerHTML = "";
+        for (let i = 0; i < 7; i++) {
+          const row = document.createElement("tr");
+          // separate "found" from the defaults so enabled reflects the actual saved state
+          const found =
+            schedule &&
+            (schedule.workingDays || []).find((w) => Number(w.dayOfWeek) === i);
+          const enabled = !!found;
+          const rule = found || { startMinutes: 480, endMinutes: 1020 };
+          row.innerHTML = `<td><span class="day-name">${weekdays[i]}</span></td><td><div class="toggle-wrap"><label class="toggle-switch" aria-label="Enable ${weekdays[i]}"><input type="checkbox" class="day-toggle" data-day="${i}" ${enabled ? "checked" : ""}><span class="toggle-slider"></span></label><span class="toggle-label ${enabled ? "on" : "off"}">${enabled ? "On" : "Off"}</span></div></td><td><input type="time" class="form-control form-control-sm start-time" data-day="${i}" value="${minutesToTime(rule.startMinutes)}"></td><td><input type="time" class="form-control form-control-sm end-time" data-day="${i}" value="${minutesToTime(rule.endMinutes)}"></td>`;
+          tbody.appendChild(row);
+        }
+        bindToggleState();
+        // also render non-working (rest) dates if function exists
+        try {
+          renderRestDates && renderRestDates(schedule);
+        } catch (e) {
+          /* noop */
+        }
+      }
+
+      function bindToggleState() {
+        qsa("#workingDaysBody tr").forEach((r) => {
+          const toggle = r.querySelector(".day-toggle");
+          const startInput = r.querySelector(".start-time");
+          const endInput = r.querySelector(".end-time");
+          const label = r.querySelector(".toggle-label");
+          if (!toggle || !startInput || !endInput || !label) return;
+          const update = () => {
+            const on = toggle.checked;
+            startInput.disabled = !on;
+            endInput.disabled = !on;
+            label.textContent = on ? "On" : "Off";
+            label.className = "toggle-label " + (on ? "on" : "off");
+          };
+          toggle.addEventListener("change", update);
+          update();
+        });
+      }
+
+      // --- EVENT: TECHNICIAN SELECT CHANGE ---
+      qs("#schedTechSelect").addEventListener("change", async function () {
+        const id = this.value;
+        if (!id || id === "ALL") {
+          renderWorkingRows(null);
+          return;
+        }
+        try {
+          const r = await fetch(
+            "/api/admin/technician-schedules/" + encodeURIComponent(id),
+          );
+          if (r.ok) {
+            const j = await r.json();
+            renderWorkingRows(j.schedule || null);
+          } else renderWorkingRows(null);
+        } catch (e) {
+          renderWorkingRows(null);
+        }
+      });
+
+      // --- EVENT: PREVIEW TABLE (Effective Schedule) ---
+      qs("#previewScheduleBtn").addEventListener("click", function () {
+        const rows = qsa("#workingDaysBody tr");
+        const workingDays = [];
+        const nonWorkingWeekdays = [];
+        const restDates = [];
+        rows.forEach((r) => {
+          const day = Number(
+            r.querySelector("input[type=checkbox]").getAttribute("data-day"),
+          );
+          const enabled = r.querySelector("input[type=checkbox]").checked;
+          if (enabled) {
+            const s = r.querySelector(".start-time").value;
+            const e = r.querySelector(".end-time").value;
+            workingDays.push({
+              dayOfWeek: day,
+              startMinutes: timeToMinutes(s),
+              endMinutes: timeToMinutes(e),
+            });
+          } else {
+            nonWorkingWeekdays.push(day);
+          }
+        });
+        // no manual rest dates on settings page; preview only cares about weekdays
+        renderSchedulePreview(workingDays, restDates);
+      });
+
+      function renderSchedulePreview(workingDays, restDates) {
+        const container = qs("#schedulePreview");
+        container.innerHTML = "";
+        const tbl = document.createElement("table");
+        tbl.className = "table table-sm";
+        tbl.innerHTML =
+          "<thead><tr><th>Date</th><th>Day</th><th>Status</th></tr></thead>";
+        const tbody = document.createElement("tbody");
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        // iterate one year from today
+        const yearStart = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        const yearEnd = new Date(
+          yearStart.getFullYear() + 1,
+          yearStart.getMonth(),
+          yearStart.getDate(),
+        );
+        for (
+          let d = new Date(yearStart);
+          d < yearEnd;
+          d.setDate(d.getDate() + 1)
+        ) {
+          const dow = d.getDay();
+          const iso = d.toISOString().slice(0, 10);
+          const isRest =
+            restDates.includes(iso) ||
+            !workingDays.find((w) => w.dayOfWeek === dow);
+          const status = isRest ? "Rest / Non-working" : "Working";
+          const color = isRest ? "#d3d3d3" : "#28a745";
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${d.toLocaleDateString()}</td><td>${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dow]}</td><td style="color:${color};font-weight:bold">${status}</td>`;
+          tbody.appendChild(tr);
+        }
+        tbl.appendChild(tbody);
+        container.appendChild(tbl);
+      }
+
+      // Calendar preview removed from Settings page; visual calendar lives in Technician Schedules.
+
+      // --- INITIALIZE ---
+      loadTechnicians();
+      renderWorkingRows(null);
+    })();
+  </script>
+</div>

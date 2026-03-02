@@ -1,0 +1,371 @@
+<div class="admin-dashboard container-fluid py-4">
+  <%- include('../../../partials/dashboard-styles') %>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-bar-chart-line-fill me-2"></i>Service Analytics
+        </h1>
+        <p class="hero-sub">
+          Track service demand, completion efficiency, and technician output
+          trends
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Key Metrics</div>
+  <div class="row mb-4 g-3 kpi-row">
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #4361ee, #3a0ca3)"
+          >
+            <i class="bi bi-calendar3-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Total Bookings (30d)</div>
+            <div class="kpi-value">1,284</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #4361ee, #3a0ca3)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #2ec4b6, #1a8f85)"
+          >
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Completion Rate</div>
+            <div class="kpi-value">94.6%</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #2ec4b6, #1a8f85)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #ff9f1c, #e76f0d)"
+          >
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Avg Service Time</div>
+            <div class="kpi-value">2.1h</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #ff9f1c, #e76f0d)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #7b2d8b, #560bad)"
+          >
+            <i class="bi bi-tools"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Repeat Service Rate</div>
+            <div class="kpi-value">28%</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #7b2d8b, #560bad)"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body row g-3">
+      <div class="col-md-3">
+        <label class="form-label small text-uppercase text-muted fw-bold"
+          >Period</label
+        ><select class="form-select">
+          <option>Last 30 Days</option>
+          <option>Last 90 Days</option>
+          <option>This Year</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-uppercase text-muted fw-bold"
+          >Service Type</label
+        ><select class="form-select">
+          <option>All</option>
+          <option>Cleaning</option>
+          <option>Installation</option>
+          <option>Repair</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-uppercase text-muted fw-bold"
+          >Branch/Area</label
+        ><select class="form-select">
+          <option>All Areas</option>
+          <option>Metro Manila</option>
+          <option>North Cluster</option>
+          <option>South Cluster</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-light border w-100">
+          <i class="bi bi-funnel me-2"></i>Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-bold">Booking Volume Trend</h6>
+        </div>
+        <div class="card-body">
+          <div class="rounded border bg-light p-2" style="height: 260px">
+            <canvas id="serviceBookingTrendChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-bold">Service Mix</h6>
+        </div>
+        <div class="card-body">
+          <div class="rounded border bg-light p-2 mb-3" style="height: 160px">
+            <canvas id="serviceMixChart"></canvas>
+          </div>
+          <ul class="list-unstyled small mb-0">
+            <li class="d-flex justify-content-between">
+              <span>Cleaning</span><strong>42%</strong>
+            </li>
+            <li class="d-flex justify-content-between">
+              <span>Repair</span><strong>35%</strong>
+            </li>
+            <li class="d-flex justify-content-between">
+              <span>Installation</span><strong>23%</strong>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-bold">Technician Utilization</h6>
+        </div>
+        <div class="card-body">
+          <div class="rounded border bg-light p-2" style="height: 220px">
+            <canvas id="techUtilizationChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="mb-0 fw-bold">Customer Satisfaction Trend</h6>
+        </div>
+        <div class="card-body">
+          <div class="rounded border bg-light p-2" style="height: 220px">
+            <canvas id="serviceCsatChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    (function () {
+      if (typeof Chart === "undefined") return;
+
+      var bookingCtx = document.getElementById("serviceBookingTrendChart");
+      if (bookingCtx) {
+        new Chart(bookingCtx, {
+          type: "line",
+          data: {
+            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            datasets: [
+              {
+                label: "Bookings",
+                data: [42, 51, 49, 58, 64, 72, 60],
+                borderColor: "#0d6efd",
+                backgroundColor: "rgba(13,110,253,0.15)",
+                tension: 0.35,
+                fill: true,
+              },
+              {
+                label: "Completed",
+                data: [38, 47, 45, 53, 59, 66, 56],
+                borderColor: "#198754",
+                backgroundColor: "rgba(25,135,84,0.10)",
+                tension: 0.35,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } },
+          },
+        });
+      }
+
+      var mixCtx = document.getElementById("serviceMixChart");
+      if (mixCtx) {
+        new Chart(mixCtx, {
+          type: "doughnut",
+          data: {
+            labels: ["Cleaning", "Repair", "Installation"],
+            datasets: [
+              {
+                data: [42, 35, 23],
+                backgroundColor: ["#0d6efd", "#fd7e14", "#20c997"],
+              },
+            ],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            cutout: "65%",
+          },
+        });
+      }
+
+      var utilCtx = document.getElementById("techUtilizationChart");
+      if (utilCtx) {
+        new Chart(utilCtx, {
+          type: "bar",
+          data: {
+            labels: ["Mike", "Harvey", "Donna", "Rachel", "Louis"],
+            datasets: [
+              {
+                label: "Utilization %",
+                data: [88, 82, 79, 74, 69],
+                backgroundColor: "rgba(13,110,253,0.75)",
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { max: 100 } },
+          },
+        });
+      }
+
+      var csatCtx = document.getElementById("serviceCsatChart");
+      if (csatCtx) {
+        new Chart(csatCtx, {
+          type: "line",
+          data: {
+            labels: ["W1", "W2", "W3", "W4", "W5", "W6"],
+            datasets: [
+              {
+                label: "CSAT",
+                data: [4.3, 4.4, 4.5, 4.6, 4.5, 4.7],
+                borderColor: "#6f42c1",
+                backgroundColor: "rgba(111,66,193,0.12)",
+                fill: true,
+                tension: 0.35,
+              },
+            ],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } },
+            scales: { y: { min: 3.5, max: 5 } },
+          },
+        });
+      }
+    })();
+  </script>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 border-bottom">
+      <h6 class="mb-0 fw-bold">Top Performing Services</h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4">Service</th>
+            <th>Bookings</th>
+            <th>Completion Rate</th>
+            <th>Avg Revenue</th>
+            <th>Customer Rating</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="ps-4 fw-semibold">Aircon General Cleaning</td>
+            <td>432</td>
+            <td>
+              <span
+                class="badge bg-success-subtle text-success border border-success-subtle"
+                >97%</span
+              >
+            </td>
+            <td>₱ 1,180</td>
+            <td>4.8 / 5</td>
+          </tr>
+          <tr>
+            <td class="ps-4 fw-semibold">Preventive Maintenance</td>
+            <td>287</td>
+            <td>
+              <span
+                class="badge bg-success-subtle text-success border border-success-subtle"
+                >95%</span
+              >
+            </td>
+            <td>₱ 1,940</td>
+            <td>4.7 / 5</td>
+          </tr>
+          <tr>
+            <td class="ps-4 fw-semibold">Leak Repair</td>
+            <td>198</td>
+            <td>
+              <span
+                class="badge bg-warning-subtle text-warning border border-warning-subtle"
+                >89%</span
+              >
+            </td>
+            <td>₱ 3,800</td>
+            <td>4.5 / 5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- end admin-dashboard container -->

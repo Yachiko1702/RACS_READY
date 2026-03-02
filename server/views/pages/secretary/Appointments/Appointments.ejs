@@ -1,0 +1,1848 @@
+<div class="admin-dashboard container-fluid py-4 appointments-combined">
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
+    /* =============================================
+       Admin Dashboard – Professional Redesign
+       ============================================= */
+    :root {
+      --dash-primary: #4361ee;
+      --dash-primary-light: rgba(67, 97, 238, 0.1);
+      --dash-success: #2ec4b6;
+      --dash-warning: #ff9f1c;
+      --dash-danger: #e63946;
+      --dash-purple: #7b2d8b;
+      --dash-dark: #212529;
+      --dash-card-radius: 14px;
+      --dash-card-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+      --dash-hover-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --dash-section-title: 0.8rem;
+      /* use same deeper purple gradient as overview (defined globally) */
+      --dash-hero-bg: linear-gradient(120deg, #2f49a1 0%, #2d0482 100%);
+    }
+    .admin-dashboard {
+      font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+      color: #212529;
+      background: #f5f6fa;
+    }
+
+    /* ---- HERO HEADER ---- */
+    .admin-dashboard .dashboard-hero {
+      background: var(--dash-hero-bg);
+      border-radius: var(--dash-card-radius);
+      padding: 28px 32px;
+      box-shadow: 0 8px 32px rgba(67, 97, 238, 0.18);
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+    }
+    .admin-dashboard .dashboard-hero::before {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      top: -60px;
+      right: -60px;
+      pointer-events: none;
+    }
+    .admin-dashboard .dashboard-hero::after {
+      content: "";
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      bottom: -40px;
+      left: 40px;
+      pointer-events: none;
+    }
+    .admin-dashboard .page-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin: 0;
+      color: #fff;
+    }
+    .admin-dashboard .hero-email {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.82);
+      margin: 2px 0 0;
+    }
+    .admin-dashboard .hero-sub {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.58);
+      margin: 2px 0 0;
+    }
+    .admin-dashboard .hero-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .admin-dashboard .hero-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #2ec4b6;
+      border: 2px solid #fff;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .admin-dashboard .hero-status {
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.75);
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+    }
+    /* hero action buttons */
+    .admin-dashboard .hero-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      border-radius: 8px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+      transition: background 0.2s;
+    }
+    .admin-dashboard .hero-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+    .admin-dashboard .hero-btn-primary {
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--dash-primary) !important;
+      border: none;
+    }
+    .admin-dashboard .hero-btn-primary:hover {
+      background: #fff;
+      color: var(--dash-primary) !important;
+    }
+
+    /* ---- SECTION LABEL ---- */
+    .admin-dashboard .section-label {
+      font-size: var(--dash-section-title);
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #9ba3af;
+      margin-bottom: 10px;
+    }
+
+    /* ---- KPI CARDS ---- */
+    .admin-dashboard .kpi-card {
+      border: 0;
+      border-radius: var(--dash-card-radius);
+      box-shadow: var(--dash-card-shadow);
+      background: #fff;
+      padding: 18px 20px;
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .admin-dashboard .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--dash-hover-shadow);
+    }
+    .admin-dashboard .kpi-card .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    .admin-dashboard .kpi-card .kpi-label {
+      font-size: 0.74rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #9ba3af;
+      line-height: 1.2;
+    }
+    .admin-dashboard .kpi-card .kpi-value {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+    .admin-dashboard .kpi-card .kpi-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 0 0 var(--dash-card-radius) var(--dash-card-radius);
+    }
+
+    /* ---- GENERIC CONTENT CARD ---- */
+    .admin-dashboard .dash-card {
+      border: 0;
+      border-radius: var(--dash-card-radius);
+      box-shadow: var(--dash-card-shadow);
+      background: #fff;
+      overflow: hidden;
+      transition: box-shadow 0.18s;
+    }
+    .admin-dashboard .dash-card:hover {
+      box-shadow: var(--dash-hover-shadow);
+    }
+    .admin-dashboard .dash-card .card-header-custom {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #f1f3f7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-dashboard .dash-card .card-header-custom h5,
+    .admin-dashboard .dash-card .card-header-custom h6 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0;
+      color: #212529;
+    }
+    .admin-dashboard .dash-card .card-header-custom .card-meta {
+      font-size: 0.72rem;
+      color: #9ba3af;
+      font-weight: 500;
+    }
+    .admin-dashboard .dash-card .card-body-custom {
+      padding: 16px 20px;
+    }
+
+    /* ---- LIST ITEMS ---- */
+    .admin-dashboard .dash-list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f3f7;
+    }
+    .admin-dashboard .dash-list-item:last-child {
+      border-bottom: none;
+    }
+    .admin-dashboard .dash-list-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .admin-dashboard .dash-list-item .item-title {
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: #212529;
+      line-height: 1.3;
+    }
+    .admin-dashboard .dash-list-item .item-sub {
+      font-size: 0.72rem;
+      color: #9ba3af;
+      margin-top: 1px;
+    }
+    .admin-dashboard .dash-empty {
+      text-align: center;
+      padding: 24px 0;
+      color: #c4c9d4;
+      font-size: 0.82rem;
+    }
+    .admin-dashboard .dash-empty i {
+      font-size: 1.6rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    /* ---- ACTIVITY FEED ---- */
+    .admin-dashboard .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dash-primary);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+
+    /* ---- QUICK ACTIONS ---- */
+    .admin-dashboard .quick-action-btn {
+      border-radius: 10px;
+      padding: 0.38rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1.5px solid #e5e7eb;
+      background: #fff;
+      color: #374151;
+      transition: all 0.17s;
+    }
+    .admin-dashboard .quick-action-btn:hover {
+      border-color: var(--dash-primary);
+      color: var(--dash-primary);
+      background: var(--dash-primary-light);
+    }
+    .admin-dashboard .quick-action-btn-primary {
+      background: var(--dash-primary);
+      border-color: var(--dash-primary);
+      color: #fff;
+    }
+    .admin-dashboard .quick-action-btn-primary:hover {
+      background: #3451d1;
+      border-color: #3451d1;
+      color: #fff;
+    }
+
+    /* ---- BADGE PILL ---- */
+    .admin-dashboard .status-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+    }
+
+    /* ---- CALENDAR ---- */
+    .admin-dashboard #mini-calendar .cal-day {
+      text-align: center;
+      font-size: 12px;
+      padding: 5px 2px;
+      border-radius: 8px;
+      color: #374151;
+      font-weight: 500;
+    }
+    .admin-dashboard #mini-calendar .cal-day.today {
+      background: var(--dash-primary);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    @media (max-width: 767px) {
+      .admin-dashboard .dashboard-hero {
+        padding: 20px 18px;
+      }
+      .admin-dashboard .page-title {
+        font-size: 1.25rem;
+      }
+      .admin-dashboard .kpi-card .kpi-value {
+        font-size: 1.3rem;
+      }
+    }
+
+    /* Unified Appointments UI */
+    .appointments-combined .tabs {
+      margin-bottom: 16px;
+      background: #fff;
+      border: 1px solid rgba(2, 6, 23, 0.08);
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    }
+    .appointments-combined .tabs .nav-link {
+      border: 0;
+      color: var(--dash-dark);
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 8px 12px;
+      transition: background 0.2s;
+    }
+    .appointments-combined .tabs .nav-link.active {
+      background: var(--dash-primary);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(67, 97, 238, 0.28);
+    }
+
+    /* always-show colored backgrounds for each tab; full saturation and white text */
+    .appointments-combined .tabs .nav-link[data-tab="tab-list"] {
+      background: #4361ee;
+      color: #fff;
+      border: 1px solid #4361ee;
+    }
+    .appointments-combined .tabs .nav-link[data-tab="tab-requests"] {
+      background: #ff9f1c;
+      color: #fff;
+      border: 1px solid #ff9f1c;
+    }
+    .appointments-combined .tabs .nav-link[data-tab="tab-reschedule"] {
+      background: #2ec4b6;
+      color: #fff;
+      border: 1px solid #2ec4b6;
+    }
+
+    /* maintain tint on hover */
+    .appointments-combined .tabs .nav-link:hover {
+      filter: brightness(0.9);
+    }
+
+    .appts-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+    .appointments-combined .appts-grid > section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 26px rgba(2, 6, 23, 0.05);
+      border: 1px solid rgba(2, 6, 23, 0.08);
+    }
+
+    /* KPI strip inside list tab */
+    .appts-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .appts-kpi {
+      background: linear-gradient(180deg, #fff, #fbfdff);
+      padding: 12px;
+      border-radius: 10px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .appts-kpi .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .appts-kpi .meta {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .appts-kpi .value {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    /* compact table / controls */
+    .appts-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      padding: 8px;
+      background: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 10px;
+    }
+    .appts-controls .form-control,
+    .appts-controls .form-select {
+      min-width: 160px;
+      border-radius: 10px;
+      border-color: rgba(100, 116, 139, 0.35);
+    }
+
+    /* booking requests */
+    .requests-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .requests-controls .form-control,
+    .requests-controls .form-select {
+      min-width: 150px;
+      border-radius: 10px;
+      border-color: rgba(100, 116, 139, 0.35);
+    }
+    .req-status {
+      text-transform: capitalize;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .request-customer-btn {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #0d6efd;
+      font-weight: 700;
+      text-decoration: none;
+      text-align: left;
+    }
+    .request-customer-btn:hover {
+      text-decoration: underline;
+    }
+    .requests-controls {
+      padding: 8px;
+      background: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 10px;
+    }
+    .requests-filter-card .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 0.3px;
+      margin-bottom: 6px;
+    }
+    .appointments-combined .table thead th {
+      background: #f8fafc;
+      color: #334155;
+      font-size: 12px;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+      border-bottom-width: 1px;
+    }
+    .appointments-combined .table tbody tr:hover {
+      background: rgba(13, 110, 253, 0.04);
+    }
+    .request-detail-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 8px 12px;
+      font-size: 0.9rem;
+    }
+    .request-detail-grid .label {
+      color: #64748b;
+      font-weight: 600;
+    }
+    .request-detail-grid .value {
+      color: #0f172a;
+      word-break: break-word;
+    }
+
+    /* reschedule form */
+    .reschedule-form .form-group {
+      margin-bottom: 10px;
+    }
+
+    /* small helpers */
+    .muted-small {
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+  </style>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <div>
+          <h1 class="page-title">
+            <i class="bi bi-calendar3-fill me-2"></i>Appointments
+          </h1>
+          <p class="hero-sub">
+            Manage appointment operations, validate booking requests, and handle
+            reschedules in a single workspace.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI cards below header -->
+  <div class="row mb-4">
+    <div class="col-12 col-md-3">
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #4361ee, #3a0ca3)"
+          >
+            <i class="bi bi-calendar3-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Today's Appointments</div>
+            <div class="kpi-value" id="kpi-today-combined">—</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #4361ee, #3a0ca3)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #ff9f1c, #e76f0d)"
+          >
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Pending Requests</div>
+            <div class="kpi-value" id="kpi-pending-combined">—</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #ff9f1c, #e76f0d)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #2ec4b6, #1a8f85)"
+          >
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Confirmed</div>
+            <div class="kpi-value" id="kpi-confirmed-combined">—</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #2ec4b6, #1a8f85)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #e63946, #b91c2a)"
+          >
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Cancelled</div>
+            <div class="kpi-value" id="kpi-cancelled-combined">—</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #e63946, #b91c2a)"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs tabs" id="apptsTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" data-tab="tab-list">Appointments</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-tab="tab-requests">Booking Requests</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-tab="tab-reschedule">Reschedule</button>
+    </li>
+  </ul>
+
+  <div class="appts-grid">
+    <!-- Tabbed content panels -->
+    <section>
+      <!-- TAB: LIST -->
+      <div id="tab-list" class="tab-pane">
+        <div class="panel-card">
+          <!-- Filters styled like inventory list -->
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label
+                    class="form-label small text-uppercase text-muted fw-bold"
+                    >Search</label
+                  >
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"
+                      ><i class="bi bi-search text-muted"></i
+                    ></span>
+                    <input
+                      id="filterSearchCombined"
+                      class="form-control border-start-0 bg-light"
+                      placeholder="Customer, service, id..."
+                    />
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <label
+                    class="form-label small text-uppercase text-muted fw-bold"
+                    >From</label
+                  >
+                  <input
+                    id="filterStartCombined"
+                    type="date"
+                    class="form-control form-control-sm"
+                  />
+                </div>
+                <div class="col-md-2">
+                  <label
+                    class="form-label small text-uppercase text-muted fw-bold"
+                    >To</label
+                  >
+                  <input
+                    id="filterEndCombined"
+                    type="date"
+                    class="form-control form-control-sm"
+                  />
+                </div>
+                <div class="col-md-2">
+                  <label
+                    class="form-label small text-uppercase text-muted fw-bold"
+                    >Status</label
+                  >
+                  <select
+                    id="filterStatusCombined"
+                    class="form-select form-select-sm"
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label
+                    class="form-label small text-uppercase text-muted fw-bold"
+                    >Technician</label
+                  >
+                  <select
+                    id="filterTechCombined"
+                    class="form-select form-select-sm"
+                  >
+                    <option value="all">All technicians</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Technician</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                  <th style="width: 160px">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="appointmentsBodyCombined">
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-4">
+                    Loading…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-3 d-flex justify-content-between align-items-center">
+            <div id="appointmentsCountCombined" class="text-muted small">—</div>
+            <nav>
+              <ul
+                class="pagination pagination-sm mb-0"
+                id="appointmentsPagerCombined"
+              ></ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: BOOKING REQUESTS -->
+      <div id="tab-requests" class="tab-pane d-none">
+        <div class="panel-card requests-filter-card mb-3">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label">Search</label>
+              <input
+                id="requestSearchCombined"
+                class="form-control form-control-sm"
+                placeholder="Search by customer, email, service, id..."
+              />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Status</label>
+              <select
+                id="requestStatusCombined"
+                class="form-select form-select-sm"
+              >
+                <option value="all">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button
+                id="requestRefreshCombined"
+                class="btn btn-light border btn-sm w-100"
+              >
+                <i class="bi bi-funnel me-1"></i>Apply / Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="fw-bold">Booking Request Validation Queue</div>
+              <div class="muted-small">
+                Review requests, validate details, then approve or cancel.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle text-start">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Est. fee</th>
+                  <th>ETA</th>
+                  <th>Preferred Slot</th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                  <th style="width: 220px">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="requestsTableBodyCombined">
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    Loading request queue…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="requestsCountCombined" class="text-muted small mt-2">—</div>
+        </div>
+      </div>
+
+      <!-- TAB: RESCHEDULE -->
+      <div id="tab-reschedule" class="tab-pane d-none">
+        <div class="panel-card">
+          <div class="fw-bold mb-2">Reschedule an Appointment</div>
+          <form id="rescheduleForm" class="reschedule-form">
+            <div class="form-group">
+              <label class="small">Select appointment</label
+              ><select
+                id="rescheduleSelect"
+                class="form-select form-select-sm"
+              ></select>
+            </div>
+            <div class="d-flex gap-2">
+              <div class="form-group flex-fill">
+                <label class="small">New date</label
+                ><input
+                  id="rescheduleDate"
+                  type="date"
+                  class="form-control form-control-sm"
+                />
+              </div>
+              <div class="form-group" style="width: 160px">
+                <label class="small">New time</label
+                ><input
+                  id="rescheduleTime"
+                  type="time"
+                  class="form-control form-control-sm"
+                />
+              </div>
+            </div>
+            <div class="form-group mt-2">
+              <label class="small">Reason</label
+              ><input
+                id="rescheduleReason"
+                class="form-control form-control-sm"
+              />
+            </div>
+            <div class="text-end mt-3">
+              <button id="rescheduleSubmit" class="btn btn-sm btn-primary">
+                Reschedule
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- shared modal for appointment details -->
+  <div
+    class="modal fade"
+    id="apptsSharedModal"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Appointment</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body" id="apptsSharedModalBody">Loading…</div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close</button
+          ><button
+            id="apptsModalEdit"
+            type="button"
+            class="btn btn-sm btn-primary"
+          >
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .appt-detail-grid, .request-detail-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px 16px;
+      font-size: 0.875rem;
+    }
+    .appt-detail-label {
+      font-weight: 600;
+      color: #374151;
+      white-space: nowrap;
+    }
+    .appt-detail-val {
+      color: #111827;
+    }
+    .section-header {
+      display: block;
+      grid-column: 1 / -1;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+      font-size: 1rem;
+      color: #333;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.25rem;
+      font-weight: 600;
+    }
+    #apptsSharedModal .modal-header {
+      background-color: #f8f9fa;
+    }
+  </style>
+
+  <script>
+    (function () {
+      const qs = (s) => document.querySelector(s);
+      const qsa = (s) => Array.from(document.querySelectorAll(s));
+
+      // normalize proof image string into a usable src/href
+      function normalizeProofSrc(raw) {
+        if (!raw) return null;
+        let imgSrc = String(raw);
+        if (/^[A-Za-z0-9+/]+={0,2}$/.test(imgSrc)) {
+          imgSrc = "data:image/jpeg;base64," + imgSrc;
+        }
+        if (!/^data:|^https?:\/\//i.test(imgSrc)) {
+          if (imgSrc.startsWith("/")) {
+            // server-relative path – use as-is
+          } else {
+            imgSrc = "/api/appointments/proof/" + encodeURIComponent(imgSrc);
+          }
+        }
+        return imgSrc;
+      }
+
+      // Tab switching
+      qsa("#apptsTabs [data-tab]").forEach((btn) =>
+        btn.addEventListener("click", function () {
+          qsa("#apptsTabs .nav-link").forEach((n) =>
+            n.classList.remove("active"),
+          );
+          this.classList.add("active");
+          const allTabs = qsa(".tab-pane");
+          allTabs.forEach((t) => t.classList.add("d-none"));
+          const sel = this.getAttribute("data-tab");
+          document.getElementById(sel).classList.remove("d-none");
+        }),
+      );
+
+      // Shared data stores
+      let combinedAppointments = [];
+      let combinedStaff = [];
+      let bookingRequests = [];
+
+      // Load initial overview (list KPIs + table + trend)
+      async function loadCombinedOverview() {
+        try {
+          const sRes = await fetch("/api/admin/analytics/summary");
+          const s = sRes.ok ? await sRes.json() : {};
+          document.getElementById("kpi-today-combined").innerText =
+            s.todaysAppointments ?? "—";
+          document.getElementById("kpi-pending-combined").innerText =
+            s.pendingBookingRequests ?? "—";
+          document.getElementById("kpi-confirmed-combined").innerText =
+            s.activeJobsInProgress ?? "—";
+          document.getElementById("kpi-cancelled-combined").innerText =
+            s.completedJobsToday ?? "—";
+
+          // load appointments
+          let appts = [];
+          try {
+            // only show confirmed appointments here; pending ones live in the requests tab
+            const r = await fetch(
+              "/api/appointments?upcoming=1&status=confirmed",
+            );
+            if (r.ok) {
+              const j = await r.json();
+              appts = j.items || j.appointments || [];
+            }
+          } catch (e) {}
+          if (!appts.length) appts = s.todaysAppointmentsItems || [];
+          combinedAppointments = appts;
+          renderAppointmentsTable(appts);
+
+          // populate reschedule select
+          const sel = document.getElementById("rescheduleSelect");
+          sel.innerHTML = "";
+          (appts || []).slice(0, 200).forEach((a) => {
+            const opt = document.createElement("option");
+            opt.value =
+              a._id || a.id || a.bookingId || a.start || JSON.stringify(a);
+            opt.textContent = `${a.bookingDate || a.date || ""} — ${a.customerName || (a.customer && a.customer.name) || a.customer || a.title || "Booking"}`;
+            sel.appendChild(opt);
+          });
+
+          // staff list
+          try {
+            const r = await fetch("/api/admin/staff", {
+              credentials: "same-origin",
+            });
+            if (r.ok) {
+              const j = await r.json();
+              combinedStaff = j.staff || [];
+              const techSelect = document.getElementById("filterTechCombined");
+              techSelect.innerHTML =
+                '<option value="all">All technicians</option>';
+              combinedStaff.forEach((s) => {
+                const o = document.createElement("option");
+                o.value = s._id;
+                o.textContent =
+                  (s.firstName || "") + " " + (s.lastName || s.email || "");
+                techSelect.appendChild(o);
+              });
+            } else {
+              console.warn("Failed to load staff", r.status);
+            }
+          } catch (e) {
+            console.warn("load staff error", e);
+          }
+
+          // requests list (best-effort)
+          loadBookingRequests();
+        } catch (err) {
+          console.error("loadCombinedOverview failed", err);
+        }
+      }
+
+      function renderAppointmentsTable(list) {
+        const tbody = document.getElementById("appointmentsBodyCombined");
+        tbody.innerHTML = "";
+        if (!list || !list.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="8" class="text-center text-muted py-4">No appointments found.</td></tr>';
+          document.getElementById("appointmentsCountCombined").innerText =
+            "0 appointments";
+          return;
+        }
+        list.slice(0, 200).forEach((a) => {
+          const tr = document.createElement("tr");
+          const date = a.bookingDate || a.date || a.start || new Date();
+          tr.innerHTML = `<td>${new Date(date).toLocaleDateString()}</td><td>${a.startTime || a.time || ""}</td><td><strong>${a.customerName || (a.customer && a.customer.name) || a.customer || "Customer"}</strong><div class='small text-muted'>${a.customerEmail || ""}</div></td><td>${a.service || a.serviceType || ""}</td><td>${a.technicianName || (a.technician && a.technician.name) || a.technician || (a.technician && a.technician._id) || "TBD"}</td><td>${(() => {
+            if (a.location && a.location.address) return a.location.address;
+            if (
+              a.location &&
+              a.location.coordinates &&
+              Array.isArray(a.location.coordinates.coordinates)
+            ) {
+              const [lng, lat] = a.location.coordinates.coordinates;
+              return lat + ", " + lng;
+            }
+            return a.address || "";
+          })()}</td><td><span class='badge bg-${a.status === "confirmed" ? "success" : a.status === "pending" ? "warning" : "secondary"}'>${a.status || "n/a"}</span></td><td><div class='d-flex gap-2'><button class='btn btn-sm btn-outline-secondary view-appt' data-id='${a._id || a.id || ""}' title='View'><i class='bi bi-eye'></i></button><button class='btn btn-sm btn-outline-secondary edit-appt' data-id='${a._id || a.id || ""}' title='Edit'><i class='bi bi-pencil'></i></button></div></td>`;
+          tbody.appendChild(tr);
+        });
+        document.getElementById("appointmentsCountCombined").innerText =
+          `${list.length} shown`; // wire buttons
+        qsa(".view-appt").forEach((b) =>
+          b.addEventListener("click", onViewAppt),
+        );
+        qsa(".edit-appt").forEach((b) =>
+          b.addEventListener("click", onEditAppt),
+        );
+
+
+      }
+
+      function onViewAppt(e) {
+        const modalTitle = document.querySelector(
+          "#apptsSharedModal .modal-title",
+        );
+        if (modalTitle) modalTitle.textContent = "Appointment";
+        document.getElementById("apptsModalEdit").style.display =
+          "inline-block";
+        const id = e.currentTarget.getAttribute("data-id");
+        const appt =
+          combinedAppointments.find((x) => (x._id || x.id || "") == id) || {};
+
+        document.getElementById("apptsSharedModalBody").innerHTML =
+          `<div><strong>${appt.service || appt.title || "Booking"}</strong></div><div class='small text-muted mb-2'>${appt.bookingDate || appt.date || ""} ${appt.startTime || appt.time || ""}</div><div><strong>Customer:</strong> ${appt.customerName || appt.customer || "—"}</div><div><strong>Technician:</strong> ${appt.technicianName || appt.technician || "—"}</div><div class='mt-2 small text-muted'>Status: ${appt.status || "—"}</div>`;
+        new bootstrap.Modal(document.getElementById("apptsSharedModal")).show();
+      }
+      function onEditAppt(e) {
+        const id = e.currentTarget.getAttribute("data-id"); // navigate to reschedule tab and preselect
+        qsa("#apptsTabs [data-tab]").forEach((n) =>
+          n.classList.remove("active"),
+        );
+        document
+          .querySelector('#apptsTabs [data-tab="tab-reschedule"]')
+          .classList.add("active");
+        qsa(".tab-pane").forEach((t) => t.classList.add("d-none"));
+        document.getElementById("tab-reschedule").classList.remove("d-none");
+        const sel = document.getElementById("rescheduleSelect");
+        const item = combinedAppointments.find(
+          (x) => (x._id || x.id || "") == id,
+        );
+        if (item) {
+          const optVal =
+            item._id || item.id || item.start || JSON.stringify(item);
+          if (!Array.from(sel.options).some((o) => o.value === optVal)) {
+            const o = document.createElement("option");
+            o.value = optVal;
+            o.textContent = `${item.bookingDate || item.date || ""} — ${item.customerName || item.customer || "Booking"}`;
+            sel.appendChild(o);
+          }
+          sel.value = optVal;
+        }
+      }
+
+      function statusLabel(status) {
+        const s = String(status || "pending").toLowerCase();
+        if (s === "confirmed" || s === "approved") return "confirmed";
+        if (s === "completed") return "completed";
+        if (s === "cancelled" || s === "rejected") return "cancelled";
+        if (s === "re-scheduled") return "re-scheduled";
+        return "pending";
+      }
+
+      function statusBadgeClass(status) {
+        const s = statusLabel(status);
+        if (s === "confirmed" || s === "completed") return "success";
+        if (s === "cancelled") return "danger";
+        if (s === "re-scheduled") return "primary";
+        return "warning";
+      }
+
+      function formatDate(value, includeTime = false) {
+        if (!value) return "";
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return String(value);
+        try {
+          if (includeTime) {
+            return d.toLocaleString(undefined, { dateStyle: "long", timeStyle: "short" });
+          }
+          return d.toLocaleDateString(undefined, { dateStyle: "long" });
+        } catch (e) {
+          return d.toISOString().slice(0, includeTime ? 16 : 10);
+        }
+      }
+      function formatTime(value) {
+        if (value === null || value === undefined || value === "") return "";
+        let mins = parseInt(value, 10);
+        if (isNaN(mins)) {
+          const d = new Date("1970-01-01T" + value);
+          if (!isNaN(d.getTime())) return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+          return String(value);
+        }
+        const h = Math.floor(mins / 60) % 24;
+        const m = mins % 60;
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+      }
+      function formatValue(value) {
+        if (value === null || value === undefined || value === "") return "—";
+        if (typeof value === "string" || value instanceof Date) {
+          const d = new Date(value);
+          if (!Number.isNaN(d.getTime())) {
+            return formatDate(d, /T|:/i.test(String(value)));
+          }
+        }
+        if (typeof value === "object") {
+          if (Array.isArray(value)) {
+            return value.length ? value.join(", ") : "—";
+          }
+          if (value._id) return String(value._id);
+          const addrKeys = ["street","barangay","city","province","postalCode","zip","country","address"];
+          const parts = [];
+          addrKeys.forEach((k) => {
+            if (value[k]) parts.push(String(value[k]));
+          });
+          if (parts.length) return parts.join(", ");
+          return JSON.stringify(value);
+        }
+        return String(value);
+      }
+
+      async function openBookingRequestDetails(rq) {
+        if (!rq || !rq.raw) return;
+        // ensure Leaflet assets (CSS/JS) loaded once
+        if (!window.L) {
+          const css = document.createElement('link');
+          css.rel = 'stylesheet';
+          css.href = 'https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.css';
+          document.head.appendChild(css);
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js';
+          document.head.appendChild(s);
+          await new Promise((r) => { s.onload = r; });
+        }
+        const modalTitle = document.querySelector(
+          "#apptsSharedModal .modal-title",
+        );
+        if (modalTitle) modalTitle.textContent = "Booking Request Details";
+        const raw = rq.raw;
+        // enrich names if missing
+        if (raw.customerId && !raw.customerName) {
+          try {
+            const r = await fetch(`/api/users/${encodeURIComponent(raw.customerId)}`, { credentials: "same-origin" });
+            if (r.ok) {
+              const info = await r.json();
+              const cname = info.name || info.fullName || ((info.firstName || "") + " " + (info.lastName || "")).trim();
+              if (cname) raw.customerName = cname;
+            }
+          } catch (e) {
+            console.warn("failed to fetch customer for request", e);
+          }
+        }
+        // fallback from snapshot
+        if (!raw.technicianName) {
+          if (raw.technician && raw.technician.name) {
+            raw.technicianName = raw.technician.name;
+          } else if (raw.technician && raw.technician._id) {
+            // we'll try fetching using this id next
+          }
+        }
+        if ((raw.technicianId || (raw.technician && raw.technician._id)) && !raw.technicianName) {
+          try {
+            const techId = raw.technicianId || raw.technician._id;
+            const r = await fetch(`/api/users/${encodeURIComponent(techId)}`, { credentials: "same-origin" });
+            if (r.ok) {
+              const info = await r.json();
+              const tname = info.name || info.fullName || ((info.firstName || "") + " " + (info.lastName || "")).trim();
+              if (tname) raw.technicianName = tname;
+            }
+          } catch (e) {
+            console.warn("failed to fetch technician user for request", e);
+          }
+        }
+        // last resort: search admin technician list (works if id is Technician doc)
+        if ((raw.technicianId || (raw.technician && raw.technician._id)) && !raw.technicianName) {
+          try {
+            const r2 = await fetch("/api/admin/technicians", { credentials: "same-origin" });
+            if (r2.ok) {
+              const j = await r2.json();
+              const techs = j.technicians || [];
+              const tid = raw.technicianId || (raw.technician && raw.technician._id);
+              const found = techs.find((t) => String(t._id) === String(tid));
+              if (found && found.name) raw.technicianName = found.name;
+            }
+          } catch (e) {
+            console.warn("failed to fetch technician list for request", e);
+          }
+        }
+        let locationAddress = "";
+        if (raw?.location) {
+          if (typeof raw.location === "string") {
+            locationAddress = raw.location;
+          } else if (raw.location.address) {
+            if (typeof raw.location.address === "object") {
+              locationAddress = Object.values(raw.location.address)
+                .filter((v) => v != null && v !== "")
+                .map(String)
+                .join(", ");
+            } else {
+              locationAddress = raw.location.address;
+            }
+          }
+        }
+        if (!locationAddress && raw.address) {
+          if (typeof raw.address === "object") {
+            locationAddress = Object.values(raw.address)
+              .filter((v) => v != null && v !== "")
+              .map(String)
+              .join(", ");
+          } else {
+            locationAddress = raw.address;
+          }
+        }
+        if (/^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(locationAddress)) {
+          locationAddress = "";
+        }
+        // determine coordinates array (lon,lat) from whichever field present
+        let coordsArray = null;
+        if (
+          raw?.location?.coordinates?.coordinates &&
+          Array.isArray(raw.location.coordinates.coordinates)
+        ) {
+          coordsArray = raw.location.coordinates.coordinates.slice(0, 2);
+        } else if (typeof raw.coordinates === "string") {
+          const nums = raw.coordinates
+            .split(/[^0-9\.-]+/)
+            .map(Number)
+            .filter((n) => !isNaN(n));
+          if (nums.length >= 2) coordsArray = nums.slice(0, 2);
+        } else if (typeof raw.location === "string") {
+          const nums = raw.location
+            .split(/[^0-9\.-]+/)
+            .map(Number)
+            .filter((n) => !isNaN(n));
+          if (nums.length >= 2) {
+            // assume location string is lat,lon
+            coordsArray = [nums[1], nums[0]];
+          }
+        }
+        const hasCoords = coordsArray && coordsArray.length >= 2;
+        const coordinates = hasCoords ? coordsArray.join(", ") : "—";
+
+        const details = [
+          ["ID", raw._id || raw.id || rq.id],
+          ["Customer ID", raw.customerId],
+        ];
+        if (raw.customer || raw.customerName) {
+          details.push(["Customer name", raw.customerName || (raw.customer && raw.customer.name) || ""]);
+          details.push(["Customer email", (raw.customer && raw.customer.email) || ""]);
+          details.push(["Customer phone", (raw.customer && raw.customer.phone) || ""]);
+          // address is shown separately below
+        }
+        // include serviceId info when available
+        if (raw.serviceId && typeof raw.serviceId === "object") {
+          details.push(["Service", raw.serviceId.name || raw.serviceId.title || ""]);
+          if (raw.serviceId.description) {
+            details.push(["Service description", raw.serviceId.description]);
+          }
+        } else {
+          details.push(["Service", raw.serviceType || ""]);
+        }
+        const feeVal = raw.servicePrice || raw.estimatedFee || (raw.service && raw.service.basePrice);
+        if (feeVal != null && feeVal !== "") {
+          details.push(["Estimated fee", feeVal]);
+        }
+        if (raw.travelTime != null && raw.travelTime !== "") {
+          details.push(["Estimated travel time", raw.travelTime + " min"]);
+        }
+        // technician name override (fallback to id)
+        let techName = raw.technicianName || (raw.technician && raw.technician.name) || raw.technicianId || (raw.technician && raw.technician._id) || "";
+        // fetch name from admin list if we only have id
+        if (!techName && raw.technicianId) {
+          try {
+            const r = await fetch("/api/admin/technicians", { credentials: "same-origin" });
+            if (r.ok) {
+              const j = await r.json();
+              const techs = j.technicians || [];
+              const found = techs.find(t => String(t._id) === String(raw.technicianId));
+              if (found) techName = found.name || techName;
+            }
+          } catch (e) {
+            console.warn("failed to fetch technician list", e);
+          }
+        }
+        details.push(
+          ["Technician", techName],
+          ["Date", raw.bookingDate],
+          ["Start time", raw.startTime],
+          ["End time", raw.endTime],
+          ["Status", raw.status],
+          ["Payment method", raw.paymentMethod],
+          ["GCash number", raw.gcashNumber],
+          ["Payment reference", raw.paymentReference],
+          ["Payment proof", raw.paymentProof],
+          ["Address", locationAddress],
+          ["Coordinates", coordinates],
+          ["Created at", raw.createdAt],
+          ["Updated at", raw.updatedAt],
+        );
+
+        // categorize details for nicer display
+        const sections = { service: [], customer: [], schedule: [], other: [] };
+        details.forEach(([label, value]) => {
+          const key = label.toLowerCase();
+          if (key.includes("service")) sections.service.push([label, value]);
+          else if (key.includes("customer")) sections.customer.push([label, value]);
+          else if (key.includes("date") || key.includes("time") || key.includes("status")) sections.schedule.push([label, value]);
+          else sections.other.push([label, value]);
+        });
+        const buildRows = (arr) =>
+          arr
+            .map(([label, value]) => {
+              if (label.toLowerCase().includes("proof") && value) {
+                const imgSrc = normalizeProofSrc(value);
+                if (imgSrc) {
+                  return `
+                    <span class="appt-detail-label">${label}</span>
+                    <span class="appt-detail-val"><a href="${imgSrc}" target="_blank"><img src="${imgSrc}" style="max-width:100%;cursor:pointer;" loading="lazy"/></a></span>
+                  `;
+                }
+                return `
+                  <span class="appt-detail-label">${label}</span>
+                  <span class="appt-detail-val">${formatValue(value)}</span>
+                `;
+              }
+              let display = formatValue(value);
+              // currency for price or fee labels
+              if ((/price/i.test(label) || /fee/i.test(label)) && typeof value === "number") {
+                display = "₱" + Number(value).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+              }
+              if (value && /date/i.test(label)) {
+                display = formatDate(value, /time/i.test(label));
+              }
+              if (value !== null && value !== undefined && /time/i.test(label)) {
+                display = formatTime(value);
+              }
+              return `
+                <span class="appt-detail-label">${label}</span>
+                <span class="appt-detail-val">${display}</span>
+              `;
+            })
+            .join("");
+        let rows = "";
+        if (sections.service.length) {
+          rows += `<div class="section-header" style="grid-column:1/-1;font-weight:600;">Service</div>${buildRows(sections.service)}`;
+        }
+        if (sections.customer.length) {
+          rows += `<div class="section-header" style="grid-column:1/-1;font-weight:600;">Customer</div>${buildRows(sections.customer)}`;
+        }
+        if (sections.schedule.length) {
+          rows += `<div class="section-header" style="grid-column:1/-1;font-weight:600;">Schedule</div>${buildRows(sections.schedule)}`;
+        }
+        // always include map placeholder after schedule
+        rows += `<div id="apptMap" style="grid-column:1/-1;height:200px;margin-top:8px;"></div>`;
+        if (sections.other.length) {
+          rows += `<div class="section-header" style="grid-column:1/-1;font-weight:600;">Other</div>${buildRows(sections.other)}`;
+        }
+
+        if (window.hideBackdrop) hideBackdrop();
+        document.getElementById("apptsSharedModalBody").innerHTML = `
+          <div class="appt-detail-grid">
+            ${rows}
+          </div>
+        `;
+        document.getElementById("apptsModalEdit").style.display = "none";
+        const modalEl = document.getElementById("apptsSharedModal");
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+        if (hasCoords && !locationAddress) {
+          (async () => {
+            try {
+              const [lng, lat] = coordsArray;
+              const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+              if (resp.ok) {
+                const data = await resp.json();
+                if (data.display_name) {
+                  const labels = modalEl.querySelectorAll('.appt-detail-label');
+                  labels.forEach((lbl) => {
+                    if (lbl.textContent.trim() === 'Address') {
+                      const val = lbl.nextElementSibling;
+                      if (val) val.textContent = data.display_name;
+                    }
+                  });
+                }
+              }
+            } catch (e) {
+              console.warn('reverse geocode failed', e);
+            }
+          })();
+        }
+        // initialize map shortly after modal is visible
+        setTimeout(() => {
+          try {
+            const mapEl = document.getElementById("apptMap");
+            if (!mapEl || !window.L) return;
+            mapEl.innerHTML = "";
+            if (hasCoords) {
+              const [lng, lat] = coordsArray;
+              const map = L.map(mapEl).setView([lat, lng], 12);
+              L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              }).addTo(map);
+              L.marker([lat, lng]).addTo(map).bindPopup("Request location");
+            }
+          } catch (err) {
+            console.warn("failed to init request map", err);
+          }
+        }, 50);
+      }
+
+      function toDateOnly(value) {
+        // legacy helper kept for compatibility – use formatDate instead
+        if (!value) return "";
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return "";
+        return d.toISOString().slice(0, 10);
+      }
+
+      function normalizeRequest(rq, index = 0) {
+        const id = rq._id || rq.id || rq.bookingId || `req-${index + 1}`;
+        const date =
+          rq.bookingDate || rq.date || rq.preferredDate || rq.createdAt;
+        const time = rq.startTime || rq.time || rq.preferredTime || "";
+        // derive human‑readable service label similar to admin view
+        let serviceName = "";
+        if (rq.service) {
+          if (typeof rq.service === "string") {
+            serviceName = rq.service;
+          } else if (rq.service.name) {
+            serviceName = rq.service.name;
+          } else if (rq.service.title) {
+            serviceName = rq.service.title;
+          } else {
+            // fallback to JSON so we at least see something
+            serviceName = JSON.stringify(rq.service);
+          }
+        }
+        if (!serviceName && rq.serviceType) serviceName = rq.serviceType;
+        if (!serviceName && rq.serviceId) {
+          if (typeof rq.serviceId === "string") serviceName = rq.serviceId;
+          else if (rq.serviceId.name) serviceName = rq.serviceId.name;
+          else if (rq.serviceId.title) serviceName = rq.serviceId.title;
+        }
+        if (!serviceName) serviceName = "General Service";
+        // prepare a human-friendly location string
+        let loc = "";
+        if (rq.location) {
+          if (typeof rq.location === "string") {
+            loc = rq.location;
+          } else if (rq.location.address) {
+            if (typeof rq.location.address === "object") {
+              loc = Object.values(rq.location.address)
+                .filter((v) => v != null && v !== "")
+                .join(", ");
+            } else {
+              loc = rq.location.address;
+            }
+          }
+        }
+        if ((!loc || loc === "") && rq.address) {
+          if (typeof rq.address === "object") {
+            loc = Object.values(rq.address)
+              .filter((v) => v != null && v !== "")
+              .join(", ");
+          } else {
+            loc = rq.address;
+          }
+        }
+        const feeVal = rq.servicePrice || rq.estimatedFee || (rq.service && rq.service.basePrice) || "";
+        // customer name may also be an object
+        let custName = "";
+        if (rq.customerName) {
+          custName = rq.customerName;
+        } else if (rq.customer) {
+          if (typeof rq.customer === "string") {
+            custName = rq.customer;
+          } else if (rq.customer.name) {
+            custName = rq.customer.name;
+          } else if (rq.customer.firstName || rq.customer.lastName) {
+            custName = `${rq.customer.firstName || ""} ${rq.customer.lastName || ""}`.trim();
+          } else {
+            custName = JSON.stringify(rq.customer);
+          }
+        } else if (rq.name) {
+          custName = rq.name;
+        } else {
+          custName = "Customer";
+        }
+        return {
+          id,
+          raw: rq,
+          customerName: custName,
+          customerEmail: rq.customerEmail || rq.email || "",
+          service: serviceName,
+          date,
+          time,
+          location: loc,
+          estimatedFee: feeVal,
+          status: statusLabel(rq.status),
+          paymentMethod: rq.paymentMethod || "",
+          gcashNumber: rq.gcashNumber || "",
+          paymentReference: rq.paymentReference || "",
+          downpaymentAmount: rq.downpaymentAmount || "",
+          createdAt: rq.createdAt || rq.updatedAt || date,
+        };
+      }
+
+      function renderBookingRequests() {
+        const body = document.getElementById("requestsTableBodyCombined");
+        if (!body) return;
+
+        const search = (
+          document.getElementById("requestSearchCombined")?.value || ""
+        )
+          .trim()
+          .toLowerCase();
+        const statusFilter = (
+          document.getElementById("requestStatusCombined")?.value || "all"
+        )
+          .trim()
+          .toLowerCase();
+
+        const filtered = bookingRequests.filter((rq) => {
+          const hay =
+            `${rq.id} ${rq.customerName} ${rq.customerEmail} ${rq.service}`.toLowerCase();
+          const matchSearch = !search || hay.includes(search);
+          const matchStatus =
+            statusFilter === "all" || rq.status === statusFilter;
+          return matchSearch && matchStatus;
+        });
+
+        body.innerHTML = "";
+        if (!filtered.length) {
+          body.innerHTML =
+            '<tr><td colspan="7" class="text-center text-muted py-4">No requests matched your current filters.</td></tr>';
+        } else {
+          filtered.forEach((rq) => {
+            const tr = document.createElement("tr");
+            const canValidate = rq.status === "pending";
+            tr.innerHTML = `
+              <td class="text-nowrap">${rq.id}</td>
+              <td class="text-start">
+                <button type="button" class="request-customer-btn view-req-details" data-id="${rq.id}">${rq.customerName}</button>
+                <div class="small text-muted">${rq.customerEmail || "—"}</div>
+              </td>
+              <td class="text-start text-truncate" style="max-width:160px;">${rq.service}</td>
+              <td class="text-end">${rq.estimatedFee ? '₱' + Number(rq.estimatedFee).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : "—"}</td>
+              <td class="text-end">${rq.travelTime ? rq.travelTime + ' min' : '—'}</td>
+              <td class="text-start">${formatDate(rq.date) || "—"} ${formatTime(rq.time)}</td>
+              <td class="text-start">${rq.paymentMethod || ""}${rq.paymentReference ? ` (${rq.paymentReference})` : ""}</td>
+              <td class="text-center"><span class="badge req-status bg-${statusBadgeClass(rq.status)}">${rq.status}</span></td>
+              <td class="text-start">
+                <div class="d-flex gap-2 flex-wrap">
+                  <button class="btn btn-sm btn-outline-secondary view-req-details" data-id="${rq.id}">Details</button>
+                  <button class="btn btn-sm btn-outline-success approve-req" data-id="${rq.id}" ${canValidate ? "" : "disabled"}>Approve</button>
+                  <button class="btn btn-sm btn-outline-danger reject-req" data-id="${rq.id}" ${canValidate ? "" : "disabled"}>Cancel</button>
+                </div>
+              </td>
+            `;
+            body.appendChild(tr);
+          });
+        }
+
+        document.getElementById("requestsCountCombined").innerText =
+          `${filtered.length} request${filtered.length === 1 ? "" : "s"} shown`;
+
+        qsa(".view-req-details").forEach((b) =>
+          b.addEventListener("click", function () {
+            const id = this.getAttribute("data-id");
+            const rq = bookingRequests.find((x) => x.id === id);
+            openBookingRequestDetails(rq);
+          }),
+        );
+
+        qsa(".approve-req").forEach((b) =>
+          b.addEventListener("click", async function () {
+            const id = this.getAttribute("data-id");
+            await processBookingRequest(id, "approve");
+          }),
+        );
+
+        qsa(".reject-req").forEach((b) =>
+          b.addEventListener("click", async function () {
+            const id = this.getAttribute("data-id");
+            await processBookingRequest(id, "cancel");
+          }),
+        );
+      }
+
+      async function processBookingRequest(id, action) {
+        if (!id) return;
+        const isCancel = action === "cancel";
+        if (isCancel && !confirm("Cancel this booking request?")) return;
+        try {
+          const res = await fetch(
+            `/appointments/${encodeURIComponent(id)}/${action}`,
+            { method: "POST", credentials: "same-origin" },
+          );
+          if (res.ok) {
+            window.notify?.success(
+              isCancel ? "Request cancelled" : "Request approved",
+            );
+            await loadBookingRequests();
+            await loadCombinedOverview();
+          } else {
+            const t = await res.text();
+            window.notify?.error(
+              `Failed to ${isCancel ? "cancel" : "approve"}: ${t}`,
+            );
+          }
+        } catch (e) {
+          window.notify?.error(`Failed to ${isCancel ? "cancel" : "approve"}`);
+        }
+      }
+
+      // Booking requests validation queue
+      async function loadBookingRequests() {
+        try {
+          const r = await fetch("/appointments?requests=1&limit=200", {
+            credentials: "same-origin",
+          });
+          let reqs = [];
+          if (r.ok) {
+            const j = await r.json();
+            reqs = j.items || j.requests || [];
+          }
+          bookingRequests = (reqs || []).map((rq, idx) =>
+            normalizeRequest(rq, idx),
+          );
+          renderBookingRequests();
+        } catch (e) {
+          console.warn(e);
+          bookingRequests = [];
+          renderBookingRequests();
+        }
+      }
+
+      // Reschedule submission
+      document
+        .getElementById("rescheduleSubmit")
+        .addEventListener("click", async function (e) {
+          e.preventDefault();
+          const select = document.getElementById("rescheduleSelect");
+          const val = select.value;
+          if (!val) {
+            window.notify.warn("Select an appointment first");
+            return;
+          }
+          const date = document.getElementById("rescheduleDate").value;
+          const time = document.getElementById("rescheduleTime").value;
+          if (!date || !time) {
+            alert("Select date and time");
+            return;
+          }
+          const payload = {
+            bookingDate: date,
+            startTime: time,
+            reason: document.getElementById("rescheduleReason").value || "",
+          };
+          // attempt to extract id
+          const id = val.startsWith("{")
+            ? JSON.parse(val)._id || JSON.parse(val).id
+            : val;
+          try {
+            const r = await fetch("/appointments/" + encodeURIComponent(id), {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+              credentials: "same-origin",
+            });
+            if (r.ok) {
+              window.notify.success("Appointment rescheduled");
+              loadCombinedOverview();
+            } else {
+              const t = await r.text();
+              window.notify.error("Failed: " + t);
+            }
+          } catch (err) {
+            window.notify.error("Failed");
+          }
+        });
+
+      // wire controls
+      const refreshBtn = document.getElementById("btn-refresh-combined");
+      if (refreshBtn) {
+        refreshBtn.addEventListener("click", () => {
+          loadCombinedOverview();
+          loadBookingRequests();
+        });
+      }
+      const refreshAllBtn = document.getElementById("apptsRefreshAll");
+      if (refreshAllBtn) {
+        refreshAllBtn.addEventListener("click", () => {
+          loadCombinedOverview();
+          loadBookingRequests();
+        });
+      }
+      ["requestSearchCombined", "requestStatusCombined"].forEach((id) => {
+        const node = document.getElementById(id);
+        if (!node) return;
+        const evt = id === "requestStatusCombined" ? "change" : "input";
+        node.addEventListener(evt, renderBookingRequests);
+      });
+      document
+        .getElementById("requestRefreshCombined")
+        ?.addEventListener("click", loadBookingRequests);
+
+      // initial load
+      loadCombinedOverview();
+
+      // if URL contains ?sel=<id> open Reschedule tab and preselect the appointment
+      (function preselectFromQuery() {
+        try {
+          const params = new URLSearchParams(location.search);
+          const sel = params.get("sel") || params.get("id");
+          if (!sel) return;
+          let tries = 0;
+          const trySelect = () => {
+            tries++;
+            if (
+              typeof combinedAppointments !== "undefined" &&
+              combinedAppointments.length
+            ) {
+              // reuse existing onEditAppt logic by simulating a click-event object
+              try {
+                onEditAppt({ currentTarget: { getAttribute: () => sel } });
+              } catch (e) {
+                /* ignore */
+              }
+              const tabBtn = document.querySelector(
+                '#apptsTabs [data-tab="tab-reschedule"]',
+              );
+              if (tabBtn) tabBtn.click();
+            } else if (tries < 20) {
+              setTimeout(trySelect, 150);
+            }
+          };
+          setTimeout(trySelect, 200);
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    })();
+  </script>
+</div>

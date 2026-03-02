@@ -2,8 +2,10 @@
 // - Keeps per-IP and per-email counters and locks after threshold
 
 const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const LOCK_MS = 15 * 60 * 1000; // 15 minutes
+// Count attempts within this window (5 minutes)
+const WINDOW_MS = 5 * 60 * 1000; // 5 minutes (tracking window)
+// Lock duration after exceeding attempts: start at 3 minutes and extend on more hits
+const BASE_LOCK_MS = 3 * 60 * 1000; // 3 minutes
 
 const store = new Map();
 
@@ -29,7 +31,12 @@ function recordFailed(type, identifier) {
   rec.count += 1;
 
   if (rec.count >= MAX_ATTEMPTS) {
-    rec.lockedUntil = _now() + LOCK_MS;
+    // if already locked, extend the lock by another base interval
+    if (rec.lockedUntil && _now() < rec.lockedUntil) {
+      rec.lockedUntil += BASE_LOCK_MS;
+    } else {
+      rec.lockedUntil = _now() + BASE_LOCK_MS;
+    }
   }
 
   store.set(key, rec);
@@ -54,5 +61,5 @@ function reset(type, identifier) {
 module.exports = {
   recordFailed,
   isBlocked,
-  reset
+  reset,
 };

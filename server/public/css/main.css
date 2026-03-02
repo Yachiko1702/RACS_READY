@@ -1,5 +1,22 @@
+html,
 body {
-  font-family: 'Avenir', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+footer {
+  margin-top: auto;
 }
 
 
@@ -59,12 +76,98 @@ section {
 
 /* Service cards */
 .service-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.28s ease;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.04);
 }
 
 .service-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 16px 40px rgba(2,6,23,0.08);
+}
+
+/* Global card softening (applies where .card is used) */
+.card { border-radius: 12px; }
+.card.shadow-sm { box-shadow: 0 8px 20px rgba(2,6,23,0.04) !important; border: 1px solid rgba(2,6,23,0.03); }
+
+
+/* Neutral card variant (used on About + Contact) */
+.neutral-card {
+  border: 1px solid rgba(2,6,23,0.06) !important;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.06);
+  border-radius: 12px;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.neutral-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(2,6,23,0.08);
+  border-color: rgba(2,6,23,0.12);
+}
+
+/* Account sidebar (right) */
+#authSidebar.auth-sidebar {
+  display: block;
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 300px;
+  background: #fff;
+  box-shadow: -6px 0 18px rgba(2,6,23,0.06);
+  z-index: 1200;
+  padding: 20px;
+  border-left: 1px solid rgba(2,6,23,0.04);
+}
+
+/* Shared contact/profile card styles (moved from contact page) */
+.contact-card {
+  border: 1px solid rgba(2,6,23,0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96));
+  box-shadow: 0 8px 20px rgba(2,6,23,0.06);
+  border-radius: 14px;
+  transition: transform 0.22s cubic-bezier(0.2,0.9,0.2,1), box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.contact-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(2,6,23,0.08); border-color: rgba(2,6,23,0.12); }
+.card-title-row { display:flex; align-items:center; gap:0.85rem; }
+.icon-circle { width:42px; height:42px; border-radius:50%; background:rgba(13,110,253,0.08); display:inline-flex; align-items:center; justify-content:center; font-size:1.1rem; }
+.eyebrow { letter-spacing:0.08em; text-transform:uppercase; font-size:0.75rem; color:#6c757d; font-weight:700; }
+.fields-box { background: linear-gradient(180deg,#fff,#fbfcff); padding:14px; border-radius:10px; border:1px solid rgba(13,110,253,0.03); }
+.fields-box.compact { padding:18px; background: linear-gradient(180deg, rgba(247,250,255,1), rgba(250,252,255,0.98)); max-width:100%; width:100%; margin:0 auto; border:1px solid rgba(13,110,253,0.04); box-shadow: 0 6px 18px rgba(2,6,23,0.04); }
+.fields-box.compact p.text-muted { margin-bottom:8px; font-size:1rem; color:#6b7280; }
+.info-grid { display:flex; gap:12px; margin-bottom:8px; align-items:stretch; flex-wrap:nowrap; }
+.info-item { flex:1 1 0; min-width:0; display:flex; gap:12px; padding:10px 12px; border-radius:12px; border:1px solid rgba(13,110,253,0.08); background:#fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.7); height:100%; }
+.info-icon { width:36px; height:36px; border-radius:10px; background:rgba(13,110,253,0.06); display:inline-flex; align-items:center; justify-content:center; font-size:1rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.8); }
+.info-value { font-size:0.98rem; font-weight:700; color:#0f172a; line-height:1.2; }
+@media (max-width: 991px) { .info-grid { flex-wrap:wrap; } .info-item { flex:1 1 100%; } }
+
+/* ensure form-plaintext alignment inside boxed fields */
+.form-control-plaintext { padding: .375rem 0; margin-bottom: 0; color: #111827; }
+
+
+/* Sidebar links */
+.sidebar-link { color: var(--charcoal); font-weight: 400; transition: transform .18s ease, background-color .18s ease, color .18s ease; padding-left: .5rem; }
+.sidebar-link:hover { background: rgba(2,6,23,0.03); color: var(--charcoal); text-decoration: none; transform: translateX(4px); }
+.sidebar-link i { transition: transform .18s ease, color .18s ease; color: rgba(55,65,81,0.8); font-size: 1.08rem; }
+.sidebar-link:hover i { transform: translateX(3px); color: var(--charcoal); }
+.sidebar-link.active, .sidebar-link[aria-current="page"] { background: rgba(2,6,23,0.04); color: var(--charcoal); }
+/* Ensure no accidental blue (text-primary) appears inside the account sidebar */
+#authSidebar .sidebar-link, #authSidebar .sidebar-link i, #authSidebar .nav-link { color: var(--charcoal) !important; }
+#authSidebar .sidebar-link .text-primary { color: var(--charcoal) !important; }
+.sidebar-divider { border-top: 1px dashed rgba(15,23,42,0.06); margin: 1rem 0; }
+.sidebar-badge { background: rgba(43,123,233,0.12); color: var(--soft-accent); font-weight:700; padding: 0.15rem 0.45rem; border-radius: 12px; font-size: 0.75rem; margin-left: auto; }
+.sidebar-item-divider { height: 1px; background: linear-gradient(90deg, rgba(15,23,42,0.04), rgba(15,23,42,0.02)); margin: .5rem 0; border-radius: 2px; }
+
+/* header divider & avatar */
+.sidebar-avatar { width:36px; height:36px; font-size:0.95rem; font-weight:700; }
+.sidebar-head-divider { height: 6px; background: linear-gradient(90deg, rgba(13,110,253,0.08), rgba(13,110,253,0.02)); border-radius: 6px; }
+
+/* Sidebar open/close animation */
+#authSidebar.auth-sidebar { transform: translateX(16px); opacity: 0; transition: transform .28s cubic-bezier(.2,.9,.2,1), opacity .22s ease; }
+#authSidebar.auth-sidebar.open { transform: translateX(0); opacity: 1; }
+
+@media (max-width: 767px) {
+  #authSidebar.auth-sidebar { width: 100%; }
+  .sidebar-link { padding-left: 0.5rem; padding-right: 0.5rem; }
 }
 
 /* Section fade-up on scroll */
@@ -209,6 +312,8 @@ section.animate-on-load {
 /* ===== AIRCON BRAND PALETTE ===== */
 :root {
   --cool-blue: #0d6efd;
+  --soft-accent: #2b7be9; /* new softer accent */
+  --charcoal: #0f1724; /* muted charcoal for text */
   --ice-blue: #eaf2ff;
   --frost: #f6faff;
   --steel: #6c757d;
@@ -294,29 +399,63 @@ section.animate-on-load {
 
 /* ===== CTA (reusable) ===== */
 .cta-hero .btn-cta {
-  box-shadow: 0 8px 24px rgba(13,110,253,0.18);
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  box-shadow: 0 8px 24px rgba(43,123,233,0.12); /* softer accent shadow */
+  transition: transform 0.18s cubic-bezier(.2,.9,.2,1), box-shadow 0.18s ease;
   display: inline-flex;
   align-items: center;
+  border-radius: 999px; /* pill style */
+  background: linear-gradient(90deg, var(--soft-accent), var(--cool-blue));
+  color: #fff;
 }
 
-.cta-hero .btn-cta:active {
-  transform: translateY(1px) scale(.995);
-}
+.cta-hero .btn-cta:hover { transform: translateY(-3px); box-shadow: 0 18px 36px rgba(2,6,23,0.12); }
+.cta-hero .btn-cta:active { transform: translateY(0) scale(.995); box-shadow: 0 10px 22px rgba(2,6,23,0.12); }
 
 .cta-hero .btn-cta:focus {
-  outline: 3px solid rgba(13,110,253,0.12);
+  outline: 3px solid rgba(43,123,233,0.12);
   outline-offset: 3px;
 }
 
-.cta-hero .btn-primary.btn-lg {
-  padding: 0.75rem 1.25rem;
-  font-weight: 600;
+/* ===== merged from profile-feature.css ===== */
+/* Sidebar / avatar */
+.sidebar-avatar { width:36px; height:36px; font-size:0.95rem; font-weight:700; }
+
+/* Account sidebar container + animation */
+#authSidebar.auth-sidebar {
+  display: block;
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 300px;
+  background: #fff;
+  box-shadow: -6px 0 18px rgba(2,6,23,0.06);
+  z-index: 1200;
+  padding: 20px;
+  border-left: 1px solid rgba(2,6,23,0.04);
+  transform: translateX(16px);
+  opacity: 0;
+  transition: transform .28s cubic-bezier(.2,.9,.2,1), opacity .22s ease;
 }
+#authSidebar.auth-sidebar.open { transform: translateX(0); opacity: 1; }
+
+#authSidebar .sidebar-link, #authSidebar .sidebar-link i, #authSidebar .nav-link { color: var(--charcoal) !important; }
+.sidebar-divider { border-top: 1px dashed rgba(15,23,42,0.06); margin: 1rem 0; }
+.sidebar-item-divider { height: 1px; background: linear-gradient(90deg, rgba(15,23,42,0.04), rgba(15,23,42,0.02)); margin: .5rem 0; border-radius: 2px; }
+.sidebar-head-divider { height: 6px; background: linear-gradient(90deg, rgba(13,110,253,0.08), rgba(13,110,253,0.02)); border-radius: 6px; }
+
+/* Shared contact/profile card styles (additional compact rules) */
+.fields-box.compact { padding:18px; background: linear-gradient(180deg, rgba(247,250,255,1), rgba(250,252,255,0.98)); max-width:100%; width:100%; margin:0 auto; border:1px solid rgba(13,110,253,0.04); box-shadow: 0 6px 18px rgba(2,6,23,0.04); }
+.form-control-plaintext { padding: .375rem 0; margin-bottom: 0; color: #111827; }
+.card-title-row { display:flex; align-items:center; gap:0.85rem; }
+.eyebrow { letter-spacing:0.08em; text-transform:uppercase; font-size:0.75rem; color:#6c757d; font-weight:700; }
+.contact-card { border: 1px solid rgba(2,6,23,0.06); background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96)); box-shadow: 0 8px 20px rgba(2,6,23,0.06); border-radius: 14px; transition: transform 0.22s cubic-bezier(0.2,0.9,0.2,1), box-shadow 0.22s ease, border-color 0.22s ease; }
+.contact-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(2,6,23,0.08); border-color: rgba(2,6,23,0.12); }
+/* ===== end merged section ===== */
 
 .cta-hero .btn-outline-primary.text-black {
   background: transparent;
-  border-color: rgba(13,110,253,0.12);
+  border-color: rgba(43,123,233,0.12);
 }
 
 .cta-hero .cta-meta { color: #556; font-size: 0.90rem; }
@@ -328,5 +467,101 @@ section.animate-on-load {
     justify-content: center;
   }
   .cta-hero .d-flex { gap: 0.6rem; }
+}
+
+.page-min-height {
+  min-height: calc(100vh - 260px); /* reserves space for header + footer */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Responsive fixes for ~816×695 (tablet landscape) */
+@media (max-width: 820px) {
+  /* Stack medium columns used in profile/booking forms for better readability */
+  .page-min-height .fields-box .row > [class*="col-md-"],
+  .page-min-height .card-body .row > [class*="col-md-"] {
+    -webkit-box-flex: 0 !important;
+    -ms-flex: 0 0 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Reduce paddings so cards fit vertically */
+  .contact-card, .card, .fields-box.compact {
+    padding: 0.9rem !important;
+  }
+
+  /* Tighten form controls and buttons */
+  .form-control, .form-select {
+    min-height: 42px;
+    font-size: 0.95rem;
+  }
+  .btn { padding: .4rem .6rem; font-size: .92rem; }
+
+  /* Make table cells wrap instead of overflowing */
+  .table-responsive td, .table-responsive th { white-space: normal; }
+  .table .btn { padding: .25rem .45rem; font-size: .85rem; }
+
+  /* Reduce title/heading sizes slightly */
+  h1.h3, .section-title { font-size: 1.45rem; }
+
+  /* Navbar/brand adjustments */
+  .navbar .navbar-brand { font-size: 1rem; }
+
+  /* Modal sizing for narrow landscape viewports */
+  .modal-lg { max-width: 94% !important; }
+
+  /* Small utility: ensure select inputs inside compact groups shrink appropriately */
+  .d-flex.gap-2 select.form-select { min-width: 0; flex: 1 1 auto; }
+}
+
+/* =========================================
+   Full Responsive Dimension Range Map
+   Phones -> Ultra-wide (240px to 2560px)
+   ========================================= */
+
+:root {
+  --viewport-range: "default";
+}
+
+/* 📱 Smallest phones: 240px – 320px */
+@media (min-width: 240px) and (max-width: 320px) {
+  :root { --viewport-range: "smallest-phone-240-320"; }
+}
+
+/* 📱 Standard phones: 360px – 480px */
+@media (min-width: 360px) and (max-width: 480px) {
+  :root { --viewport-range: "standard-phone-360-480"; }
+}
+
+/* 📱 Large phones / small tablets: 481px – 768px */
+@media (min-width: 481px) and (max-width: 768px) {
+  :root { --viewport-range: "large-phone-small-tablet-481-768"; }
+}
+
+/* 📱 Tablets: 769px – 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root { --viewport-range: "tablet-769-1024"; }
+}
+
+/* 💻 Small laptops: 1025px – 1280px */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  :root { --viewport-range: "small-laptop-1025-1280"; }
+}
+
+/* 💻 Standard laptops: 1281px – 1440px */
+@media (min-width: 1281px) and (max-width: 1440px) {
+  :root { --viewport-range: "standard-laptop-1281-1440"; }
+}
+
+/* 🖥 Large screens: 1441px – 1920px */
+@media (min-width: 1441px) and (max-width: 1920px) {
+  :root { --viewport-range: "large-screen-1441-1920"; }
+}
+
+/* 🖥 Ultra-wide monitors (max practical): 1921px – 2560px */
+@media (min-width: 1921px) and (max-width: 2560px) {
+  :root { --viewport-range: "ultrawide-1921-2560"; }
 }
 

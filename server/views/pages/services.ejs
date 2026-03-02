@@ -1,4 +1,4 @@
-<section class="booking-hero py-5">
+﻿<section class="booking-hero py-5">
   <div class="container">
   <div class="text-center mb-5" data-aos="fade-up" data-aos-duration="1000">
     <h2 class="display-5 fw-bold text-primary">Book a Service</h2>
@@ -6,198 +6,890 @@
   </div>
 
   <div class="booking-container shadow-sm p-4 rounded-4 bg-white">
-
-    <!-- Step 1: Choose Service Category -->
-    <div class="mb-4">
-      <h5 class="fw-semibold mb-3">Step 1: Choose Service Category</h5>
-      <div class="d-flex gap-3 flex-wrap">
-        <button type="button" class="btn btn-outline-primary btn-lg category-btn" data-category="services">
-          <i class="bi bi-gear-fill me-2"></i>Core Services
-        </button>
-        <button type="button" class="btn btn-outline-secondary btn-lg category-btn" data-category="repairs">
-          <i class="bi bi-tools me-2"></i>Repair Services
-        </button>
+    <% if (!user) { %>
+      <div class="alert alert-warning" role="alert">
+        Please <a href="/login" class="alert-link">log in</a> to book an appointment.
       </div>
-    </div>
+    <% } %>
+    <% if (typeof initialServices !== 'undefined') { %>
+    <script id="initial-services-data">
+      // preloaded catalog from CoreService / RepairService collections
+      window.initialCatalog = <%- JSON.stringify(initialServices, null, 2) %>;
+    </script>
+    <% } %>
+    <script>
+      // make admin's gcash number available to client scripts
+      window.adminGcashNumber = "<%= adminGcashNumber %>";
+    </script>
+    <!-- Floating left stepper (outside card) -->
+    <aside class="booking-stepper floating" id="bookingStepper" aria-label="Booking steps">
+      <ol class="stepper-list" role="list">
+        <li>
+          <button type="button" class="stepper-step" data-step="1" aria-label="Step 1: Category">
+            <span class="stepper-icon">1</span>
+            <span class="stepper-text">
+              <span class="stepper-title">Category</span>
+              <span class="stepper-sub">Core vs repair</span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="stepper-step" data-step="2" aria-label="Step 2: Service">
+            <span class="stepper-icon">2</span>
+            <span class="stepper-text">
+              <span class="stepper-title">Service</span>
+              <span class="stepper-sub">Choose work needed</span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="stepper-step" data-step="3" aria-label="Step 3: Technician">
+            <span class="stepper-icon">3</span>
+            <span class="stepper-text">
+              <span class="stepper-title">Technician</span>
+              <span class="stepper-sub">Pick a tech</span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="stepper-step" data-step="4" aria-label="Step 4: Location">
+            <span class="stepper-icon">4</span>
+            <span class="stepper-text">
+              <span class="stepper-title">Location</span>
+              <span class="stepper-sub">Pin your site</span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="stepper-step" data-step="5" aria-label="Step 5: Schedule">
+            <span class="stepper-icon">5</span>
+            <span class="stepper-text">
+              <span class="stepper-title">Schedule</span>
+              <span class="stepper-sub">Choose date/time</span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="stepper-step" data-step="6" aria-label="Step 6: Fee">
+            <span class="stepper-icon">6</span>
+            <span class="stepper-text">
+              <span class="stepper-title">Fee</span>
+              <span class="stepper-sub">See estimate</span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="stepper-step" data-step="7" aria-label="Step 7: Payment">
+            <span class="stepper-icon">7</span>
+            <span class="stepper-text">
+              <span class="stepper-title">Payment</span>
+              <span class="stepper-sub">Pick method</span>
+            </span>
+          </button>
+        </li>
+      </ol>
+    </aside>
 
-    <!-- Step 2: Select Specific Service -->
-    <div class="mb-4 d-none" id="serviceSelection">
-      <h5 class="fw-semibold mb-2">Step 2: Select Service / Repair</h5>
-      <div class="row g-3" id="serviceCards"></div>
-    </div>
-
-    <!-- Step 3: Scheduling Mode -->
-    <div class="mb-4 d-none" id="modeSelection">
-      <h5 class="fw-semibold mb-2">Step 3: Scheduling Mode</h5>
-      <div class="d-flex gap-3">
-        <button type="button" class="btn btn-outline-primary btn-sm mode-btn" data-mode="suggested">
-          <i class="bi bi-stars me-1"></i>Suggested Dates (AI)
-        </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm mode-btn" data-mode="manual">
-          <i class="bi bi-calendar3 me-1"></i>Manual Calendar
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 4: Suggested AI Dates -->
-    <div class="mb-4 d-none" id="suggestedDates">
-      <h5 class="fw-semibold mb-1">Step 4: Suggested Schedule</h5>
-      <p class="text-muted small mb-3">These slots adjust based on technician load, travel time, and the duration of your selected service.</p>
-      <div class="row g-3" id="suggestedCards"></div>
-    </div>
-
-    <!-- Step 4: Manual Calendar -->
-    <div class="mb-4 d-none" id="manualCalendar">
-      <div class="manual-guide alert alert-info border-0 shadow-sm">
-        <div class="d-flex align-items-start">
-          <i class="bi bi-calendar3-range text-primary fs-4 me-3"></i>
-          <div>
-            <h6 class="mb-1">Manual scheduling guide</h6>
-            <ul class="mb-0 small">
-              <li>Browse dates using the arrows on the calendar.</li>
-              <li>Green means available. Red means reserved. Gray is a technician rest day.</li>
-              <li>Pick any green date and we will confirm your exact time over chat.</li>
-            </ul>
+    <div class="booking-layout">
+      <div class="booking-body">
+        <!-- Step 1: Choose Service Category -->
+        <div class="mb-4 booking-step" data-step="1">
+          <h5 class="fw-semibold mb-3">Step 1: Choose Service Category</h5>
+          <div class="d-flex gap-3 flex-wrap">
+            <button type="button" class="btn btn-outline-primary btn-lg category-btn" data-category="services" <%= user ? '' : 'disabled title="Please log in to continue"' %>>
+              <i class="bi bi-gear-fill me-2"></i>Core Services
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-lg category-btn" data-category="repairs" <%= user ? '' : 'disabled title="Please log in to continue"' %>>
+              <i class="bi bi-tools me-2"></i>Repair Services
+            </button>
           </div>
         </div>
-      </div>
-      <h5 class="fw-semibold mb-1">Step 4: Pick a Date Manually</h5>
-      <p class="text-muted small mb-3">Tap an available date to pair it with your preferred time later during confirmation.</p>
-      <div class="calendar-status-pills d-flex flex-wrap gap-2 mb-3">
-        <span class="status-pill available"><i class="bi bi-circle-fill me-1"></i>Available Slot</span>
-        <span class="status-pill booked"><i class="bi bi-circle-fill me-1"></i>Reserved / Booked</span>
-        <span class="status-pill blocked"><i class="bi bi-circle-fill me-1"></i>Non-working Day</span>
-      </div>
-      <div class="calendar-widget border rounded-4 bg-light">
-        <div class="calendar-header d-flex align-items-center justify-content-between">
-          <button type="button" class="btn btn-icon" data-calendar-nav="prev" aria-label="Previous month">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <div class="fw-semibold" data-calendar-label></div>
-          <button type="button" class="btn btn-icon" data-calendar-nav="next" aria-label="Next month">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-        <div class="calendar-body">
-          <div class="calendar-weekdays">
-            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+
+        <!-- Step 2: Select Specific Service -->
+        <div class="mb-4 d-none booking-step" id="serviceSelection" data-step="2">
+          <h5 class="fw-semibold mb-2">Step 2: Select Service / Repair</h5>
+          <div class="row g-3" id="serviceCards"></div>
+          <!-- issue description shown only when booking a repair -->
+          <div class="mt-3 d-none" id="repairIssueContainer">
+            <label for="repairIssue" class="form-label">
+              Describe the problem or issue you need fixed
+            </label>
+            <textarea class="form-control" id="repairIssue" rows="2" placeholder="e.g. " required></textarea>
           </div>
-          <div class="calendar-grid" id="calendarGrid" role="grid" aria-live="polite"></div>
         </div>
 
-        <!-- Time selection (appears after choosing a date) -->
-        <div id="timeSelection" class="mt-3 d-none">
-          <h6 class="mb-2 fw-semibold">Available Time Slots</h6>
-          <div class="d-flex flex-wrap gap-2" id="timeSlots"></div>
-          <div id="timeNotice" class="small text-muted mt-2"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 5: Location -->
-    <div class="mb-4 d-none" id="locationStep">
-      <h5 class="fw-semibold mb-2">Step 5: Technician & Your Location</h5>
-      <div class="row g-3 align-items-start">
-        <div class="col-lg-5">
-          <label for="locationInput" class="form-label text-muted">Address or Landmark</label>
-          <div class="input-group input-group-lg shadow-sm">
-            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-            <input type="text" class="form-control border-start-0" placeholder="Pin your site or type address" id="locationInput" autocomplete="address-line1"/>
+        <!-- Step 3: Choose Technician -->
+        <div class="mb-4 d-none booking-step" id="technicianStep" data-step="3">
+          <h5 class="fw-semibold mb-2">Step 3: Choose Technician</h5>
+          <p class="small text-muted mb-2">Select a technician to handle your request.</p>
+          <!-- technician picker loaded dynamically -->
+          <div class="mb-3">
+            <label for="technicianSelect" class="form-label">Choose Technician</label>
+            <select id="technicianSelect" class="form-select">
+              <option value="">Loading technicians&hellip;</option>
+            </select>
           </div>
-          <button type="button" class="btn btn-outline-primary btn-sm mt-3" id="detectLocationBtn">
-            <i class="bi bi-crosshair me-1"></i>Use my current location
-          </button>
-          <p class="location-hint small text-muted mt-2" id="locationStatus">We will never store your location without consent.</p>
         </div>
-        <div class="col-lg-7">
-          <div class="map-wrapper rounded-4 overflow-hidden shadow-sm">
-            <div
-              id="technicianMap"
-              class="technician-map"
-              data-technician-lat="<%= (technicianLocation && technicianLocation.lat) || 14.676049 %>"
-              data-technician-lng="<%= (technicianLocation && technicianLocation.lng) || 121.043731 %>"
-            ></div>
-            <div class="map-overlay">
-              <i class="bi bi-info-circle me-1"></i>
-              <span>Green pin is our nearest technician. Blue pin is you.</span>
+
+        <!-- Step 4: Location & Schedule -->
+        <div class="mb-4 d-none booking-step" id="locationStep" data-step="4">
+          <h5 class="fw-semibold mb-2">Step 4: Technician & Your Location</h5>
+          <div class="row g-3 align-items-start">
+            <div class="col-lg-5">
+              <label for="locationInput" class="form-label text-muted">Address or Landmark</label>
+              <div class="position-relative">
+                <div class="input-group input-group-lg shadow-sm">
+                  <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
+                  <input type="text" class="form-control border-start-0" placeholder="Pin your site or type address" id="locationInput" autocomplete="address-line1"/>
+                </div>
+                <div id="locationSuggest" class="list-group position-absolute w-100 d-none" style="z-index:1000;"></div>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm mt-3" id="detectLocationBtn">
+                <i class="bi bi-crosshair me-1"></i>Use my current location
+              </button>
+              <p class="location-hint small text-muted mt-2" id="locationStatus">We will never store your location without consent.</p>
+            </div>
+            <div class="col-lg-7">
+              <div class="map-wrapper rounded-4 overflow-hidden shadow-sm">
+                <div
+                  id="technicianMap"
+                  class="technician-map"
+                  data-technician-lat="<%= (technicianLocation && technicianLocation.lat) || 14.676049 %>"
+                  data-technician-lng="<%= (technicianLocation && technicianLocation.lng) || 121.043731 %>"
+                ></div>
+                <!-- Locate buttons floating on map -->
+                <div class="map-locate-btns">
+                  <button type="button" class="btn btn-sm btn-light shadow-sm" id="locateTechBtn" title="Go to Technician">
+                    <i class="bi bi-car-front-fill text-primary me-1"></i>Technician
+                  </button>
+                  <button type="button" class="btn btn-sm btn-light shadow-sm" id="locateCustomerBtn" title="Go to Your Location">
+                    <i class="bi bi-person-fill text-success me-1"></i>You
+                  </button>
+                </div>
+                <div class="map-overlay">
+                <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+                <span class="d-flex align-items-center gap-2">
+                  <svg class="map-pin map-pin-tech" width="20" height="28" viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                    <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                    <circle cx="12" cy="9" r="2.5" fill="#fff"/>
+                  </svg>
+                  <span>Blue pin is our nearest technician. Green pin is you.</span>
+                  <svg class="map-pin map-pin-you ms-2" width="20" height="28" viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                    <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                    <circle cx="12" cy="9" r="2.5" fill="#fff"/>
+                  </svg>
+                </span>
+                <div id="mapDistanceInfo" class="mt-2 small text-dark"></div>
+                </div>
+              </div>
+              <!-- Distance & fare description below the map -->
+              <div class="map-info-panel mt-3 p-3 rounded-3 bg-light border" id="mapInfoPanel">
+                <div class="d-flex align-items-start gap-2 mb-2">
+                  <i class="bi bi-signpost-split text-primary fs-5"></i>
+                  <div>
+                    <h6 class="mb-1 fw-semibold">Distance &amp; Travel Fare</h6>
+                    <p class="mb-0 small text-muted" id="mapInfoDistance">Detecting locations&hellip;</p>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <i class="bi bi-cash-coin text-success"></i>
+                  <span class="small" id="mapInfoFare">&mdash;</span>
+                </div>
+                <p class="mb-0 text-muted" style="font-size:0.75rem;">
+                  <i class="bi bi-info-circle me-1"></i>Distance meter fare is calculated at <strong>₱40 per kilometer</strong> based on the road distance between the technician and your location.
+                </p>
+              </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Step 5: Scheduling Mode -->
+        <div class="mb-4 d-none booking-step" id="modeSelection" data-step="5">
+          <h5 class="fw-semibold mb-2">Step 5: Scheduling Mode</h5>
+          <p class="small text-muted mb-2">Pick how you want to choose a slot.</p>
+          <div class="d-flex gap-3">
+            <button type="button" class="btn btn-outline-primary btn-sm mode-btn" data-mode="suggested">
+              <i class="bi bi-stars me-1"></i>Suggested Dates (AI)
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm mode-btn" data-mode="manual">
+              <i class="bi bi-calendar3 me-1"></i>Manual Calendar
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 5: Suggested AI Dates -->
+        <div class="mb-4 d-none booking-step" id="suggestedDates" data-step="5">
+          <h5 class="fw-semibold mb-1">Step 5: Suggested Schedule</h5>
+          <p class="text-muted small mb-3">These slots adjust based on technician load, travel time, and the duration of your selected service.</p>
+          <div class="row g-3" id="suggestedCards"></div>
+        </div>
+
+        <!-- Step 5: Manual Calendar -->
+        <div class="mb-4 d-none booking-step" id="manualCalendar" data-step="5">
+          <div class="manual-guide alert alert-info border-0 shadow-sm">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-calendar3-range text-primary fs-4 me-3"></i>
+              <div>
+                <h6 class="mb-1">Manual scheduling guide</h6>
+                <ul class="mb-0 small">
+                  <li>Browse dates using the arrows on the calendar.</li>
+                  <li>Green means available. Red means reserved. Gray is a technician rest day.</li>
+                  <li>Pick any green date and we will confirm your exact time over chat.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <h5 class="fw-semibold mb-1">Step 5: Pick a Date Manually</h5>
+          <p class="text-muted small mb-3">Tap an available date to pair it with your preferred time later during confirmation.</p>
+          <div class="calendar-status-pills d-flex flex-wrap gap-2 mb-3">
+            <span class="status-pill available"><i class="bi bi-circle-fill me-1"></i>Available Slot</span>
+            <span class="status-pill booked"><i class="bi bi-circle-fill me-1"></i>Reserved / Booked</span>
+            <span class="status-pill public"><i class="bi bi-circle-fill me-1"></i>Public Holiday</span>
+            <span class="status-pill blocked"><i class="bi bi-circle-fill me-1"></i>Non-working Day</span>
+          </div>
+          <div class="calendar-widget border rounded-4 bg-light">
+            <div class="calendar-header d-flex align-items-center justify-content-between">
+              <button type="button" class="btn btn-icon" data-calendar-nav="prev" aria-label="Previous month">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <div class="fw-semibold" data-calendar-label></div>
+              <button type="button" class="btn btn-icon" data-calendar-nav="next" aria-label="Next month">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+            <div class="calendar-body">
+              <div class="calendar-weekdays">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+              </div>
+              <div class="calendar-grid" id="calendarGrid" role="grid" aria-live="polite"></div>
+              <div id="timeRangeInfo" class="small text-muted mt-2"></div>
+            </div>
+
+            <!-- Time selection (appears after choosing a date) -->
+            <div id="timeSelection" class="mt-3 d-none">
+              <h6 class="mb-2 fw-semibold">Available Time Slots</h6>
+              <div class="d-flex flex-wrap gap-2" id="timeSlots"></div>
+              <div id="timeNotice" class="small text-muted mt-2"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Step 6: Estimated Fee -->
+        <div class="mb-4 d-none booking-step" id="feeStep" data-step="6">
+          <h5 class="fw-semibold mb-2">Step 6: Estimated Fee</h5>
+          <div class="fs-3 fw-bold text-primary" id="estimatedFee">₱0</div>
+        </div>
+
+
+        <!-- Step 7: Payment Method -->
+        <div class="mb-4 d-none booking-step" id="paymentStep" data-step="7">
+          <h5 class="fw-semibold mb-3">Step 7: Payment Method</h5>
+
+          <!-- Payment tab selection -->
+          <div class="payment-tabs mb-4" role="tablist" aria-label="Payment methods">
+            <button type="button" class="payment-tab" data-method="gcash" aria-pressed="false">
+              <span class="payment-tab-icons d-flex align-items-center gap-1">
+                <i class="bi bi-phone"></i>
+                <span class="badge bg-success text-white" style="font-size:0.6rem;padding:2px 5px;border-radius:4px;vertical-align:middle;">PayMongo</span>
+              </span>
+              <span>GCash</span>
+            </button>
+            <button type="button" class="payment-tab" data-method="cash" aria-pressed="false">
+              <i class="bi bi-cash-stack"></i>
+              <span>Cash</span>
+            </button>
+          </div>
+
+          <!-- Hidden radios for form state -->
+          <input class="d-none" type="radio" name="paymentMethod" id="payGcash" value="gcash">
+          <input class="d-none" type="radio" name="paymentMethod" id="payCash" value="cash">
+
+          <!-- GCash via PayMongo form -->
+          <div id="gcashFields" class="d-none">
+            <div class="payment-form">
+              <!-- Provider badge row -->
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-semibold mb-0">Pay with GCash</h6>
+                <span class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded" style="background:#e8f5e9;border:1px solid #a5d6a7;font-size:0.78rem;font-weight:600;color:#2e7d32;">
+                  <i class="bi bi-shield-check"></i> Secured by PayMongo
+                </span>
+              </div>
+
+              <!-- What happens box -->
+              <div class="card-option-box mb-3" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#16a34a;">
+                <div class="card-option-header mb-2">
+                  <i class="bi bi-phone text-success fs-4"></i>
+                  <span class="fw-semibold">GCash Checkout</span>
+                </div>
+                <ol class="mb-0 ps-3 small text-muted" style="line-height:1.8;">
+                  <li>Click <strong>Confirm Booking</strong> below.</li>
+                  <li>You'll be securely redirected to <strong>PayMongo's GCash checkout</strong>.</li>
+                  <li>Approve the payment inside your <strong>GCash app</strong>.</li>
+                  <li>You'll be sent back here and your booking is <strong>automatically confirmed</strong>.</li>
+                </ol>
+              </div>
+
+              <!-- Optional: GCash mobile number for our records -->
+              <div class="mb-3">
+                <label class="form-label text-muted">Your GCash mobile number <span class="text-muted fw-normal">(optional)</span></label>
+                <div class="position-relative">
+                  <input id="gcashNumber" class="form-control" inputmode="tel" placeholder="+639XXXXXXXXX" />
+                  <i class="bi bi-phone gcash-icon-input"></i>
+                </div>
+                <div class="form-text">Stored for reference only. Payment is handled by PayMongo.</div>
+              </div>
+
+              <!-- Amount summary (auto-filled from estimated fee) -->
+              <div class="rounded-3 p-3 mb-3" style="background:#f8fdff;border:1px solid #bee3f8;">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-muted small">Total amount to pay</span>
+                  <span class="fw-bold text-primary fs-5" id="gcashAmountDisplay">—</span>
+                </div>
+                <div class="text-muted" style="font-size:0.75rem;margin-top:4px;"><i class="bi bi-info-circle me-1"></i>Final amount includes service fee + travel fare.</div>
+              </div>
+
+              <!-- Security info -->
+              <div class="alert alert-success border-0" role="alert" style="background:#f0fdf4;border-left:4px solid #16a34a !important;">
+                <div class="d-flex align-items-start gap-2">
+                  <i class="bi bi-lock-fill text-success mt-1"></i>
+                  <div>
+                    <div class="fw-semibold small">Enterprise-grade security</div>
+                    <small class="text-muted">Your payment is processed through <strong>PayMongo</strong>, a BSP-licensed e-money issuer. We never store your GCash credentials.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Booking result modal -->
+          <div class="modal fade" id="bookingResultModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
+                <!-- Green header with reference badge -->
+                <div class="modal-header border-0 text-white" style="background:linear-gradient(135deg,#0d6efd,#0a58ca);padding:28px 28px 20px;">
+                  <div class="w-100 text-center">
+                    <div class="mb-2" style="font-size:2.2rem;">&#128295;</div>
+                    <h5 class="modal-title fw-bold mb-1" style="font-size:1.15rem;letter-spacing:.3px;">Booking Request Submitted!</h5>
+                    <div class="mt-2 d-inline-block px-3 py-1 rounded"
+                         style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);font-size:1rem;font-weight:700;letter-spacing:2px;color:#fff;"
+                         id="bookingResultReference"><!-- ref injected by JS --></div>
+                  </div>
+                  <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-3 pb-2">
+                  <!-- Status pill -->
+                  <div class="text-center mb-3">
+                    <span class="badge rounded-pill px-3 py-2"
+                          style="background:#fff8e1;color:#e65100;border:1px solid #ffd54f;font-size:.78rem;font-weight:700;">
+                      &#9203; PENDING CONFIRMATION
+                    </span>
+                  </div>
+                  <!-- Summary message -->
+                  <p class="text-muted small text-center mb-3" id="bookingResultMessage">
+                    Your booking request has been submitted. We will confirm it shortly.
+                  </p>
+                  <!-- Details table -->
+                  <div class="rounded-3 p-3 mb-3" style="background:#f8f9fa;font-size:.88rem;">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                      <span class="text-muted">Date</span>
+                      <span class="fw-semibold" id="bookingResultDate">&mdash;</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                      <span class="text-muted">Time</span>
+                      <span class="fw-semibold" id="bookingResultTime">&mdash;</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                      <span class="text-muted">Estimated Fee</span>
+                      <span class="fw-bold text-success" id="bookingResultFee">&mdash;</span>
+                    </div>
+                  </div>
+                  <p class="text-muted" style="font-size:.78rem;">
+                    A confirmation email has been sent to your registered address. You can track or manage this booking in your booking history.
+                  </p>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2 justify-content-center">
+                  <a href="/book-history" class="btn btn-primary px-4">View My Bookings</a>
+                  <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <script>
+            // move modal to body to avoid z-index/backdrop issues
+            document.addEventListener("DOMContentLoaded", () => {
+              const m = document.getElementById("bookingResultModal");
+              if (m && m.parentElement !== document.body) {
+                document.body.appendChild(m);
+              }
+              const css = document.createElement("style");
+              css.textContent = ".modal { z-index: 2000 !important; } .modal-backdrop { z-index: 1500 !important; backdrop-filter: none !important; }";
+              document.head.appendChild(css);
+            });
+          </script>
+
+          <!-- Cash payment form -->
+          <div id="cashFields" class="d-none">
+            <div class="payment-form">
+              <!-- Payment Section Header -->
+              <h6 class="fw-semibold mb-3">Cash Payment</h6>
+
+              <!-- Cash option header -->
+              <div class="card-option-box mb-3" style="background:linear-gradient(135deg,#fffbeb,#fef9c3);border-color:#ca8a04;">
+                <div class="card-option-header mb-1">
+                  <i class="bi bi-cash-stack text-warning fs-4"></i>
+                  <span class="fw-semibold">Pay Cash on Completion</span>
+                </div>
+                <p class="mb-0 small text-muted ps-4">Pay the full amount to the technician after the work is done. A <strong>required downpayment</strong> is collected in advance to secure your slot.</p>
+              </div>
+
+              <!-- Required downpayment -->
+              <div class="mb-3">
+                <label class="form-label text-muted fw-semibold">Downpayment amount <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text fw-semibold">&#8369;</span>
+                  <input id="downpaymentAmt" type="number" min="1" step="0.01" class="form-control" placeholder="e.g. 500" required />
+                </div>
+                <div class="form-text">
+                  <i class="bi bi-info-circle me-1 text-primary"></i>
+                  A downpayment is <strong>required</strong> to confirm your slot. The technician collects the remaining balance on completion.
+                </div>
+              </div>
+
+              <!-- Balance breakdown (auto-filled) -->
+              <div class="rounded-3 p-3 mb-3" id="cashBreakdown" style="background:#fffbeb;border:1px solid #fde68a;display:none;">
+                <div class="d-flex justify-content-between small mb-1">
+                  <span class="text-muted">Estimated total</span>
+                  <span class="fw-semibold" id="cashTotalDisplay">&mdash;</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span class="text-muted">Downpayment now</span>
+                  <span class="fw-semibold text-warning" id="cashDownDisplay">&mdash;</span>
+                </div>
+                <hr class="my-1" />
+                <div class="d-flex justify-content-between small">
+                  <span class="text-muted">Balance on completion</span>
+                  <span class="fw-bold text-success" id="cashBalanceDisplay">&mdash;</span>
+                </div>
+              </div>
+
+              <!-- Cash info alert -->
+              <div class="alert border-0" role="alert" style="background:#fffbeb;border-left:4px solid #ca8a04 !important;">
+                <div class="d-flex align-items-start gap-2">
+                  <i class="bi bi-receipt mt-1 text-warning"></i>
+                  <small><strong>Receipt guaranteed.</strong> Our technician will issue a receipt upon final payment. Please have the amount ready.</small>
+                </div>
+              </div>
+
+              <!-- Optional notes -->
+              <div class="mb-1">
+                <label class="form-label text-muted">Special instructions <span class="text-muted fw-normal">(optional)</span></label>
+                <textarea id="cashNotes" class="form-control" rows="2" placeholder="e.g. preferred denominations, access instructions..."></textarea>
+              </div>
+            </div>
+          </div>
+          <!-- (Bank Transfer and Other removed — only GCash via PayMongo and Cash accepted) -->
+
+          <div id="paymentError" class="text-danger small mt-2" role="alert" aria-live="polite" style="display:none"></div>
+        </div>
+
+        <!-- Step 8: Confirm -->
+        <div class="mb-4 d-none booking-step" id="confirmStep" data-step="7">
+          <button class="btn btn-primary btn-lg w-100 shadow-sm" id="confirmBooking">
+            <i class="bi bi-check-circle me-2"></i>Confirm Booking
+          </button>
+        </div>
       </div>
     </div>
-
-    <!-- Step 6: Estimated Fee -->
-    <div class="mb-4 d-none" id="feeStep">
-      <h5 class="fw-semibold mb-2">Step 6: Estimated Fee</h5>
-      <div class="fs-3 fw-bold text-primary" id="estimatedFee">₱0</div>
-    </div>
-
-    <!-- Step 7: Confirm -->
-    <div class="mb-4 d-none" id="confirmStep">
-      <button class="btn btn-primary btn-lg w-100 shadow-sm" id="confirmBooking">
-        <i class="bi bi-check-circle me-2"></i>Confirm Booking
-      </button>
-    </div>
-    
   </div>
   </div>
 </section>
 
 <style>
-.booking-hero { background: linear-gradient(135deg, #eef6ff 0%, #d8ecff 35%, #f6fbff 100%); }
-.booking-container { max-width: 980px; margin:auto; }
+.booking-hero {
+  position: relative;
+  overflow: visible;
+  background: linear-gradient(135deg,#eef6ff 0%, #cfe9ff 35%, #f6fbff 100%);
+  isolation: isolate;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 2rem;
+}
+.booking-hero::before,
+.booking-hero::after {
+  /* Gradient removed as requested */
+  display: none !important;
+  background: none !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* Particles removed: replaced with cleaner background */
+
+/* Ensure booking container stays above particles */
+.booking-container { position: relative; z-index: 2; }
+
+
+
+@keyframes bookingGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-hero::before { animation: none; }
+} 
+.booking-container { max-width: 980px; margin:auto; position: relative; z-index: 1; background: rgba(255,255,255,0.92); padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(2, 6, 23, 0.06); backdrop-filter: blur(6px); border: 1px solid rgba(13,110,253,0.04); scroll-behavior: smooth; }
+.booking-layout { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: flex-start; }
+.booking-body { min-width: 0; }
+.booking-stepper { position: relative; padding: 0.25rem 0; --stepper-progress: 0px; --stepper-progress-full: 0px; --stepper-line-x: 18px; --stepper-icon-size: 32px; overflow: hidden; }
+.stepper-list { list-style: none; margin: 0; padding: 0; position: relative; }
+
+/* Floating stepper container (outside-left) */
+.booking-stepper.floating {
+  position: absolute;
+  /* keep the stepper outside the card on the inline start edge (logical, responsive) */
+  inset-inline-start: calc(-1 * var(--stepper-container-offset, 84px));
+  top: 0;
+  width: 72px;
+  pointer-events: auto;
+  --stepper-line-x: 36px;
+  --stepper-icon-size: 32px;
+  transition: inset-inline-start .28s ease, top .28s ease;
+}
+@media (max-width: 1400px) { .booking-stepper.floating { --stepper-container-offset: 76px; } }
+@media (max-width: 1100px) { .booking-stepper.floating { --stepper-container-offset: 64px; --stepper-icon-size: 28px; } }
+@media (max-width: 991px) { .booking-stepper.floating { display: none; } }
+
+/* Floating: show only the numbered circle (hide labels) and center the icon */
+.booking-stepper.floating .stepper-text { display: none !important; }
+.booking-stepper.floating .stepper-step {
+  justify-content: center;
+  padding: 0.25rem 0;
+  align-items: center; /* vertical-center content inside the step button */
+  min-height: var(--stepper-icon-size);
+  position: relative;
+  display: flex;
+}
+
+/* use transform for vertical placement (GPU-accelerated) and flex alignment */
+.booking-stepper.floating .stepper-list li {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* smooth vertical movement + fade — GPU-accelerated */
+  transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 260ms ease;
+  will-change: transform, opacity;
+} 
+
+/* vertical track: constrained to the stepper wrapper so it cannot overflow into other page regions */
+.booking-stepper::before { content: ""; position: absolute; left: var(--stepper-line-x); top: 0; bottom: 0; width: 2px; background: rgba(13,110,253,0.12); border-radius: 999px; pointer-events: none; }
+.booking-stepper::after { content: ""; position: absolute; left: var(--stepper-line-x); top: var(--stepper-progress-start, 0px); width: 2px; height: var(--stepper-progress, var(--stepper-progress-full)); background: linear-gradient(180deg,#0d6efd,#4f9dff); border-radius: 999px; transition: height .35s ease; pointer-events: none; }
+
+/* Hide the long light-blue stepper line on the initial state (Step 1, nothing selected) */
+.booking-stepper.no-line::before,
+.booking-stepper.no-line::after,
+.booking-stepper.no-line .stepper-list::after {
+  display: none;
+}
+
+/* when the long line is hidden (initial state), show a short vertical accent attached to the Step 1 circle */
+.booking-stepper.no-line .stepper-step[data-step="1"].active .stepper-icon::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 100%; /* start directly below the icon */
+  margin-top: 8px;
+  width: 2px;
+  height: calc(var(--stepper-icon-size) + 12px);
+  background: linear-gradient(180deg,#0d6efd,#4f9dff);
+  border-radius: 999px;
+  z-index: 2; /* keep icon above the accent */
+}
+
+/* smaller accent on narrow screens */
+@media (max-width: 1100px) {
+  .booking-stepper.no-line .stepper-step[data-step="1"].active .stepper-icon::after {
+    height: calc(var(--stepper-icon-size) + 6px);
+    margin-top: 6px;
+  }
+}
+
+/* place numeric circle directly over the vertical track and center vertically inside its li */
+.booking-stepper.floating .stepper-step .stepper-icon {
+  position: absolute;
+  left: var(--stepper-line-x);
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin-left: 0;
+  z-index: 3;
+}
+
+/* keep the old (non-floating) horizontal offset rule only for non-floating layout */
+.booking-stepper:not(.floating) .stepper-icon { margin-left: calc(var(--stepper-line-x) - var(--stepper-icon-size)/2); }
+
+/* canonical vertical track is defined above (full-height) — remove duplicate fallback */
+/* (rule intentionally removed to avoid conflicting top/bottom values) */
+.stepper-list::after { content: ""; position: absolute; left: var(--stepper-line-x); top: var(--stepper-progress-start, 10px); width: 2px; height: var(--stepper-progress, var(--stepper-progress-full)); background: linear-gradient(180deg,#0d6efd,#4f9dff); border-radius: 999px; transition: height .35s ease; }
+.stepper-list li { margin: 0; padding: 0; }
+.stepper-step { width: 100%; display: flex; align-items: flex-start; gap: 0.75rem; background: transparent; border: 0; padding: 0.55rem 0.35rem; text-align: left; cursor: pointer; color: #5b6472; position: relative; }
+.stepper-step:focus { outline: none; }
+  .stepper-icon { width: var(--stepper-icon-size); height: var(--stepper-icon-size); border-radius: 50%; border: 2px solid rgba(13,110,253,0.14); background: #fff; color: #0d6efd; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; box-shadow: 0 6px 16px rgba(2,6,23,0.06); position: relative; z-index: 1; }
+  /* Only apply horizontal offset when stepper is not using the floating vertical layout */
+  .booking-stepper:not(.floating) .stepper-icon { margin-left: calc(var(--stepper-line-x) - var(--stepper-icon-size)/2); }
+.stepper-text { display: flex; flex-direction: column; gap: 2px; }
+.stepper-title { font-weight: 600; color: #0f172a; }
+.stepper-sub { font-size: 0.82rem; color: #6c757d; }
+.stepper-step.active .stepper-icon { background: linear-gradient(135deg,#e8f2ff,#f4fbff); border-color: #0d6efd; box-shadow: 0 12px 28px rgba(13,110,253,0.16); transform: translateY(-1px); }
+.stepper-step.completed .stepper-icon { background: #0d6efd; color: #fff; border-color: rgba(13,110,253,0.22); box-shadow: 0 12px 30px rgba(13,110,253,0.14); }
+.stepper-step.completed .stepper-title { color: #0f172a; }
+.stepper-step:hover { color: #0d6efd; }
+@media (max-width: 991px) {
+  .booking-layout { grid-template-columns: 1fr; }
+  .booking-stepper { display: none; }
+}
 .category-btn, .mode-btn { transition: all 0.2s ease; border-width: 2px; }
+
+/* Floating stepper: only show reached steps (default hidden) */
+.booking-stepper.floating .stepper-step { opacity: 0; pointer-events: none; transition: opacity 260ms ease; }
+.booking-stepper.floating .stepper-step.visible { opacity: 1; pointer-events: auto; }
+.booking-stepper.floating .stepper-step .stepper-icon { visibility: visible; opacity: 1; transition: transform 320ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms ease, background .22s; will-change: transform, box-shadow; }
+.booking-stepper.floating .stepper-step.completed { opacity: 1; }
+.booking-stepper.floating .stepper-step.active { opacity: 1.0; transform: none; }
+.booking-stepper.floating .stepper-step:not(.completed):not(.active) .stepper-icon { background: #fff; color: rgba(13,110,253,0.36); border-color: rgba(13,110,253,0.12); box-shadow: none; }
+.booking-stepper.floating .stepper-step.completed .stepper-icon { background: #0d6efd; color: #fff; box-shadow: 0 10px 28px rgba(13,110,253,0.12); }
+.booking-stepper.floating .stepper-step.active .stepper-icon { background: linear-gradient(135deg,#e8f2ff,#f4fbff); border-color: #0d6efd; box-shadow: 0 14px 36px rgba(13,110,253,0.12); transform: translate(-50%, -50%) scale(1.06); }
+.booking-stepper.floating .stepper-step.future { opacity: 0; pointer-events: none; transform: none; }
+
+/* subtle pop animation when the active step "teleports" to a new position */
+@keyframes teleportPop {
+  0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.9; }
+  50% { transform: translate(-50%, -50%) scale(1.14); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+}
+.booking-stepper.floating .stepper-step .stepper-icon.teleport-pop { animation: teleportPop 420ms cubic-bezier(.2,.9,.2,1) both; }
+
+/* Booking animations */
+.booking-container { animation: fadeSlideIn 420ms ease both; }
+.booking-step { animation: fadeUp 380ms ease both; animation-delay: 120ms; }
+.booking-hero h2, .booking-hero p { animation: fadeUp 420ms ease both; }
+.service-card, .payment-tab { animation: fadeUp 400ms ease both; animation-delay: 160ms; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Micro-interactions */
+.service-card .display-6 { transition: transform 0.25s ease; }
+.service-card:hover .display-6 { transform: translateY(-4px) scale(1.03); }
+.category-btn:hover, .mode-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(13,110,253,0.14); }
+.payment-tab:hover { transform: translateY(-3px); box-shadow: 0 14px 26px rgba(13,110,253,0.16); }
+.payment-tab:active { transform: translateY(0); }
+
+/* Inline step indicators removed */
+
+/* Booking timeline (horizontal) */
+.booking-timeline { position: relative; width: 100%; padding: 14px 8px 20px; margin-bottom: 1rem; box-sizing: border-box; }
+.booking-timeline .tl-track { position: absolute; left: 24px; right: 24px; top: 22px; height: 6px; background: rgba(13,110,253,0.06); border-radius: 6px; z-index: 1; }
+.booking-timeline .tl-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: linear-gradient(90deg,#0d6efd,#4f9dff); border-radius: 6px; transition: width 560ms cubic-bezier(.2,.9,.2,1); box-shadow: 0 8px 30px rgba(13,110,253,0.08); }
+.booking-timeline .tl-steps { position: relative; z-index: 2; display:flex; gap:0; }
+.booking-timeline .tl-step { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; background: transparent; border: 0; padding: 0 6px; color: #6c757d; cursor: pointer; }
+.booking-timeline .tl-step:focus { outline: none; }
+.booking-timeline .tl-dot { width: 34px; height: 34px; border-radius: 999px; border: 2px solid rgba(13,110,253,0.12); background: #fff; display: inline-flex; align-items:center; justify-content:center; font-weight:700; color: #0d6efd; transition: transform .28s cubic-bezier(.2,.9,.2,1), background .22s, box-shadow .22s, border-color .22s; box-shadow: 0 6px 18px rgba(2,6,23,0.04); }
+.booking-timeline .tl-text { font-size: 0.72rem; color: #6c757d; margin-top:6px; white-space:nowrap; max-width: 68px; text-overflow: ellipsis; overflow: hidden; }
+.booking-timeline .tl-step.active .tl-dot { transform: translateY(-6px) scale(1.06); background: linear-gradient(135deg,#e8f2ff,#f4fbff); border-color: #0d6efd; box-shadow: 0 16px 36px rgba(13,110,253,0.12); }
+.booking-timeline .tl-step.completed .tl-dot { background: #0d6efd; color:#fff; border-color: rgba(13,110,253,0.16); box-shadow: 0 12px 30px rgba(13,110,253,0.12); }
+.booking-timeline .tl-step.completed .tl-dot::after { content: '✓'; }
+.booking-timeline .tl-step:not(.visible) .tl-dot { opacity: 0.0; transform: scale(0.88); }
+.booking-timeline.d-none { display: none !important; }
+
+@media (max-width: 767px) {
+  .booking-timeline { padding: 8px 6px 12px; }
+  .booking-timeline .tl-text { display: none; }
+  .booking-timeline .tl-steps { overflow-x: auto; gap: 6px; padding: 0 6px; -webkit-overflow-scrolling: touch; }
+  .booking-timeline .tl-step { min-width: 56px; flex: 0 0 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-timeline .tl-fill { transition: none !important; }
+  .booking-timeline .tl-dot { transition: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-container,
+  .booking-step,
+  .service-card,
+  .payment-tab,
+  .booking-hero h2,
+  .booking-hero p { animation: none !important; }
+}
+
+/* Payment tiles (Step 7) */
+.payment-tabs { display: flex; gap: .75rem; margin-bottom: 1.5rem; }
+.payment-tab { display: flex; align-items: center; gap: .65rem; padding: .85rem 1.5rem; border-radius: .75rem; background: #ffffff; border: 2px solid #e3e8ef; cursor: pointer; color: #495057; transition: all .2s ease; font-weight: 500; font-size: 0.95rem; }
+.payment-tab i { font-size: 1.25rem; }
+.payment-tab.active { background: #f0f7ff; border-color: #0d6efd; color: #0d6efd; box-shadow: 0 2px 8px rgba(13,110,253,0.1); }
+.payment-tab:hover { border-color: #b8c5d6; }
+.payment-tab:focus { outline: 2px solid rgba(13,110,253,0.3); outline-offset: 2px; }
+
+.payment-form { max-width: 100%; }
+.payment-form .form-label { font-size: 0.875rem; font-weight: 500; color: #6c757d; margin-bottom: 0.5rem; }
+.payment-form .form-control, .payment-form .form-select { border: 1px solid #dde2e8; border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.95rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.payment-form .form-control:focus, .payment-form .form-select:focus { border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,0.1); outline: none; }
+.payment-form .form-select { background-position: right 1rem center; background-size: 14px; color: #495057; }
+
+.card-option-box { border: 2px solid #0d6efd; border-radius: 0.75rem; padding: 1rem 1.25rem; background: #ffffff; }
+.card-option-header { display: flex; align-items: center; gap: 0.65rem; font-weight: 500; font-size: 0.95rem; color: #212529; }
+.card-option-header i { font-size: 1.35rem; color: #0d6efd; }
+
+.card-number-input { padding-right: 130px; }
+.card-brand-badges { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 6px; pointer-events: none; }
+.card-brand-badges img { height: 20px; width: auto; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+.cvc-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: #adb5bd; pointer-events: none; }
+
+.gcash-icon-input { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: #198754; pointer-events: none; }
+
+.payment-form .alert { border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem; border-width: 1px; }
+.payment-form .alert-info { background-color: #e7f3ff; border-color: #b3d9ff; color: #084298; }
+.payment-form .alert-success { background-color: #d1f4e0; border-color: #a3e5c4; color: #0f5132; }
+.payment-form textarea.form-control { resize: vertical; min-height: 80px; }
+
+.form-check-input { width: 1.25rem; height: 1.25rem; border: 2px solid #ced4da; border-radius: 0.35rem; margin-top: 0.15rem; }
+.form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
+.form-check-label { font-size: 0.9rem; color: #495057; margin-left: 0.5rem; cursor: pointer; }
+
+.payment-disclaimer { font-size: 0.8125rem; color: #6c757d; line-height: 1.5; margin-top: 1rem; margin-bottom: 0; }
+
 .category-btn.active, .mode-btn.active { transform: scale(1.03); box-shadow: 0 10px 30px rgba(13,110,253,0.15); }
-.service-card { border: 2px solid transparent; border-radius: 1.25rem; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; cursor: pointer; }
-.service-card:hover { transform: translateY(-6px); }
-.service-card.active { border-color: #0d6efd; background: linear-gradient(145deg, rgba(13,110,253,0.08), rgba(13,110,253,0.02)); box-shadow: 0 15px 35px rgba(13,110,253,0.15); }
-.service-card small { color: #6c757d; }
+.service-card { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; border: 2px solid transparent; border-radius: 1.25rem; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; cursor: pointer; }
+  .service-card:hover { transform: translateY(-6px); }
+  .service-card.active { border-color: #0d6efd; background: linear-gradient(145deg, rgba(13,110,253,0.08), rgba(13,110,253,0.02)); box-shadow: 0 15px 35px rgba(13,110,253,0.15); }
+  .service-card small { color: #6c757d; }
+  .service-card h6 { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; }
 
 .suggested-card { border: 2px dashed rgba(13,110,253,0.25); border-radius: 1.25rem; padding: 1.25rem; cursor: pointer; background: rgba(13,110,253,0.02); transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
 .suggested-card:hover { transform: translateY(-4px); border-color: rgba(13,110,253,0.5); }
 .suggested-card.active { border-color: #0d6efd; background: rgba(13,110,253,0.08); box-shadow: 0 12px 25px rgba(13,110,253,0.2); }
 .suggested-card .badge { font-size: 0.75rem; }
 
-.calendar-widget { padding: 1.5rem; background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(13,110,253,0.05)); }
+.calendar-widget { padding: 1.5rem; background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(13,110,253,0.05)); font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; }
 .calendar-status-pills .status-pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.85rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.2px; border: 1px solid transparent; }
-.status-pill.available { color: #198754; background: rgba(25,135,84,0.12); border-color: rgba(25,135,84,0.35); }
-.status-pill.booked { color: #c1121f; background: rgba(220,53,69,0.12); border-color: rgba(220,53,69,0.35); }
-.status-pill.blocked { color: #6c757d; background: rgba(108,117,125,0.12); border-color: rgba(108,117,125,0.35); }
-.calendar-header { margin-bottom: 1rem; }
-.calendar-header .btn-icon { width: 38px; height: 38px; border: none; background: rgba(13,110,253,0.1); color: #0d6efd; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s ease; }
-.calendar-header .btn-icon:hover { background: rgba(13,110,253,0.2); }
-.calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.85rem; letter-spacing: 0.5px; color: #6c757d; text-transform: uppercase; margin-bottom: .5rem; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.3rem; }
-.calendar-cell { border: none; background: transparent; padding: 0; width: 100%; aspect-ratio: 1; border-radius: 0.95rem; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.95rem; position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease; color: #0d1b2a; }
-.calendar-cell:focus-visible { outline: 3px solid rgba(13,110,253,0.35); outline-offset: 2px; }
-.calendar-cell[data-status="available"] { background: rgba(25,135,84,0.15); color: #198754; border: 1px solid rgba(25,135,84,0.35); cursor: pointer; }
-.calendar-cell[data-status="available"]:hover { background: rgba(13,110,253,0.15); color: #0d6efd; border-color: rgba(13,110,253,0.4); box-shadow: 0 0 0 3px rgba(13,110,253,0.2); }
-.calendar-cell[data-status="booked"] { background: rgba(220,53,69,0.15); color: #dc3545; border: 1px solid rgba(220,53,69,0.3); }
-.calendar-cell[data-status="blocked"] { background: #f1f3f5; color: #6c757d; border: 1px solid #e2e6ea; }
-.calendar-cell.is-selected { background: linear-gradient(135deg, #0d6efd, #4f9dff); color: #fff; border-color: transparent; box-shadow: 0 15px 30px rgba(13,110,253,0.3); transform: scale(0.95); }
-.calendar-cell.is-selected:hover { color: #fff; box-shadow: 0 18px 30px rgba(13,110,253,0.35); }
-.calendar-cell.disabled { opacity: 0.45; pointer-events: none; }
+  /* Chart.js palette (lighter green) */
+  .status-pill.available { color: #fff; background: #7dd3b9; border-color: transparent; }
+  .status-pill.booked { color: #fff; background: #ff6384; border-color: transparent; }
+  .status-pill.blocked { color: #343a40; background: #e9ecef; border-color: transparent; }
+  .status-pill.public { color: #343a40; background: #e9ecef; border-color: transparent; }
+  .calendar-header { margin-bottom: 1rem; font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; }
+  [data-calendar-label] { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; font-size: 1.05rem; }
+  .calendar-header .btn-icon { width: 38px; height: 38px; border: none; background: rgba(13,110,253,0.1); color: #0d6efd; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s ease; }
+  .calendar-header .btn-icon:hover { background: rgba(13,110,253,0.18); }
+  .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.85rem; letter-spacing: 0.5px; color: #6c757d; text-transform: uppercase; margin-bottom: .5rem; font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight:700; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.3rem; }
+  .calendar-cell { border: none; background: transparent; padding: 0; width: 100%; aspect-ratio: 1; border-radius: 0.95rem; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.95rem; position: relative; transition: transform 0.18s ease, box-shadow 0.18s ease; color: #0d1b2a; font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; }
+  .calendar-cell:focus-visible { outline: 3px solid rgba(13,110,253,0.35); outline-offset: 2px; }
+  .calendar-cell[data-status="available"] { background: linear-gradient(135deg,#7dd3b9,#5fd6c8); color: #fff; border: 1px solid rgba(125,211,185,0.25); cursor: pointer; box-shadow: 0 8px 18px rgba(125,211,185,0.12); }
+  .calendar-cell[data-status="available"]:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(125,211,185,0.18); }
+  .calendar-cell[data-status="booked"] { background: linear-gradient(135deg,#ff6384,#ff4f6b); color: #fff; border: 1px solid rgba(255,99,132,0.22); box-shadow: 0 8px 18px rgba(255,99,132,0.12); }
+  .calendar-cell[data-status="blocked"] { background: linear-gradient(135deg,#f8f9fa,#eef1f3); color: #343a40; border: 1px solid rgba(0,0,0,0.04); box-shadow: inset 0 -4px 8px rgba(0,0,0,0.02); }
+  .calendar-cell[data-status="public"] { background: linear-gradient(135deg,#f8f9fa,#eef1f3); color: #343a40; border: 1px solid rgba(0,0,0,0.04); box-shadow: inset 0 -4px 8px rgba(0,0,0,0.02); }
+  /* Selected date: thin green outline, subtle shadow, white fill */
+  .calendar-cell.is-selected { background: #ffffff; color: #16caa1; border: 2px solid #16caa1; box-shadow: 0 10px 30px rgba(22,202,161,0.12); transform: scale(0.98); }
+  .calendar-cell.is-selected:hover { color: #16caa1; box-shadow: 0 12px 36px rgba(22,202,161,0.16); transform: scale(1); }
+  .calendar-cell.is-selected .date-num { color: #16caa1; }
+  .calendar-cell.is-selected .available-dot { display: none; }
+  .status-label { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; line-height: 1; color: #343a40; text-transform: uppercase; }
+  /* Centered, slightly larger check for selected date */
+  .selected-check { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 1.05rem; color: #16caa1; background: rgba(255,255,255,0.95); width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(22,202,161,0.12); z-index: 2; }
 
-.calendar-legend { font-size: .95rem; }
+  /* Input icons for payment fields */
+  .input-with-icon { position: relative; }
+  .input-with-icon .input-icon { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: #495057; background: rgba(255,255,255,0.95); padding: 0 .5rem; border-radius: 0.45rem; pointer-events: none; display: inline-flex; align-items: center; gap: .35rem; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .input-with-icon .card-brand.visa { color: #1a1f71; }
+  .input-with-icon .card-brand.mastercard { color: #eb001b; }
+  .input-with-icon .card-brand.amex { color: #2e77bb; }
+  .input-with-icon .card-brand .brand-text { margin-left: .45rem; padding: .15rem .4rem; border-radius: .35rem; background: rgba(255,255,255,0.9); font-weight:700; font-size:0.78rem; }
+  .input-with-icon .card-brand.visa .brand-text { background: linear-gradient(90deg,#fff,#eef6ff); }
+  .input-with-icon .card-brand.mastercard .brand-text { background: linear-gradient(90deg,#fff,#fff0f2); }
+  .input-with-icon .card-brand.amex .brand-text { background: linear-gradient(90deg,#fff,#eef7ff); }
+  .input-with-icon .gcash-icon { color: #0d6efd; font-weight: 700; }
+
+  .calendar-cell.disabled { pointer-events: none; opacity: 1; }
+  .calendar-legend { font-size: .95rem; }
+  .legend-dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:.3rem; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .legend-dot.available { background: #7dd3b9; }
+  .legend-dot.booked { background: #ff6384; }
+  .legend-dot.blocked { background: #c9cbcf; }
 .legend-dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:.3rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
-.legend-dot.available { background-color:#198754; }
-.legend-dot.booked { background-color:#dc3545; }
-.legend-dot.blocked { background-color:#6c757d; }
-
+  .legend-dot.available { background-color:#4bc0c0; }
+  .legend-dot.booked { background-color:#ff6384; }
+  .legend-dot.blocked { background-color:#e9ecef; }
 .map-wrapper { min-height: 320px; background: #f8f9fa; position: relative; }
 .technician-map { width: 100%; height: 320px; }
-.map-overlay { position: absolute; bottom: 0.75rem; left: 0.75rem; background: rgba(255,255,255,0.9); padding: 0.4rem 0.8rem; border-radius: 999px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.3rem; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+.map-overlay { position: absolute; bottom: 0.75rem; left: 0.75rem; background: rgba(255,255,255,0.96); padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.map-pin { width:20px; height:28px; display:inline-block; vertical-align:middle; flex: 0 0 auto; color: currentColor; }
+.map-pin path { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
+.map-pin-tech { color: #0d6efd; }
+.map-pin-you { color: #16caa1; }
+.map-overlay span { color:#495057; margin:0; }
+.map-overlay #mapDistanceInfo { font-size: 0.75rem; line-height: 1.2; }
+.map-locate-btns { position: absolute; top: 0.75rem; right: 0.75rem; z-index: 1000; display: flex; flex-direction: column; gap: 0.4rem; }
+.map-locate-btns .btn { font-size: 0.78rem; border-radius: 0.5rem; backdrop-filter: blur(4px); }
+.map-info-panel { transition: opacity 0.25s ease; }
 .location-hint { min-height: 1.5rem; }
 .manual-guide ul { padding-left: 1rem; }
 .manual-guide li { list-style: disc; }
 
 /* TIME SLOTS */
-.time-slot { border-radius: .6rem; padding: .45rem .75rem; min-width: 110px; text-align:center; border:1px solid rgba(13,110,253,0.12); background: #fff; transition: transform .12s, box-shadow .12s, background .12s; }
-.time-slot:hover { background: rgba(13,110,253,0.06); transform: translateY(-2px); border-color: rgba(13,110,253,0.28); }
-.time-slot.active { background: linear-gradient(90deg,#0d6efd,#4f9dff); color:#fff; border-color: transparent; box-shadow: 0 10px 20px rgba(13,110,253,0.15); }
+#timeSlots { display: flex; flex-wrap: wrap; gap: .5rem; }
+#timeSlots .time-slot { flex: 1 1 calc(33.333% - .5rem); max-width: calc(33.333% - .5rem); display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; border-radius: .6rem; padding: .45rem .75rem; min-height: 52px; height: auto; font-size: .92rem; text-align: left; border: 1px solid rgba(13,110,253,0.12); background: #fff; transition: transform .12s, box-shadow .12s, background .12s; white-space: normal; overflow: visible; box-sizing: border-box; }
+#timeSlots .time-slot:hover { background: rgba(13,110,253,0.06); transform: translateY(-2px); border-color: rgba(13,110,253,0.28); }
+#timeSlots .time-slot.active { background: linear-gradient(90deg,#0d6efd,#4f9dff); color:#fff; border-color: transparent; box-shadow: 0 10px 20px rgba(13,110,253,0.15); }
+#timeSlots .time-slot.active .text-muted { color: rgba(255,255,255,0.8) !important; }
+@media (max-width: 767px) { #timeSlots .time-slot { flex: 1 1 calc(50% - .5rem); max-width: calc(50% - .5rem); } }
+@media (max-width: 480px) { #timeSlots .time-slot { flex: 1 1 100%; max-width: 100%; } }
 </style>
 
-<script type="module" src="/js/services.js"></script>
-<% if (googleMapsApiKey) { %>
-  <script src="https://maps.googleapis.com/maps/api/js?key=<%= googleMapsApiKey %>&callback=initServicesMap" async defer></script>
+<!-- Leaflet CSS/JS (use CDN for reliable loading and to support live tracking) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js"></script>
+
+<script>
+  // expose login state for client-side checks
+  window.LOGGED_IN = <%= user ? 'true' : 'false' %>;
+</script>
+
+<% if (typeof initialServices !== 'undefined') { %>
+<script>
+  // preload and normalise service data coming from the server
+  window.initialCatalog = <%- JSON.stringify(initialServices, null, 2) %>;
+  // adaptor to make shape compatible with existing client logic
+  ['coreServices','repairs'].forEach((category) => {
+    window.initialCatalog[category] = (window.initialCatalog[category] || []).map(svc => ({
+      icon: svc.icon || svc.iconClass || (category === 'repairs' ? 'bi-tools' : 'bi-gear-fill'),
+      name: svc.name || '',
+      duration: svc.duration || svc.durationMinutes || 0,
+      price: svc.price || svc.basePrice || (svc.priceRange && svc.priceRange.min) || 0,
+      _id: svc._id,
+      slug: svc.slug,
+      ...svc,
+    }));
+  });
+</script>
 <% } %>
+
+<script type="module" src="/js/services.js"></script>

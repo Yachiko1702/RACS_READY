@@ -1,0 +1,648 @@
+<div class="admin-dashboard container-fluid py-4 staff-list-page">
+  <%- include('../../../partials/dashboard-styles') %>
+  <style>
+    /* earlier styling forced equal-height side-by-side cards, no longer needed
+       since the add-staff panel now spans full width. Keep this block empty
+       for future custom tweaks. */
+  </style>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title"><i class="bi bi-people-fill me-2"></i>Staff Directory</h1>
+        <p class="hero-sub">Manage secretaries and technicians</p>
+      </div>
+      <!-- hero right side intentionally blank -->
+    </div>
+  </div>
+
+
+
+  <div class="row mb-4">
+    <!-- Add Staff Panel (full-width) -->
+    <div class="col-12 d-flex">
+      <div class="card bg-white border-0 shadow-sm mb-4 w-100 h-100 d-flex flex-column" style="background:#fff;">
+        <div class="card-body flex-grow-1 bg-white" style="background:#fff;">
+          <!-- KPI Cards inside add panel -->
+          <div class="row mb-4 g-3 kpi-row">
+            <div class="col-md-3 d-flex">
+              <div class="kpi-card w-100 h-100">
+                <div class="d-flex align-items-center gap-3">
+                  <div
+                    class="kpi-icon"
+                    style="background: linear-gradient(135deg, #4361ee, #3a0ca3)"
+                  >
+                    <i class="bi bi-people-fill"></i>
+                  </div>
+                  <div>
+                    <div class="kpi-label">Total Staff</div>
+                    <div class="kpi-value" id="statTotalStaff">--</div>
+                  </div>
+                </div>
+                <div
+                  class="kpi-bar"
+                  style="background: linear-gradient(90deg, #4361ee, #3a0ca3)"
+                ></div>
+              </div>
+            </div>
+            <div class="col-md-3 d-flex">
+              <div class="kpi-card w-100 h-100">
+                <div class="d-flex align-items-center gap-3">
+                  <div
+                    class="kpi-icon"
+                    style="background: linear-gradient(135deg, #2ec4b6, #1a8f85)"
+                  >
+                    <i class="bi bi-tools"></i>
+                  </div>
+                  <div>
+                    <div class="kpi-label">Technicians</div>
+                    <div class="kpi-value" id="statTech">--</div>
+                  </div>
+                </div>
+                <div
+                  class="kpi-bar"
+                  style="background: linear-gradient(90deg, #2ec4b6, #1a8f85)"
+                ></div>
+              </div>
+            </div>
+            <div class="col-md-3 d-flex">
+              <div class="kpi-card w-100 h-100">
+                <div class="d-flex align-items-center gap-3">
+                  <div
+                    class="kpi-icon"
+                    style="background: linear-gradient(135deg, #ff9f1c, #ff7422)"
+                  >
+                    <i class="bi bi-people"></i>
+                  </div>
+                  <div>
+                    <div class="kpi-label">Secretaries</div>
+                    <div class="kpi-value" id="statSecretary">--</div>
+                  </div>
+                </div>
+                <div
+                  class="kpi-bar"
+                  style="background: linear-gradient(90deg, #ff9f1c, #ff7422)"
+                ></div>
+              </div>
+            </div>
+          </div>
+          <form id="addStaffForm" class="row g-2">
+            <div class="col-12">
+              <label class="form-label small">Role</label>
+              <select id="staffRole" class="form-select form-select-sm">
+                <option value="secretary">Secretary</option>
+                <option value="technician">Technician</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">First name</label
+              ><input id="staffFirst" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Last name</label
+              ><input id="staffLast" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small">Email</label
+              ><input
+                id="staffEmail"
+                class="form-control form-control-sm"
+                type="email"
+                maxlength="50"
+                required
+              />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Phone</label
+              ><input id="staffPhone" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Password</label
+              ><input
+                id="staffPassword"
+                class="form-control form-control-sm"
+                type="password"
+                minlength="8"
+                maxlength="12"
+                pattern="[A-Za-z0-9]+"
+                title="8–12 letters or numbers"
+                required
+              />
+              <div class="form-text small text-muted">
+                8–12 letters or numbers
+              </div>
+            </div>
+
+            <div id="techFields" class="col-12 d-none">
+              <label class="form-label small"
+                >Technician location (address or use current location)</label
+              >
+              <div class="d-flex gap-2">
+                <input
+                  id="staffLocation"
+                  class="form-control form-control-sm"
+                  placeholder="Office address or area e.g. Makati, Taguig"
+                />
+                <button
+                  id="btnUseLocation"
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                >
+                  Use current location
+                </button>
+              </div>
+              <input type="hidden" id="staffLocationGeo" />
+            </div>
+
+            <div class="col-12 text-end mt-2">
+              <button id="addStaffBtn" class="btn btn-sm btn-primary">
+                Create staff
+              </button>
+            </div>
+          </form>
+          <div class="mt-3 text-muted small">
+            Note: creating a technician automatically adds a Technician profile
+            and places them in the scheduling roster.
+          </div>
+
+          <!-- Recently Added Staff -->
+          <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+              <div class="fw-bold mb-2">Recently Added Staff</div>
+              <div id="recentStaff" class="small text-muted">
+                No recent activity
+              </div>
+            </div>
+          </div>
+
+          <!-- Existing staff cards inside add panel -->
+          <div class="mt-4">
+            <div class="card bg-white mb-3">
+              <div class="card-body bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-bold mb-0">Existing staff & technicians</span>
+                <div class="d-flex gap-2 align-items-center">
+                  <button id="btn-refresh-staff" class="btn btn-sm btn-outline-secondary" title="Reload staff list"><i class="bi bi-arrow-clockwise"></i></button>
+                  <input
+                    id="staffSearch"
+                    class="form-control form-control-sm"
+                    placeholder="Search staff..."
+                    style="width: 180px"
+                  />
+                  <select
+                    id="staffFilterRole"
+                    class="form-select form-select-sm"
+                    style="width: 140px"
+                  >
+                    <option value="">All roles</option>
+                    <option value="technician">Technician</option>
+                    <option value="secretary">Secretary</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div id="staffCards" class="row" style="background:#fff !important;"></div>
+          </div>
+        </div>
+
+        </div> <!-- close col-12 for add staff -->
+      </div> <!-- close row mb-4 -->
+
+
+          <!-- JS Logic -->
+          <script>
+            (function () {
+              const el = (id) => document.getElementById(id);
+
+              function stringToHslColor(str, s = 65, l = 52) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++)
+                  hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                const h = Math.abs(hash) % 360;
+                return `hsl(${h}, ${s}%, ${l}%)`;
+              }
+
+              function renderItem(u) {
+                const name =
+                  ((u.firstName || "") + " " + (u.lastName || "")).trim() ||
+                  u.name ||
+                  u.email ||
+                  "";
+                const seed = String(u._id || u.email || name || "user");
+                const color = stringToHslColor(seed, 65, 48);
+                const roleBadge = `<span class='badge staff-role-badge' data-role='${u.role || ""}' title='Filter by role: ${u.role || ""}'>${u.role || ""}</span>`;
+                const initials = (
+                  (u.firstName || "")[0] ||
+                  (u.name || "")[0] ||
+                  "U"
+                ).toUpperCase();
+
+                // card version of staff item
+                return `
+          <div class='staff-card-col col-md-4' data-role='${(u.role || "").toString().toLowerCase()}' data-email='${u.email || ""}' data-name='${(name || "").replace(/'/g, "&#39;")}' data-id='${u._id || ""}'>
+            <div class="card mb-3">
+              <div class="card-body d-flex align-items-center">
+                <div
+                  class="staff-accent"
+                  aria-hidden="true"
+                  style="background: ${color};width:4px;height:40px;margin-right:12px;"
+                ></div>
+                <div class="flex-grow-1">
+                  <div class='staff-name fw-semibold'>${name}</div>
+                  <div class='staff-email small text-muted'>${u.email || ""}</div>
+                </div>
+                <div class='d-flex align-items-center gap-2'>
+                  ${roleBadge}
+                  <div class='btn-group btn-group-sm' role='group'>
+                    <button class='btn btn-outline-secondary view-staff' data-id='${u._id || ""}' title='View'>View</button>
+                    <button class='btn btn-outline-secondary edit-staff' data-id='${u._id || ""}' title='Edit'>Edit</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+              }
+
+              async function loadStaff() {
+                // show spinner in cards area
+                const spinner = `<div class="text-center py-4 text-muted small">
+                    <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                    Loading staff…
+                  </div>`;
+                if (el("staffCards")) el("staffCards").innerHTML = spinner;
+                try {
+                  const r = await fetch("/api/admin/staff", {
+                    credentials: "same-origin",
+                  });
+                  if (!r.ok) {
+                    console.error(
+                      "staff fetch failed",
+                      r.status,
+                      await r.text(),
+                    );
+                    if (el("staffCards"))
+                      el("staffCards").innerHTML =
+                        `<div class="text-center py-4 text-muted small"><div>Unable to load staff at this time.</div><div class="mt-2"><button id="retryLoadStaff" class="btn btn-sm btn-outline-primary">Retry</button></div></div>`;
+                    document
+                      .getElementById("retryLoadStaff")
+                      ?.addEventListener("click", loadStaff);
+                    return;
+                  }
+                  const j = await r.json();
+                  const arr = j.staff || [];
+                  // sort by role for consistency (technicians first, then secretaries)
+                  arr.sort((a, b) => {
+                    if (a.role === b.role) return 0;
+                    if (a.role === 'technician') return -1;
+                    if (b.role === 'technician') return 1;
+                    // secretary last
+                    return 0;
+                  });
+
+                  // Apply current client-side filters immediately so the DOM only contains matching staff
+                  const currentSearch = (
+                    document.getElementById("staffSearch")?.value || ""
+                  )
+                    .trim()
+                    .toLowerCase();
+                  const currentRoleFilter = (
+                    document.getElementById("staffFilterRole")?.value || ""
+                  )
+                    .trim()
+                    .toLowerCase();
+                  const filtered = arr.filter((u) => {
+                    const n = (
+                      ((u.firstName || "") + " " + (u.lastName || "")).trim() ||
+                      u.name ||
+                      ""
+                    ).toLowerCase();
+                    const e = (u.email || "").toLowerCase();
+                    const matchesSearch =
+                      !currentSearch ||
+                      n.includes(currentSearch) ||
+                      e.includes(currentSearch);
+                    const matchesRole =
+                      !currentRoleFilter ||
+                      (u.role || "").toString().toLowerCase() ===
+                        currentRoleFilter;
+                    return matchesSearch && matchesRole;
+                  });
+
+                  if (el("staffCards"))
+                    el("staffCards").innerHTML =
+                      filtered.map(renderItem).join("") ||
+                      (arr.length
+                        ? '<div class="small text-muted">No staff match your search/filter.</div>'
+                        : '<div class="small text-muted">No staff found.</div>');
+
+                  // Update summary stats (totals for all staff)
+                  // prefer counts based on actual User documents when available
+                  if (j.userCounts) {
+                    document.getElementById("statTotalStaff").innerText = j.userCounts.total;
+                    document.getElementById("statTech").innerText = j.userCounts.technicians;
+                    document.getElementById("statSecretary").innerText = j.userCounts.secretaries;
+                    // admin metric no longer present by design
+                    const adminEl = document.getElementById("statAdmins");
+                    if (adminEl) {
+                      adminEl.innerText = 0;
+                      const card = adminEl.closest('.col-md-3');
+                      if (card) card.style.display = 'none';
+                    }
+                  } else {
+                    document.getElementById("statTotalStaff").innerText = arr.length;
+                    document.getElementById("statTech").innerText = arr.filter(
+                      (s) => s.role === "technician",
+                    ).length;
+                    const adminEl = document.getElementById("statAdmins");
+                    if (adminEl) {
+                      const adminCount = arr.filter((s) => s.role === "admin").length;
+                      adminEl.innerText = adminCount;
+                      if (adminCount === 0) {
+                        const adminCard = adminEl.closest('.col-md-3');
+                        if (adminCard) adminCard.style.display = 'none';
+                      }
+                    }
+                    document.getElementById("statSecretary").innerText =
+                      arr.filter((s) => s.role === "secretary").length;
+                  }
+
+                  // Update recently added
+                  const recent = arr
+                    .slice(-3)
+                    .map(
+                      (u) =>
+                        (
+                          (u.firstName || "") +
+                          " " +
+                          (u.lastName || "")
+                        ).trim() || u.email,
+                    )
+                    .join("<br>");
+                  document.getElementById("recentStaff").innerHTML =
+                    recent || "No recent activity";
+
+                  // Re-apply active search/filter so the UI remains consistent after refresh
+                  try {
+                    if (typeof filterStaffList === "function")
+                      filterStaffList();
+                  } catch (e) {
+                    /* noop */
+                  }
+                } catch (e) {
+                  console.error("loadStaff error", e);
+                  if (el("staffCards"))
+                    el("staffCards").innerHTML =
+                      `<div class="text-center py-4 text-muted small"><div>Unable to load staff — network or server error.</div><div class="mt-2"><button id="retryLoadStaff2" class="btn btn-sm btn-outline-primary">Retry</button></div></div>`;
+                  document
+                    .getElementById("retryLoadStaff2")
+                    ?.addEventListener("click", loadStaff);
+                }
+              }
+
+              el("staffRole").addEventListener("change", function () {
+                el("techFields").classList.toggle(
+                  "d-none",
+                  this.value !== "technician",
+                );
+              });
+
+              el("addStaffForm").addEventListener(
+                "submit",
+                async function (ev) {
+                  ev.preventDefault();
+                  const payload = {
+                    role: el("staffRole").value,
+                    firstName: el("staffFirst").value,
+                    lastName: el("staffLast").value,
+                    email: el("staffEmail").value,
+                    phone: el("staffPhone").value,
+                    password: el("staffPassword").value,
+                  };
+                  // If geolocation was captured, prefer the GeoJSON payload; otherwise send the free-text location
+                  const geoVal = el("staffLocationGeo")?.value;
+                  if (geoVal) {
+                    try {
+                      payload.location = JSON.parse(geoVal);
+                    } catch (e) {
+                      payload.location =
+                        (el("staffLocation").value || "").trim() || undefined;
+                    }
+                  } else if (
+                    payload.role === "technician" ||
+                    payload.role === "admin"
+                  ) {
+                    payload.location =
+                      (el("staffLocation").value || "").trim() || undefined;
+                  }
+                  try {
+                    const res = await fetch("/api/admin/staff", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    if (res.ok) {
+                      window.notify.success("Staff created");
+                      el("addStaffForm").reset();
+                      el("techFields").classList.add("d-none");
+                      loadStaff();
+                    } else {
+                      const t = await res.text();
+                      let msg = t;
+                      try {
+                        const j = JSON.parse(t);
+                        if (j && j.error) msg = j.error;
+                      } catch (e) {
+                        // keep raw text
+                      }
+                      window.notify.error("Failed: " + msg);
+                    }
+                  } catch (err) {
+                    window.notify.error("Failed");
+                  }
+                },
+              );
+
+              const refreshBtn = el("btn-refresh-staff");
+              if (refreshBtn) {
+                refreshBtn.addEventListener("click", loadStaff);
+              }
+
+              // Geolocation capture: fill hidden field with GeoJSON and display coords in the text input
+              (function () {
+                const btn = document.getElementById("btnUseLocation");
+                const geoField = document.getElementById("staffLocationGeo");
+                const locInput = document.getElementById("staffLocation");
+                if (!btn) return;
+                btn.addEventListener("click", function () {
+                  if (!navigator.geolocation) {
+                    return alert("Geolocation not supported by this browser.");
+                  }
+                  btn.disabled = true;
+                  btn.innerText = "Locating...";
+                  navigator.geolocation.getCurrentPosition(
+                    function (pos) {
+                      const coords = {
+                        type: "Point",
+                        coordinates: [
+                          Number(pos.coords.longitude),
+                          Number(pos.coords.latitude),
+                        ],
+                      };
+                      if (geoField) geoField.value = JSON.stringify(coords);
+                      if (locInput)
+                        locInput.value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                      btn.disabled = false;
+                      btn.innerText = "Use current location";
+                    },
+                    function (err) {
+                      alert("Unable to get location: " + (err && err.message));
+                      btn.disabled = false;
+                      btn.innerText = "Use current location";
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 },
+                  );
+                });
+              })();
+
+              // Search + Filter functionality (applies to card layout)
+              const staffSearch = document.getElementById("staffSearch");
+              const staffFilterRole =
+                document.getElementById("staffFilterRole");
+
+              function debounce(fn, wait = 160) {
+                let t;
+                return function (...args) {
+                  clearTimeout(t);
+                  t = setTimeout(() => fn.apply(this, args), wait);
+                };
+              }
+
+              function filterStaffList() {
+                const search = ((staffSearch && staffSearch.value) || "")
+                  .trim()
+                  .toLowerCase();
+                const role = ((staffFilterRole && staffFilterRole.value) || "")
+                  .trim()
+                  .toLowerCase();
+
+                const container = document.getElementById("staffCards");
+                if (!container) return;
+
+                // Scope queries to card columns
+                const items = Array.from(
+                  container.querySelectorAll(
+                    ".staff-card-col",
+                  ),
+                );
+
+                items.forEach((it) => {
+                  let name = "";
+                  let email = "";
+                  let badgeRole = "";
+
+                  if (it.dataset) {
+                    name = (it.dataset.name || "").toLowerCase();
+                    email = (it.dataset.email || "").toLowerCase();
+                    badgeRole = (it.dataset.role || "").toLowerCase();
+                  }
+
+                  if (!name) {
+                    const nameEl = it.querySelector && it.querySelector(".staff-name");
+                    if (nameEl) name = (nameEl.innerText || "").toLowerCase();
+                  }
+                  if (!email) {
+                    const emailEl = it.querySelector && it.querySelector(".staff-email");
+                    if (emailEl)
+                      email = (emailEl.innerText || "").toLowerCase();
+                  }
+                  if (!badgeRole) {
+                    const roleEl = it.querySelector && it.querySelector(".staff-role-badge");
+                    if (roleEl)
+                      badgeRole = (
+                        (roleEl.dataset && roleEl.dataset.role) ||
+                        (roleEl.getAttribute &&
+                          roleEl.getAttribute("data-role")) ||
+                        roleEl.innerText ||
+                        ""
+                      ).toLowerCase();
+                  }
+
+                  const hay = (name + " " + email).toLowerCase();
+                  const matches =
+                    (!search || hay.includes(search)) &&
+                    (!role || role === badgeRole);
+
+                  it.classList.toggle("d-none", !matches);
+                });
+
+                const anyVisible = Array.from(
+                  container.querySelectorAll(
+                    ".staff-card-col",
+                  ),
+                ).some(
+                  (el) =>
+                    !el.classList.contains("d-none") &&
+                    el.style.display !== "none",
+                );
+                let noEl = container.querySelector(".staff-no-results");
+                if (!anyVisible) {
+                  if (!noEl) {
+                    noEl = document.createElement("div");
+                    noEl.className = "small text-muted staff-no-results";
+                    noEl.innerText = "No staff match your search/filter.";
+                    container.appendChild(noEl);
+                  }
+                } else {
+                  if (noEl && noEl.remove) noEl.remove();
+                }
+              }
+
+              // attach listeners with safe fallbacks (works even if elements are missing / loaded later)
+              const debouncedFilter = debounce(filterStaffList, 160);
+              if (staffSearch) {
+                staffSearch.addEventListener("input", debouncedFilter);
+              } else {
+                document.addEventListener("input", function (ev) {
+                  if (ev.target && ev.target.id === "staffSearch")
+                    debouncedFilter();
+                });
+              }
+              if (staffFilterRole) {
+                staffFilterRole.addEventListener("change", debouncedFilter);
+              } else {
+                document.addEventListener("change", function (ev) {
+                  if (ev.target && ev.target.id === "staffFilterRole")
+                    debouncedFilter();
+                });
+              }
+              if (!staffSearch && !staffFilterRole)
+                console.warn("Staff list: filter elements not found on page.");
+
+              // make role badges clickable: clicking a badge will set/toggle the role filter
+              document
+                .getElementById("staffCards")
+                .addEventListener("click", function (ev) {
+                  const badge =
+                    ev.target.closest && ev.target.closest(".staff-role-badge");
+                  if (!badge) return;
+                  const clickedRole = (badge.dataset.role || "")
+                    .toString()
+                    .trim()
+                    .toLowerCase();
+                  if (!clickedRole) return;
+                  if (staffFilterRole.value === clickedRole) {
+                    staffFilterRole.value = "";
+                  } else {
+                    staffFilterRole.value = clickedRole;
+                  }
+                  debouncedFilter();
+                });
+
+              // load staff after filter handlers are in place so loadStaff can re-apply active filters
+              loadStaff();
+            })();
+          </script>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

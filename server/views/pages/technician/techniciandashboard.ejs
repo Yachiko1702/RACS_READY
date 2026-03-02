@@ -1,0 +1,63 @@
+
+<div class="admin-dashboard container-fluid px-0 py-4">
+  <%- include('../../partials/dashboard-styles') %>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-speedometer2 me-2"></i>Technician Dashboard
+        </h1>
+        <p class="hero-sub small">
+          Quick overview of your profile and tools
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-5">
+  <% if (technician && technician.name) { %>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Your Profile</h5>
+          <p class="card-text mb-1"><strong>Name:</strong> <%= technician.name %></p>
+          <% if (technician.userEmail) { %>
+          <p class="card-text mb-1"><strong>Email:</strong> <%= technician.userEmail %></p>
+          <% } %>
+          <% if (technician.phone) { %>
+          <p class="card-text mb-1"><strong>Phone:</strong> <%= technician.phone %></p>
+          <% } %>
+          <% if (technician.locationText) { %>
+          <p class="card-text mb-1"><strong>Location:</strong> <%= technician.locationText %></p>
+          <% } %>
+          <% if (technician.location && technician.location.coordinates) { %>
+          <p class="card-text"><strong>Coords:</strong> <%= technician.location.coordinates.join(', ') %></p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Quick Actions</h5>
+          <a href="/technician/schedule" class="btn btn-primary mb-2 w-100">
+            <i class="bi bi-calendar3 me-1"></i> View Schedule
+          </a>
+          <a href="/technician/tracker" class="btn btn-success w-100">
+            <i class="bi bi-geo-alt me-1"></i> Start Tracking
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="alert alert-warning">Technician record not found. Please contact support.</div>
+  <% } %>
+
+  <div class="mt-4 text-center text-muted small">
+    This dashboard will be expanded with upcoming jobs, metrics and
+    notifications in future releases.
+  </div>
+</div>

@@ -1,0 +1,212 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<div class="admin-dashboard container-fluid py-4 logs-page" style="font-family:'Poppins', sans-serif;">
+  <%- include('../../partials/dashboard-styles') %>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-file-earmark-text-fill me-2"></i>System Logs
+        </h1>
+        <p class="hero-sub">Audit trail — latest activity across the system.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card shadow-sm p-3 mb-3">
+    <div class="mb-2 d-flex justify-content-between align-items-center">
+      <div class="input-group input-group-sm" style="max-width: 420px">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input
+          id="logs-filter"
+          class="form-control"
+          placeholder="Filter actor, action or text"
+        />
+      </div>
+      <div>
+        <span class="badge bg-secondary">
+          Latest <span id="logs-count">200</span> entries
+        </span>
+      </div>
+    </div>
+
+    <div>
+      <table class="table table-sm table-bordered table-striped mb-0">
+        <thead class="table-light">
+          <tr class="text-muted small">
+            <th scope="col" class="fw-normal" style="width: 50px">#</th>
+            <th scope="col" class="fw-normal" style="width: 180px">When</th>
+            <th scope="col" class="fw-normal" style="width: 220px">Actor</th>
+            <th scope="col" class="fw-normal">Action</th>
+            <th scope="col" class="fw-normal" style="width: 320px">Details</th>
+          </tr>
+        </thead>
+        <tbody id="logs-table-body">
+          <!-- sample data rows -->
+          <tr><td>2/24/2026, 11:25:48 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 10:37:46 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 10:06:58 PM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 10:06:52 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 10:04:35 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 10:01:30 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 6:40:38 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 3:45:22 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 3:06:21 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699d1c9ef61450561c79be1e","module":"admin"}</td></tr>
+          <tr><td>2/24/2026, 2:40:22 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699d1c9ef61450561c79be1e","module":"admin"}</td></tr>
+          <tr><td>2/24/2026, 2:30:47 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/24/2026, 2:19:45 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/24/2026, 2:19:13 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 12:21:34 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699d1c9ef61450561c79be1e","module":"admin"}</td></tr>
+          <tr><td>2/24/2026, 12:17:23 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 11:44:56 AM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 11:35:58 AM</td><td>xiejustina50@gmail.com</td><td>staff.create</td><td>{"role":"technician","technicianId":"699d1c9ef61450561c79be1e","module":"admin"}</td></tr>
+          <tr><td>2/24/2026, 11:26:08 AM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 10:59:42 AM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/24/2026, 10:38:44 AM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 12:56:26 AM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 12:56:15 AM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 12:54:21 AM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/24/2026, 12:54:20 AM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 11:35:37 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/23/2026, 11:34:50 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/23/2026, 11:34:31 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 11:07:17 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 10:49:23 PM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 10:19:43 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 10:14:19 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 10:13:06 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 10:08:21 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 10:03:18 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 10:01:33 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 9:40:29 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 8:01:59 PM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 8:01:59 PM</td><td>abbygailoseo@gmail.com</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 7:16:20 PM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 7:16:20 PM</td><td>abbygailoseo@gmail.com</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 5:46:08 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/23/2026, 5:45:33 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/23/2026, 5:29:43 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 5:26:35 PM</td><td>xiejustina50@gmail.com</td><td>login</td><td>{"role":"admin","module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 5:22:43 PM</td><td>system</td><td>logout</td><td>{"module":"auth"}</td></tr>
+          <tr><td>2/23/2026, 3:27:44 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/23/2026, 3:13:26 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/23/2026, 3:08:16 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/23/2026, 3:07:13 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+          <tr><td>2/23/2026, 2:39:10 PM</td><td>xiejustina50@gmail.com</td><td>technicianSchedule.upsert</td><td>{"technicianId":"699abe6968a2bfc8cc2df076","module":"admin"}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <nav aria-label="Logs pagination">
+      <div class="d-flex flex-column align-items-center">
+        <div id="logs-range" class="small text-muted mb-1">&nbsp;</div>
+        <ul id="logs-pagination" class="pagination mb-0"></ul>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    const PAGE_SIZE = 10;
+    let allLogs = [];
+    let filteredLogs = [];
+    let currentPage = 1;
+
+    function renderPage(page) {
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = filteredLogs.slice(start, start + PAGE_SIZE);
+      const t = document.getElementById("logs-table-body");
+      if (slice.length === 0) {
+        t.innerHTML = '<tr><td colspan="4" class="text-muted small">No logs found.</td></tr>';
+      } else {
+        const rows = slice
+          .map((l, idx) => {
+            const when = new Date(l.createdAt).toLocaleString();
+            const actor = l.actorEmail || l.actorName || 'system';
+            const details = (l.details && l.details.reason) ? l.details.reason : (l.details ? JSON.stringify(l.details) : '');
+            const num = start + idx + 1;
+            return `<tr><td class="small text-muted">${num}</td><td class="small text-muted">${when}</td><td class="small">${actor}</td><td class="small text-muted">${l.action}</td><td class="small text-muted">${details}</td></tr>`;
+          })
+          .join('');
+        t.innerHTML = rows;
+      }
+      // update range label
+      const rangeEl = document.getElementById('logs-range');
+      const total = filteredLogs.length;
+      const from = total === 0 ? 0 : start + 1;
+      const to = Math.min(start + PAGE_SIZE, total);
+      rangeEl.textContent = `${from} to ${to} of ${total}`;
+      renderPagination();
+    }
+
+    function renderPagination() {
+      const total = filteredLogs.length;
+      const pages = Math.ceil(total / PAGE_SIZE);
+      const ul = document.getElementById('logs-pagination');
+      ul.innerHTML = '';
+      // prev button
+      const prevLi = document.createElement('li');
+      prevLi.className = 'page-item' + (currentPage <= 1 ? ' disabled' : '');
+      prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
+      prevLi.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+          currentPage--;
+          renderPage(currentPage);
+        }
+      });
+      ul.appendChild(prevLi);
+      // page indicator
+      const indicatorLi = document.createElement('li');
+      indicatorLi.className = 'page-item disabled mx-2';
+      indicatorLi.innerHTML = `<span class="page-link">${currentPage} of ${pages}</span>`;
+      ul.appendChild(indicatorLi);
+      // next button
+      const nextLi = document.createElement('li');
+      nextLi.className = 'page-item' + (currentPage >= pages ? ' disabled' : '');
+      nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
+      nextLi.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage < pages) {
+          currentPage++;
+          renderPage(currentPage);
+        }
+      });
+      ul.appendChild(nextLi);
+    }
+
+    function applyFilter() {
+      const filter = (document.getElementById("logs-filter").value || "").toLowerCase();
+      if (!filter) {
+        filteredLogs = allLogs.slice();
+      } else {
+        filteredLogs = allLogs.filter(l => {
+          return (l.actorEmail || '').toLowerCase().includes(filter)
+            || (l.action || '').toLowerCase().includes(filter)
+            || (JSON.stringify(l.details || '') || '').toLowerCase().includes(filter);
+        });
+      }
+      currentPage = 1;
+      renderPage(currentPage);
+      document.getElementById("logs-count").innerText = filteredLogs.length;
+    }
+
+    async function loadLogs() {
+      const t = document.getElementById("logs-table-body");
+      t.innerHTML = '<tr><td colspan="4" class="text-muted small">Loading...</td></tr>';
+      try {
+        const res = await fetch("/api/admin/logs?limit=200");
+        const json = res.ok ? await res.json() : { logs: [] };
+        allLogs = json.logs || [];
+        applyFilter();
+      } catch (e) {
+        t.innerHTML = '<tr><td colspan="4" class="text-danger small">Failed to load logs.</td></tr>';
+        console.error(e);
+      }
+    }
+
+    document.getElementById("logs-filter").addEventListener("input", () => applyFilter());
+
+    // initial load
+    loadLogs();
+  </script>
+</div>

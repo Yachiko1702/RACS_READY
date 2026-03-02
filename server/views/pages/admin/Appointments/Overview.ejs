@@ -1,0 +1,521 @@
+<div class="admin-dashboard container-fluid px-0 py-4 appointments-overview">
+  <%- include('../../../partials/dashboard-styles') %>
+
+  <style>
+    /* Appointments overview — additional overrides */
+    /* (hero layout handled by shared dashboard-styles) */
+    .appointments-overview .filters {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      /* ensure inputs shrink on small screens inside hero */
+      justify-content: flex-start;
+    }
+
+    /* KPI summary - layout handled by bootstrap row/col */
+    .appointments-overview .kpi-cards {
+      margin-bottom: 18px;
+    }
+    /* KPI card grid layout remains, inner styling handled by dashboard-styles */
+    .appointments-overview .kpi-card {
+      /* keep outer spacing, overrides if needed */
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Main layout */
+    .appointments-overview .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+    .appointments-overview .card {
+      border-radius: 12px;
+    }
+
+    /* Appointments table */
+    .appointments-table thead th {
+      background: transparent;
+      border-bottom: 1px solid rgba(2, 6, 23, 0.06);
+      font-weight: 600;
+    }
+    .appointments-table tbody tr td {
+      vertical-align: middle;
+    }
+    .appointments-table .status-badge {
+      min-width: 88px;
+      display: inline-flex;
+      justify-content: center;
+    }
+
+    /* Compact controls */
+    .appointments-overview .controls .form-control {
+      min-width: 160px;
+    }
+    .appointments-overview .search-input {
+      min-width: 220px;
+    }
+
+    /* Calendar / mini widgets */
+    .mini-calendar {
+      background: linear-gradient(180deg, #fbfdff, #f5f8ff);
+      padding: 12px;
+      border-radius: 10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 991px) {
+      .appointments-overview .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .appointments-overview .kpi-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .appointments-overview .search-input {
+        min-width: 140px;
+      }
+    }
+  </style>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-calendar3-range-fill me-2"></i>Appointments Overview
+        </h1>
+        <p class="hero-sub">
+          A consolidated view of upcoming bookings, workload and service KPIs.
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- filters moved out of hero -->
+  <div class="filters mt-2 mb-4 d-flex align-items-center flex-wrap gap-2">
+    <div class="controls d-flex align-items-center gap-2">
+      <input
+        type="date"
+        id="filterStart"
+        class="form-control form-control-sm"
+        aria-label="Start date"
+      />
+      <input
+        type="date"
+        id="filterEnd"
+        class="form-control form-control-sm"
+        aria-label="End date"
+      />
+      <select
+        id="filterStatus"
+        class="form-select form-select-sm"
+        aria-label="Status filter"
+      >
+        <option value="all">All statuses</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <select
+        id="filterTech"
+        class="form-select form-select-sm"
+        aria-label="Technician filter"
+      >
+        <option value="all">All technicians</option>
+      </select>
+    </div>
+    <div class="ms-auto">
+      <button id="btn-new-appointment" class="btn hero-btn hero-btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Appointment
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="kpi-cards row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-primary text-white">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Today's Bookings</div>
+            <div class="kpi-value" id="kpi-today">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-warning text-white">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Pending Requests</div>
+            <div class="kpi-value" id="kpi-pending">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-success text-white">
+            <i class="bi bi-check2-circle"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Confirmed Today</div>
+            <div class="kpi-value" id="kpi-confirmed">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kpi-card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon bg-danger text-white">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Cancelled</div>
+            <div class="kpi-value" id="kpi-cancelled">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="card shadow-sm p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="fw-bold">Upcoming Appointments</div>
+          <div class="text-muted small">List — filtered by date / status</div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover appointments-table mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Time</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Service</th>
+                <th scope="col">Technician</th>
+                <th scope="col">Location</th>
+                <th scope="col">Status</th>
+                <th scope="col" style="width: 120px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="appointmentsBody">
+              <tr>
+                <td colspan="8" class="text-center text-muted py-4">
+                  Loading appointments…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between align-items-center">
+          <div class="text-muted small" id="appointmentsCount">—</div>
+          <nav aria-label="Appointments pagination">
+            <ul
+              class="pagination pagination-sm mb-0"
+              id="appointmentsPager"
+            ></ul>
+          </nav>
+        </div>
+      </div>
+
+      <div class="card shadow-sm p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-bold">Daily Booking Trend</div>
+          <div class="text-muted small">Last 7 days</div>
+        </div>
+        <canvas id="apptsTrend" height="120"></canvas>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card shadow-sm p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-bold">Mini Calendar</div>
+          <div class="text-muted small">Quick view</div>
+        </div>
+        <div class="mini-calendar" id="miniCalendar">Loading calendar…</div>
+      </div>
+
+      <div class="card shadow-sm p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-bold">Top Technicians</div>
+          <div class="text-muted small">by bookings</div>
+        </div>
+        <div id="topTechList" class="small text-muted">Loading…</div>
+      </div>
+
+      <div class="card shadow-sm p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-bold">Quick Filters</div>
+          <div class="text-muted small">One-click</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-secondary" data-filter="today">
+            Today
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" data-filter="week">
+            This Week
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" data-filter="month">
+            This Month
+          </button>
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            data-filter="pending"
+          >
+            Pending
+          </button>
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            data-filter="confirmed"
+          >
+            Confirmed
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Small utility for graceful fallback data
+    const fmtDate = (d) => new Date(d).toLocaleDateString();
+
+    async function loadOverview() {
+      try {
+        // 1) KPIs
+        const sRes = await fetch("/api/admin/analytics/summary");
+        const s = sRes.ok ? await sRes.json() : {};
+        document.getElementById("kpi-today").innerText =
+          s.todaysAppointments ?? "—";
+        document.getElementById("kpi-pending").innerText =
+          s.pendingBookingRequests ?? "—";
+        document.getElementById("kpi-confirmed").innerText =
+          s.activeJobsInProgress ?? "—";
+        document.getElementById("kpi-cancelled").innerText =
+          s.lowStockCount ?? 0; // placeholder
+
+        // 2) Appointments list — try a dedicated endpoint then fallback to todaysItems
+        let appts = [];
+        try {
+          const aRes = await fetch("/api/appointments?upcoming=1");
+          if (aRes.ok) {
+            const d = await aRes.json();
+            appts = d.items || d.appointments || [];
+          }
+        } catch (e) {}
+        if (!appts || !appts.length) appts = s.todaysAppointmentsItems || [];
+
+        const tbody = document.getElementById("appointmentsBody");
+        tbody.innerHTML = "";
+        if (appts && appts.length) {
+          appts.slice(0, 50).forEach((a) => {
+            const tr = document.createElement("tr");
+            const date = a.bookingDate || a.date || a.createdAt || new Date();
+            tr.innerHTML = `
+              <td>${new Date(date).toLocaleDateString()}</td>
+              <td>${a.startTime || a.time || ""}</td>
+              <td><strong>${a.customerName || a.customer || "Customer"}</strong><div class="small text-muted">${a.customerEmail || ""}</div></td>
+              <td>${a.service || a.serviceType || ""}</td>
+              <td>${a.technicianName || a.technician || "TBD"}</td>
+              <td>$
+{(() => {
+  if (a.location && a.location.address) return a.location.address;
+  if (a.location && a.location.coordinates && Array.isArray(a.location.coordinates.coordinates)) {
+    const [lng, lat] = a.location.coordinates.coordinates;
+    return lat + ", " + lng;
+  }
+  return a.address || "";
+})()}</td>
+              <td><span class="badge bg-${a.status === "confirmed" ? "success" : a.status === "pending" ? "warning" : "secondary"} status-badge">${a.status || "n/a"}</span></td>
+              <td>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-secondary" title="View"><i class="bi bi-eye"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></button>
+                </div>
+              </td>`;
+            tbody.appendChild(tr);
+          });
+          document.getElementById("appointmentsCount").innerText =
+            `${appts.length} shown`;
+        } else {
+          tbody.innerHTML =
+            '<tr><td colspan="8" class="text-center text-muted py-4">No appointments found for the selected range.</td></tr>';
+          document.getElementById("appointmentsCount").innerText =
+            "0 appointments";
+        }
+
+        // 3) Build simple trend chart from API if available
+        let labels = [],
+          series = [];
+        try {
+          const tRes = await fetch("/api/admin/analytics/appointments?days=7");
+          if (tRes.ok) {
+            const td = await tRes.json();
+            if (Array.isArray(td.series)) {
+              series = td.series.slice(-7);
+              labels =
+                td.labels && td.labels.length
+                  ? td.labels.slice(-7)
+                  : series.map((_, i) => i + 1);
+            }
+          }
+        } catch (e) {}
+        if (!series.length) {
+          // fallback: build fake last-7 days using todays count
+          const now = new Date();
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(now.getDate() - i);
+            labels.push(d.toLocaleDateString());
+            series.push(
+              Math.max(
+                0,
+                Math.round(
+                  (s.todaysAppointments || 0) / 4 + (Math.random() * 3 - 1),
+                ),
+              ),
+            );
+          }
+        }
+        renderTrendChart(labels, series);
+
+        // 4) mini calendar (static visual)
+        renderMiniCalendar();
+
+        // 5) top technicians (best-effort from admin API)
+        try {
+          const tRes = await fetch("/api/admin/staff", {
+            credentials: "same-origin",
+          });
+          if (tRes.ok) {
+            const staff = (await tRes.json()).staff || [];
+            const el = document.getElementById("topTechList");
+            el.innerHTML = "";
+            staff.slice(0, 6).forEach((s) => {
+              const item = document.createElement("div");
+              item.className =
+                "d-flex justify-content-between align-items-center mb-2";
+              item.innerHTML = `<div><strong>${s.firstName || ""} ${s.lastName || s.email || ""}</strong><div class='small text-muted'>${s.role || ""}</div></div><div class='text-muted small'>0 bookings</div>`;
+              el.appendChild(item);
+            });
+          } else {
+            console.warn("Failed to load top technicians", tRes.status);
+          }
+        } catch (e) {
+          document.getElementById("topTechList").innerText = "—";
+        }
+      } catch (err) {
+        console.error("Overview load failed", err);
+      }
+    }
+
+    function renderTrendChart(labels, series) {
+      try {
+        const ctx = document.getElementById("apptsTrend").getContext("2d");
+        if (window._apptsTrend) window._apptsTrend.destroy();
+        window._apptsTrend = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Bookings",
+                data: series,
+                borderColor: "#0d6efd",
+                backgroundColor: "rgba(13,110,253,0.08)",
+                tension: 0.3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+          },
+        });
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function renderMiniCalendar() {
+      const el = document.getElementById("miniCalendar");
+      const now = new Date();
+      const month = now.toLocaleString(undefined, { month: "long" });
+      const year = now.getFullYear();
+      let html = `<div class="small text-muted mb-2">${month} ${year}</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-size:12px;color:#94a3b8"><div class='text-center'>Su</div><div class='text-center'>Mo</div><div class='text-center'>Tu</div><div class='text-center'>We</div><div class='text-center'>Th</div><div class='text-center'>Fr</div><div class='text-center'>Sa</div></div><div style="margin-top:8px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px">`;
+      const daysInMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        0,
+      ).getDate();
+      for (let d = 1; d <= daysInMonth; d++) {
+        html += `<div style="background:#fff;border-radius:6px;padding:8px;text-align:center;box-shadow:inset 0 -1px 0 rgba(2,6,23,0.03);">${d}</div>`;
+      }
+      html += "</div>";
+      el.innerHTML = html;
+    }
+
+    // Wire controls
+    document
+      .getElementById("btn-refresh-overview")
+      .addEventListener("click", loadOverview);
+    document
+      .getElementById("btn-new-appointment")
+      .addEventListener(
+        "click",
+        () => (location.href = "/admin/appointments/reschedule"),
+      );
+    document
+      .getElementById("btn-export")
+      .addEventListener("click", () =>
+        window.notify.info("Export CSV — not implemented yet"),
+      );
+
+    // Quick filter buttons
+    document.querySelectorAll("[data-filter]").forEach((btn) =>
+      btn.addEventListener("click", function () {
+        const f = this.getAttribute("data-filter");
+        const start = document.getElementById("filterStart");
+        const end = document.getElementById("filterEnd");
+        const now = new Date();
+        if (f === "today") {
+          start.value = end.value = now.toISOString().slice(0, 10);
+        } else if (f === "week") {
+          const s = new Date();
+          s.setDate(s.getDate() - 6);
+          start.value = s.toISOString().slice(0, 10);
+          end.value = now.toISOString().slice(0, 10);
+        } else if (f === "month") {
+          const s = new Date();
+          s.setMonth(s.getMonth() - 1);
+          start.value = s.toISOString().slice(0, 10);
+          end.value = now.toISOString().slice(0, 10);
+        } else if (f === "pending") {
+          document.getElementById("filterStatus").value = "pending";
+        } else if (f === "confirmed") {
+          document.getElementById("filterStatus").value = "confirmed";
+        }
+        loadOverview();
+      }),
+    );
+
+    // initial load
+    loadOverview();
+  </script>
+</div>

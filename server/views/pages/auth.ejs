@@ -1,104 +1,684 @@
 <div class="auth-panel-page">
   <div class="auth-panel-container" id="authPanelRoot">
-
-    <div class="form-container sign-up-container">
-      <form id="auth-register-form" action="/api/auth/register" method="POST" novalidate>
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <div
+      class="form-container sign-up-container"
+      data-aos="fade-right"
+      data-aos-duration="800"
+    >
+      <form id="auth-register-form" method="POST" novalidate autocomplete="off">
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
         <div class="auth-form-brand mb-3">
-          <a href="/" class="brand d-flex align-items-center justify-content-center">
-            <i class="bi bi-snow2 fs-3 text-primary me-2"></i>
+          <span
+            class="brand d-flex align-items-center justify-content-center"
+            aria-disabled="true"
+            tabindex="-1"
+          >
             <span class="fw-bold">CALIDRO RACS</span>
-          </a>
+          </span>
         </div>
 
         <h1>Create Account</h1>
-        <p class="text-muted">Register to manage appointments and service requests.</p>
+        <!-- Customer profile fields -->
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input
+            id="register-firstName"
+            name="firstName"
+            type="text"
+            class="form-control"
+            placeholder="First name"
+            autocomplete="given-name"
+            maxlength="20"
+            pattern="[A-Za-z\s]{1,20}"
+            title="Only letters and spaces (max 20)"
+            required
+            aria-required="true"
+          />
+        </div>
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input
+            id="register-lastName"
+            name="lastName"
+            type="text"
+            class="form-control"
+            placeholder="Last name"
+            autocomplete="family-name"
+            maxlength="20"
+            pattern="[A-Za-z\s]{1,20}"
+            title="Only letters and spaces (max 20)"
+            required
+            aria-required="true"
+          />
+        </div>
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+          <input
+            id="register-phone"
+            name="phone"
+            type="tel"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            class="form-control"
+            placeholder="Phone number"
+            autocomplete="tel"
+            maxlength="11"
+            required
+            aria-required="true"
+          />
+        </div>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-flag"></i></span>
+          <select
+            id="register-addressProvince"
+            name="addressProvince"
+            class="form-select"
+            autocomplete="address-level1"
+            required
+            aria-required="true"
+          >
+            <option value="">Select Province</option>
+            <!-- PSGC Province options will be populated here -->
+          </select>
+        </div>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-building"></i></span>
+          <select
+            id="register-addressCity"
+            name="addressCity"
+            class="form-select"
+            autocomplete="address-level2"
+            disabled
+            required
+            aria-required="true"
+          >
+            <option value="">Select City/Municipality</option>
+            <!-- PSGC City/Municipality options will be populated here -->
+          </select>
+        </div>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-house"></i></span>
+          <select
+            id="register-addressBarangay"
+            name="addressBarangay"
+            class="form-select"
+            autocomplete="address-level3"
+            disabled
+            required
+            aria-required="true"
+          >
+            <option value="">Select Barangay</option>
+            <!-- PSGC Barangay options will be populated here -->
+          </select>
+        </div>
+
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="bi bi-mailbox"></i></span>
+          <input
+            id="register-addressPostal"
+            name="addressPostal"
+            type="text"
+            class="form-control"
+            placeholder="Postal Code"
+            autocomplete="postal-code"
+            inputmode="numeric"
+            pattern="[0-9]{1,4}"
+            title="Postal code — numbers only (max 4 digits)"
+            maxlength="4"
+            required
+            aria-required="true"
+          />
+        </div>
 
         <div class="input-group mb-2">
           <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-          <input id="register-email" name="email" type="email" class="form-control" placeholder="Email" required autocomplete="email" maxlength="254" />
+          <input
+            id="register-email"
+            name="email"
+            type="email"
+            class="form-control"
+            placeholder="Email"
+            required
+            autocomplete="off"
+            maxlength="50"
+            pattern="[A-Za-z0-9]+@[A-Za-z0-9]+\.[A-Za-z0-9]+"
+            title="Only letters/numbers, one '@' and one '.' in domain"
+          />
         </div>
 
         <div class="input-group mb-2">
           <span class="input-group-text"><i class="bi bi-lock"></i></span>
-          <input id="register-password" name="password" type="password" class="form-control" placeholder="Password" required autocomplete="new-password" maxlength="128" />
-          <button type="button" class="btn input-toggle" id="togglePasswordReg" aria-label="Toggle password"><i class="bi bi-eye"></i></button>
+          <input
+            id="register-password"
+            name="password"
+            type="password"
+            class="form-control"
+            placeholder="Password"
+            required
+            autocomplete="new-password"
+            maxlength="20"
+            pattern="^(?=(?:.*[A-Z]){1})(?!.*[A-Z].*[A-Z])(?!.*@.*@)[A-Za-z0-9@]{8,20}$"
+            title="8–20 chars, letters/numbers and up to one '@'; exactly one uppercase letter."
+          />
+          <button
+            type="button"
+            class="btn input-toggle"
+            id="togglePasswordReg"
+            aria-label="Toggle password"
+          >
+            <i class="bi bi-eye"></i>
+          </button>
+          <!-- validity indicator for password complexity -->
+          <span id="register-password-check" class="match-indicator d-none"></span>
+        </div>
+        <div id="register-password-suggestions" class="form-text small">
+          <!-- dynamic strength/suggestions will appear here -->
         </div>
 
         <div class="input-group mb-2">
-          <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
-          <input id="register-confirm" name="confirmPassword" type="password" class="form-control" placeholder="Confirm Password" required autocomplete="new-password" maxlength="128" />
-          <button type="button" class="btn input-toggle" id="toggleConfirmPasswordReg" aria-label="Toggle password"><i class="bi bi-eye"></i></button>
+          <span class="input-group-text"
+            ><i class="bi bi-shield-lock"></i
+          ></span>
+          <input
+            id="register-confirm"
+            name="confirmPassword"
+            type="password"
+            class="form-control"
+            placeholder="Confirm Password"
+            required
+            autocomplete="new-password"
+            maxlength="20"
+            pattern="(?=.*[A-Z])[A-Za-z0-9]{8,20}"
+            title="Repeat the password (must meet the same rules)."
+          />
+          <button
+            type="button"
+            class="btn input-toggle"
+            id="toggleConfirmPasswordReg"
+            aria-label="Toggle password"
+          >
+            <i class="bi bi-eye"></i>
+          </button>
+          <!-- match indicator: shown when confirm matches password -->
+          <span id="register-confirm-check" class="match-indicator d-none">
+            <!-- icon injected dynamically by JS -->
+          </span>
         </div>
 
-        <% if (recaptchaSiteKey) { %>
-          <div class="mb-3"><div class="g-recaptcha" data-sitekey="<%= recaptchaSiteKey %>"></div></div>
-        <% } %>
+        <div class="mb-3 math-captcha">
+          <label
+            for="register-math"
+            class="form-label d-flex align-items-center"
+          >
+            <span class="captcha-question"><%= mathQuestion %></span>
+            <button
+              type="button"
+              class="btn btn-link btn-sm p-0 ms-2 refresh-captcha"
+              title="Reload question"
+            >
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text"
+              ><i class="bi bi-calculator"></i
+            ></span>
+            <input
+              id="register-math"
+              name="mathCaptcha"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]{1,2}"
+              maxlength="2"
+              title="Enter the numeric answer (1–2 digits)"
+              class="form-control"
+              placeholder="Enter the answer"
+              required
+            />
+          </div>
+          <input type="hidden" name="mathAnswer" value="<%= mathAnswer %>" />
+        </div>
 
-        <button id="registerBtn" class="button" type="submit">Sign Up</button>
-        <p class="small mt-2 d-lg-none">Already have an account? <a href="/login">Sign In</a></p>
+        <button id="registerBtn" class="button accent-slide" type="submit">
+          Sign Up
+        </button>
+        <p class="small mt-2 d-lg-none">
+          Already have an account? <a href="/login">Sign In</a>
+        </p>
       </form>
     </div>
 
-    <div class="form-container sign-in-container">
-      <form id="auth-login-form" action="/api/auth/login" method="POST" novalidate>
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+    <div
+      class="form-container sign-in-container"
+      data-aos="fade-left"
+      data-aos-duration="800"
+    >
+      <form id="auth-login-form" method="POST" novalidate autocomplete="off">
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
         <div class="auth-form-brand mb-3 text-center">
-          <a href="/" class="brand d-flex align-items-center justify-content-center gap-2" aria-label="CALIDRO RACS home">
-            <i class="bi bi-snow2 fs-3 text-primary" aria-hidden="true"></i>
+          <span
+            class="brand d-flex align-items-center justify-content-center gap-2"
+            aria-label="CALIDRO RACS home"
+            aria-disabled="true"
+            tabindex="-1"
+          >
             <span class="fw-bold fs-5">CALIDRO RACS</span>
-          </a>
+          </span>
         </div>
 
         <h1>Sign In</h1>
-        <p class="text-muted">Use your account to access the dashboard and services.</p>
+        <p class="text-muted">Use your account to access Book a service page</p>
 
         <div class="input-group mb-2">
           <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-          <input id="email" name="email" type="email" class="form-control" placeholder="Email" required autocomplete="email" maxlength="254" />
+          <input
+            id="email"
+            name="email"
+            type="email"
+            class="form-control"
+            placeholder="Email"
+            required
+            autocomplete="off"
+            maxlength="50"
+            pattern="[A-Za-z0-9]+@[A-Za-z0-9]+\.[A-Za-z0-9]+"
+            title="Only letters/numbers, one '@' and one '.' in domain"
+          />
         </div>
 
         <div class="input-group mb-2">
           <span class="input-group-text"><i class="bi bi-lock"></i></span>
-          <input id="password" name="password" type="password" class="form-control" placeholder="Password" required autocomplete="current-password" maxlength="128" />
-          <button type="button" class="btn input-toggle" id="togglePassword" aria-label="Toggle password"><i class="bi bi-eye"></i></button>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            class="form-control"
+            placeholder="Password"
+            required
+            autocomplete="new-password"
+            maxlength="20"
+          />
+          <button
+            type="button"
+            class="btn input-toggle"
+            id="togglePassword"
+            aria-label="Toggle password"
+          >
+            <i class="bi bi-eye"></i>
+          </button>
         </div>
 
-        <% if (recaptchaSiteKey) { %>
-          <div class="mb-3"><div class="g-recaptcha" data-sitekey="<%= recaptchaSiteKey %>"></div></div>
-        <% } %>
+        <div class="mb-3 math-captcha">
+          <label for="login-math" class="form-label d-flex align-items-center">
+            <span class="captcha-question"><%= mathQuestion %></span>
+            <button
+              type="button"
+              class="btn btn-link btn-sm p-0 ms-2 refresh-captcha"
+              title="Reload question"
+            >
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text"
+              ><i class="bi bi-calculator"></i
+            ></span>
+            <input
+              id="login-math"
+              name="mathCaptcha"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]{1,2}"
+              maxlength="2"
+              title="Enter the numeric answer (1–2 digits)"
+              class="form-control"
+              placeholder="Enter the answer"
+              required
+            />
+          </div>
+          <input type="hidden" name="mathAnswer" value="<%= mathAnswer %>" />
+        </div>
 
-        <a href="/forgot-password" class="small mb-2 d-inline-block">Forgot password?</a>
-        <button id="loginBtn" class="button" type="submit">Sign In</button>
-        <p class="small mt-2 d-lg-none">Don't have an account? <a href="/register">Sign Up</a></p>
+        <!-- OTP (hidden by default) -->
+        <div id="otpBlock" class="mb-3 d-none">
+          <label for="login-otp" class="form-label">One-time code (OTP)</label>
+          <div class="d-flex gap-2 align-items-center">
+            <div class="input-group flex-grow-1">
+              <span class="input-group-text"
+                ><i class="bi bi-shield-lock"></i
+              ></span>
+              <input
+                id="login-otp"
+                name="otp"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="6"
+                class="form-control"
+                placeholder="Enter 6-digit OTP"
+                aria-label="One-time code (OTP)"
+              />
+            </div>
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm accent-slide"
+              id="resendOtpBtn"
+              style="
+                font-size: 10px;
+                justify-content: center;
+                text-align: center;
+              "
+              aria-label="Resend OTP"
+            >
+              Resend OTP
+            </button>
+          </div>
+        </div>
+
+        <a href="/forgot-password" class="small mb-2 d-inline-block"
+          >Forgot password?</a
+        >
+        <button id="loginBtn" class="button accent-slide" type="submit">
+          Sign In
+        </button>
+        <div class="mt-2">
+          <a
+            href="#"
+            id="goHomeBtn"
+            class="btn btn-link p-0 text-decoration-none"
+            >← Go back home</a
+          >
+        </div>
+        <script>
+          (function () {
+            var b = document.getElementById("goHomeBtn");
+            if (!b) return;
+            b.addEventListener("click", function (e) {
+              e.preventDefault();
+              Promise.all([
+                fetch("/api/auth/logout", {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: { "Content-Type": "application/json" },
+                }).catch(function () {}),
+                fetch("/api/auth/secure/logout", {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: { "Content-Type": "application/json" },
+                }).catch(function () {}),
+              ]).finally(function () {
+                window.location = "/";
+              });
+            });
+          })();
+        </script>
+        <p class="small mt-2 d-lg-none">
+          Don't have an account? <a href="/register">Sign Up</a>
+        </p>
       </form>
     </div>
 
-    <div class="overlay-container">
+    <style>
+      /* Inline override for narrow screens — full-size single white panel */
+      @media (max-width: 991px) {
+        .overlay-container,
+        .overlay {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+
+        /* force root/container to full viewport and remove any side gutters */
+        #authPanelRoot,
+        .auth-panel-container {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: 100dvh !important;
+          height: 100dvh !important;
+          overflow-x: hidden !important;
+          overflow-y: hidden !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #ffffff !important;
+        }
+
+        /* make the white auth card centered and full-width within the safe inset */
+        .auth-card {
+          background: #ffffff !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: 100dvh !important;
+          height: 100dvh !important;
+          margin: 0 !important;
+          padding: 1rem 1.25rem !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          border: 0 !important;
+          overflow: hidden !important;
+        }
+
+        /* ensure form columns occupy full height but don't produce scrollbars */
+        #authPanelRoot .form-container {
+          position: relative !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: 100dvh !important;
+          transform: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
+        #authPanelRoot .sign-in-container,
+        #authPanelRoot .sign-up-container {
+          position: relative !important;
+          left: 0 !important;
+          width: 100% !important;
+          min-height: 100dvh !important;
+          height: 100dvh !important;
+          transform: none !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          pointer-events: auto !important;
+          overflow-x: hidden !important;
+          overflow-y: hidden !important;
+          -webkit-overflow-scrolling: touch !important;
+          touch-action: pan-y !important;
+          /* hide any residual scrollbar track */
+          scrollbar-width: none !important;
+        }
+        #authPanelRoot .sign-in-container::-webkit-scrollbar,
+        #authPanelRoot .sign-up-container::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+        }
+
+        #authPanelRoot .sign-in-container form,
+        #authPanelRoot .sign-up-container form {
+          height: auto !important;
+          min-height: 100% !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+
+        /* default mobile behavior: hide sign-up unless explicitly active */
+        #authPanelRoot .sign-up-container {
+          display: none !important;
+        }
+        #authPanelRoot.right-panel-active .sign-in-container {
+          display: none !important;
+        }
+        #authPanelRoot.right-panel-active .sign-up-container {
+          display: block !important;
+        }
+      }
+    </style>
+
+    <div class="overlay-container d-none d-lg-block">
       <div class="overlay">
         <div class="overlay-panel overlay-left">
-          <h2>Welcome Back!</h2>
-          <p>To keep connected with your services, please sign in with your personal info.</p>
+          <h2>Hello, Friend!</h2>
+          <p>Enter your personal details and start your journey with us.</p>
           <button class="button ghost" id="signIn">Sign In</button>
         </div>
         <div class="overlay-panel overlay-right">
-          <h2>Hello, Friend!</h2>
-          <p>Enter your personal details and start your journey with us.</p>
+          <h2>Welcome Back!</h2>
+          <p>To keep connected with the services, please create an account.</p>
           <button class="button ghost" id="signUp">Sign Up</button>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
-  (function(){
-    var root = document.getElementById('authPanelRoot');
+  (function () {
+    var root = document.getElementById("authPanelRoot");
     if (!root) return;
-    var active = '<%= active || "sign-in" %>';
-    if (active === 'sign-up') root.classList.add('right-panel-active');
+
+    function apply991RuntimeFix() {
+      var isNarrow = window.innerWidth <= 991;
+      var overlayContainer = root.querySelector(".overlay-container");
+      var overlay = root.querySelector(".overlay");
+      var formContainers = root.querySelectorAll(".form-container");
+      var signIn = root.querySelector(".sign-in-container");
+      var signUp = root.querySelector(".sign-up-container");
+
+      if (isNarrow) {
+        if (overlayContainer) {
+          overlayContainer.style.display = "none";
+          overlayContainer.style.visibility = "hidden";
+          overlayContainer.style.opacity = "0";
+          overlayContainer.style.pointerEvents = "none";
+        }
+        if (overlay) {
+          overlay.style.display = "none";
+          overlay.style.visibility = "hidden";
+          overlay.style.opacity = "0";
+          overlay.style.pointerEvents = "none";
+        }
+
+        root.style.width = "100%";
+        root.style.maxWidth = "100%";
+        root.style.minHeight = "100dvh";
+        root.style.height = "100dvh";
+        root.style.overflowX = "hidden";
+        root.style.overflowY = "hidden";
+
+        formContainers.forEach(function (container) {
+          container.style.position = "relative";
+          container.style.left = "0";
+          container.style.top = "0";
+          container.style.width = "100%";
+          container.style.minHeight = "100dvh";
+          container.style.height = "100dvh";
+          container.style.transform = "none";
+          container.style.overflowY = "auto";
+          container.style.overflowX = "hidden";
+          container.style.webkitOverflowScrolling = "touch";
+          container.style.touchAction = "pan-y";
+        });
+
+        if (root.classList.contains("right-panel-active")) {
+          if (signIn) signIn.style.display = "none";
+          if (signUp) {
+            signUp.style.display = "block";
+            signUp.style.width = "100%";
+            signUp.style.minHeight = "100dvh";
+            signUp.style.height = "100dvh";
+            signUp.style.left = "0";
+            signUp.style.opacity = "1";
+            signUp.style.visibility = "visible";
+            signUp.style.pointerEvents = "auto";
+            signUp.style.overflowY = "auto";
+            signUp.style.overflowX = "hidden";
+            signUp.style.webkitOverflowScrolling = "touch";
+            signUp.style.touchAction = "pan-y";
+          }
+        } else {
+          if (signUp) signUp.style.display = "none";
+          if (signIn) {
+            signIn.style.display = "block";
+            signIn.style.width = "100%";
+            signIn.style.minHeight = "100dvh";
+            signIn.style.height = "100dvh";
+            signIn.style.left = "0";
+            signIn.style.opacity = "1";
+            signIn.style.visibility = "visible";
+            signIn.style.pointerEvents = "auto";
+            signIn.style.overflowY = "auto";
+            signIn.style.overflowX = "hidden";
+            signIn.style.webkitOverflowScrolling = "touch";
+            signIn.style.touchAction = "pan-y";
+          }
+        }
+      } else {
+        [root, overlayContainer, overlay, signIn, signUp].forEach(
+          function (el) {
+            if (!el) return;
+            el.style.display = "";
+            el.style.visibility = "";
+            el.style.opacity = "";
+            el.style.pointerEvents = "";
+            el.style.width = "";
+            el.style.maxWidth = "";
+            el.style.minHeight = "";
+            el.style.height = "";
+            el.style.overflow = "";
+            el.style.overflowX = "";
+            el.style.overflowY = "";
+            el.style.left = "";
+            el.style.top = "";
+            el.style.transform = "";
+          },
+        );
+        formContainers.forEach(function (container) {
+          container.style.position = "";
+          container.style.left = "";
+          container.style.top = "";
+          container.style.width = "";
+          container.style.minHeight = "";
+          container.style.height = "";
+          container.style.transform = "";
+          container.style.overflowY = "";
+          container.style.overflowX = "";
+          container.style.webkitOverflowScrolling = "";
+          container.style.touchAction = "";
+        });
+      }
+    }
+
+    // Server-suggested active panel (fallback) and client path-based override
+    var serverActive = '<%= active || "sign-in" %>';
+    var pathActive =
+      (window.location.pathname || "").indexOf("/register") !== -1
+        ? "sign-up"
+        : "sign-in";
+    var active = serverActive || pathActive;
+
+    // Ensure class state matches the active panel (client-side authoritative for routing)
+    if (active === "sign-up") {
+      root.classList.add("right-panel-active");
+      apply991RuntimeFix();
+      setTimeout(function () {
+        var el = document.querySelector(".sign-up-container");
+        if (el && window.innerWidth <= 768)
+          el.scrollIntoView({ behavior: "auto", block: "start" });
+        var f = document.getElementById("auth-register-form");
+        if (f) f.scrollTop = 0;
+      }, 60);
+    } else {
+      root.classList.remove("right-panel-active");
+      apply991RuntimeFix();
+    }
+
+    window.addEventListener("resize", apply991RuntimeFix);
+    setTimeout(apply991RuntimeFix, 0);
+    setTimeout(apply991RuntimeFix, 120);
   })();
 </script>

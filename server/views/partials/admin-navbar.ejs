@@ -1,0 +1,61 @@
+<nav
+  class="navbar navbar-expand-lg navbar-dark bg-admin-topbar border-bottom shadow-sm px-3"
+>
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold d-flex align-items-center" href="/admin">
+      <img
+        src="/images/LOGO/RACS.png"
+        alt="CALIDRO RACS"
+        class="navbar-brand-logo me-2"
+      />
+      <span class="brand-text">CALIDRO RACS</span>
+    </a>
+
+    <div class="ms-auto d-flex align-items-center">
+      <div class="nav-item me-3">
+        <button
+          class="btn btn-ghost position-relative"
+          id="notifBtn"
+          aria-label="Notifications"
+        >
+          <i class="bi bi-bell fs-5"></i>
+        </button>
+      </div>
+      <div class="nav-item dropdown">
+        <a
+          class="d-flex align-items-center text-decoration-none dropdown-toggle"
+          href="#"
+          id="profileDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <div
+            class="avatar bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2"
+            style="width: 34px; height: 34px"
+          >
+            A
+          </div>
+          <div class="d-none d-sm-block text-white">
+            <%= typeof user !== 'undefined' && user ? user.email : 'Admin' %>
+          </div>
+        </a>
+        <ul
+          class="dropdown-menu dropdown-menu-end"
+          aria-labelledby="profileDropdown"
+        >
+          <li>
+            <a
+              class="dropdown-item"
+              href="<%= (user && user.role === 'admin') ? '/profile-admin' : (user && user.role === 'secretary') ? '/secretary/profile' : (user && user.role === 'technician') ? '/technician/profile' : '/profile' %>"
+              >Profile</a
+            >
+          </li>
+          <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+<script>
+  window.USER_ROLE = "<%= (user && user.role) || '' %>";
+</script>

@@ -1,0 +1,443 @@
+<div class="admin-dashboard container-fluid py-4">
+  <%- include('../../../partials/dashboard-styles') %>
+  <style>
+    /* override inventory add-item modal position */
+    #addItemModal .modal-dialog {
+      transform: translate(0, 8vh) !important;
+    }
+    #addItemModal .modal-dialog-centered {
+      /* ensure correct centering along with custom offset */
+      display: flex !important;
+      align-items: flex-start !important;
+    }
+  </style>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-box-seam me-2"></i>Inventory Management
+        </h1>
+        <p class="hero-sub">Track stock levels, equipment, and spare parts</p>
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <button
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#addItemModal"
+        >
+          <i class="bi bi-plus-lg me-2"></i>Add New Item
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row mb-4 g-3 kpi-row">
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #4361ee, #3a0ca3)"
+          >
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Total Items</div>
+            <div class="kpi-value" id="kpiTotalItems">0</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #4361ee, #3a0ca3)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #e63946, #b11226)"
+          >
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Low Stock Alert</div>
+            <div class="kpi-value" id="kpiLowStock">0</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #e63946, #b11226)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #2ec4b6, #1a8f85)"
+          >
+            <i class="bi bi-currency-dollar"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Total Value</div>
+            <div class="kpi-value" id="kpiTotalValue">₱0</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #2ec4b6, #1a8f85)"
+        ></div>
+      </div>
+    </div>
+    <div class="col-md-3 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="kpi-icon"
+            style="background: linear-gradient(135deg, #7b2d8b, #560bad)"
+          >
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Assigned to Techs</div>
+            <div class="kpi-value" id="kpiAssigned">0</div>
+          </div>
+        </div>
+        <div
+          class="kpi-bar"
+          style="background: linear-gradient(90deg, #7b2d8b, #560bad)"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Search Item</label
+          >
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"
+              ><i class="bi bi-search text-muted"></i
+            ></span>
+            <input
+              type="text"
+              class="form-control border-start-0 bg-light"
+              placeholder="Item name, SKU, or Brand..."
+            />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Category</label
+          >
+          <select class="form-select">
+            <option value="all">All Categories</option>
+            <option value="parts">Spare Parts</option>
+            <option value="equipment">Tools & Equipment</option>
+            <option value="consumables">Consumables (Gas/Cleaning)</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-uppercase text-muted fw-bold"
+            >Stock Status</label
+          >
+          <select class="form-select">
+            <option value="all">Any Status</option>
+            <option value="in-stock">In Stock</option>
+            <option value="low-stock">Low Stock</option>
+            <option value="out-of-stock">Out of Stock</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-light w-100 border">
+            <i class="bi bi-funnel me-2"></i>Filter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="card border-0 shadow-sm">
+    <div
+      class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center"
+    >
+      <h6 class="mb-0 fw-bold">Stock List</h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4">Item Details</th>
+            <th>SKU / Code</th>
+            <th>Category</th>
+            <th>Unit Price</th>
+            <th>Stock Lvl</th>
+            <th>Status</th>
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inventoryTableBody">
+          <tr>
+            <td
+              colspan="7"
+              class="text-center py-4 small text-muted"
+              id="loadingRow"
+            >
+              Loading inventory…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer bg-white py-3 border-top">
+      <div class="small text-muted" id="inventorySummary">&nbsp;</div>
+    </div>
+  </div>
+</div>
+<!-- /.admin-dashboard -->
+
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+  <!-- add modal-dialog-centered and custom top margin for a slightly lower vertical position -->
+  <div
+    class="modal-dialog modal-lg modal-dialog-centered"
+    style="margin-top: 8vh"
+  >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Add New Inventory Item</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">Item Name</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="e.g. Copper Pipe 1/2 inch"
+            />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">SKU / Code</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Auto-generated or Manual"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Category</label>
+            <select class="form-select">
+              <option selected>Select Category...</option>
+              <option>Spare Parts</option>
+              <option>Consumables</option>
+              <option>Tools & Equipment</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Brand / Manufacturer</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="e.g. Daikin, Carrier, LG"
+            />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Unit Price (₱)</label>
+            <input type="number" class="form-control" placeholder="0.00" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Initial Stock</label>
+            <input type="number" class="form-control" placeholder="0" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Reorder Level</label>
+            <input type="number" class="form-control" placeholder="5" />
+            <div class="form-text">Alert when stock drops below this</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary">Save Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // inventory admin client logic
+  (function () {
+    const tbody = document.getElementById("inventoryTableBody");
+    const summary = document.getElementById("inventorySummary");
+    const kpiTotal = document.getElementById("kpiTotalItems");
+    const kpiLow = document.getElementById("kpiLowStock");
+    const kpiValue = document.getElementById("kpiTotalValue");
+    let inventoryData = [];
+    let editingId = null;
+    function fmtPrice(p) {
+      return (
+        "₱ " +
+        Number(p || 0).toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      );
+    }
+    function renderItems(items) {
+      inventoryData = items;
+      tbody.innerHTML = "";
+      if (items.length === 0) {
+        tbody.innerHTML =
+          '<tr><td colspan="7" class="text-center py-4 small text-muted">No items defined.</td></tr>';
+        summary.innerText = "0 entries";
+        return;
+      }
+      let totalValue = 0,
+        lowCount = 0;
+      items.forEach((it) => {
+        const status =
+          it.quantity <= it.minStockLevel
+            ? "Low Stock"
+            : it.quantity > 0
+              ? "In Stock"
+              : "Out of Stock";
+        if (it.quantity <= it.minStockLevel) lowCount++;
+        totalValue +=
+          (it.sellingPrice || it.costPrice || 0) * (it.quantity || 0);
+        const row = document.createElement("tr");
+        row.innerHTML = `<td class="ps-4"><div class="d-flex align-items-center"><div class="bg-light rounded p-2 me-3 border d-flex align-items-center justify-content-center" style="width:48px;height:48px"><i class="bi bi-box-seam fs-4 text-secondary"></i></div><div><div class="fw-bold text-dark">${it.itemName}</div><div class="small text-muted">${it.brand ? it.brand.name || it.brand : ""}</div></div></div></td><td><span class="font-monospace text-muted small">${it.barcode || ""}</span></td><td>${it.category ? it.category.name : ""}</td><td class="fw-bold">${fmtPrice(it.sellingPrice || it.costPrice)}</td><td><div class="fw-bold text-dark">${it.quantity || 0}</div>${it.quantity <= it.minStockLevel ? `<div class="small text-danger" style="font-size:0.75rem">Reorder Point: ${it.minStockLevel}</div>` : ""}</td><td><span class="badge ${status === "Low Stock" ? "bg-danger-subtle text-danger border border-danger-subtle" : status === "In Stock" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}">${status}</span></td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary edit-inventory" data-id="${it._id}">Edit</button></td>`;
+        tbody.appendChild(row);
+      });
+      summary.innerText = `${items.length} item${items.length !== 1 ? "s" : ""}`;
+      kpiTotal.innerText = items.length;
+      kpiLow.innerText = lowCount;
+      kpiValue.innerText = fmtPrice(totalValue);
+    }
+    async function loadInventory() {
+      try {
+        const r = await fetch("/api/admin/inventory");
+        if (!r.ok) throw new Error("fail");
+        const j = await r.json();
+        renderItems(j.inventory || []);
+      } catch (e) {
+        console.error(e);
+        tbody.innerHTML =
+          '<tr><td colspan="7" class="text-center py-4 small text-muted text-danger">Failed to load</td></tr>';
+      }
+    }
+    loadInventory();
+
+    // helper to open modal for new or existing item
+    function openModal(item) {
+      const mEl = document.getElementById("addItemModal");
+      const modal =
+        bootstrap && bootstrap.Modal
+          ? bootstrap.Modal.getInstance(mEl) || new bootstrap.Modal(mEl)
+          : null;
+      const form = mEl.querySelector("form");
+      if (item) {
+        editingId = item._id;
+        form.querySelector('[placeholder^="e.g."]').value = item.itemName || "";
+        form.querySelector(
+          'input[placeholder="Auto-generated or Manual"]',
+        ).value = item.barcode || "";
+        form.querySelector("select").value = item.category
+          ? item.category.name
+          : "";
+        form.querySelector(
+          'input[placeholder="e.g. Daikin, Carrier, LG"]',
+        ).value = (item.brand && item.brand.name) || item.brand || "";
+        form.querySelector('input[placeholder="0.00"]').value =
+          item.costPrice || 0;
+        form.querySelector('input[placeholder="0"]').value = item.quantity || 0;
+        form.querySelector('input[placeholder="5"]').value =
+          item.minStockLevel || 0;
+        form.querySelector("textarea").value = item.description || "";
+      } else {
+        editingId = null;
+        form.reset();
+      }
+      modal && modal.show();
+    }
+
+    document.body.addEventListener("click", function (e) {
+      if (e.target.matches(".edit-inventory")) {
+        const id = e.target.dataset.id;
+        const item = inventoryData.find((i) => i._id === id);
+        if (item) openModal(item);
+      }
+    });
+
+    const addBtn = document.querySelector("#addItemModal .btn-primary");
+    addBtn &&
+      addBtn.addEventListener("click", async () => {
+        const form = document.querySelector("#addItemModal form");
+        const data = {
+          itemName: form.querySelector('[placeholder^="e.g."]').value.trim(),
+          barcode: form
+            .querySelector('input[placeholder="Auto-generated or Manual"]')
+            .value.trim(),
+          category: form.querySelector("select").value,
+          brand: form
+            .querySelector('input[placeholder="e.g. Daikin, Carrier, LG"]')
+            .value.trim(),
+          costPrice:
+            parseFloat(form.querySelector('input[placeholder="0.00"]').value) ||
+            0,
+          quantity:
+            parseInt(form.querySelector('input[placeholder="0"]').value) || 0,
+          minStockLevel:
+            parseInt(form.querySelector('input[placeholder="5"]').value) || 0,
+          description: form.querySelector("textarea").value.trim(),
+        };
+        try {
+          let url = "/api/admin/inventory";
+          let method = "POST";
+          if (editingId) {
+            url += "/" + editingId;
+            method = "PATCH";
+          }
+          const r = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          if (r.ok) {
+            const m = bootstrap.Modal.getInstance(
+              document.getElementById("addItemModal"),
+            );
+            m && m.hide();
+            loadInventory();
+          } else {
+            const j = await r.json();
+            alert(j.error || "failed");
+          }
+        } catch (e) {
+          alert("failed");
+        }
+      });
+  })();
+</script>

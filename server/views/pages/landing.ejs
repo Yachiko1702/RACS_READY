@@ -17,7 +17,7 @@
             and appliance repair services powered by intelligent scheduling
             and inventory-backed operations.
           </p>
-          <%- include('../partials/cta-hero', { primaryHref: '/services', primaryLabel: 'Book a Service', secondaryHref: '/products', secondaryLabel: 'View Products' }) %>
+          <%- include('../partials/cta-hero', { primaryHref: '/services', primaryLabel: 'Book a Service', secondaryHref: '/products', secondaryLabel: 'View Products', secondaryClass: 'text-white' }) %>
         </div>
       </div>
       <!-- Blob Column -->
@@ -31,7 +31,7 @@
 
 <br>
 <div class="section-divider my-4 text-center">
-  <span><i class="bi bi-snow2"></i></span>
+  <span class="no-border"><i class="bi bi-snow2"></i></span>
 </div>
 
 <!-- Section 2 Technician details -->
@@ -121,7 +121,7 @@
 <br>
 <!-- Section Divider -->
 <div class="section-divider">
-  <span><i class="bi bi-snow2"></i></span>
+  <span class="no-border"><i class="bi bi-snow2"></i></span>
 </div>
 
 <!-- ===== Section 4: Services ===== -->
@@ -158,7 +158,7 @@
 
 <br>
 <div class="section-divider my-4 text-center">
-  <span><i class="bi bi-snow2"></i></span>
+  <span class="no-border"><i class="bi bi-snow2"></i></span>
 </div>
 <br>
 
@@ -226,13 +226,13 @@
 
   <div class="staff-carousel">
     <% const staff = [
-      { name: 'Edmon Calidro', role: 'Proprietor / Technician / Owner', img: 'images/staff/staff.webp' },
-      { name: 'Loida Calidro', role: 'Owner', img: 'images/staff/staff.webp' },
-      { name: 'Kyla de Guzman', role: 'Secretary', img: 'images/staff/staff.webp' },
-      { name: 'Myles Capinpin', role: 'Secretary / Marketing', img: 'images/staff/staff.webp' },
-      { name: 'Darius Santos', role: 'Helper', img: 'images/staff/staff.webp' },
-      { name: 'Darrel Santos', role: 'Helper', img: 'images/staff/staff.webp' },
-      { name: 'Raymark Lopez', role: 'Multi-skilled Worker', img: 'images/staff/staff.webp' }
+      { name: 'Edmon Calidro', role: 'Proprietor / Technician / Owner', img: '/images/staff/staff.webp' },
+      { name: 'Loida Calidro', role: 'Owner', img: '/images/staff/staff.webp' },
+      { name: 'Kyla de Guzman', role: 'Secretary', img: '/images/staff/staff.webp' },
+      { name: 'Myles Capinpin', role: 'Secretary / Marketing', img: '/images/staff/staff.webp' },
+      { name: 'Darius Santos', role: 'Helper', img: '/images/staff/staff.webp' },
+      { name: 'Darrel Santos', role: 'Helper', img: '/images/staff/staff.webp' },
+      { name: 'Raymark Lopez', role: 'Multi-skilled Worker', img: '/images/staff/staff.webp' }
     ]; %>
 
     <% staff.forEach((member, index) => { %>

@@ -1,0 +1,360 @@
+<div class="sidebar" id="sidebar">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <div class="header-logo">
+      <img src="/images/staff/staff.webp" alt="Logo" />
+    </div>
+    <hr class="header-separator" aria-hidden="true" />
+    <div class="header-title">
+      <h4 class="m-0" style="color: white">Admin</h4>
+    </div>
+  </div>
+
+  <!-- Sidebar Navigation -->
+  <ul class="sidebar-nav nav-list">
+    <!-- Dashboard -->
+    <li class="nav-item">
+      <a href="/admin" class="nav-link">
+        <i class="bi bi-speedometer2 nav-icon"></i>
+        <span class="nav-label">Dashboard</span>
+        <span class="nav-tooltip">Dashboard</span>
+      </a>
+    </li>
+    <!-- Reports -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#reports-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-bar-chart-line nav-icon"></i>
+        <span class="nav-label">Reports</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="reports-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/reports/service" class="nav-link"
+              ><i class="bi bi-bar-chart nav-icon"></i
+              ><span class="nav-label">Service Reports</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/reports/inventory" class="nav-link"
+              ><i class="bi bi-clipboard-data nav-icon"></i
+              ><span class="nav-label">Inventory Reports</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/reports/revenue" class="nav-link"
+              ><i class="bi bi-currency-dollar nav-icon"></i
+              ><span class="nav-label">Revenue Reports</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Appointments -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#appointments-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-calendar-check nav-icon"></i>
+        <span class="nav-label">Appointments</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="appointments-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/appointments/overview" class="nav-link"
+              ><i class="bi bi-columns-gap nav-icon"></i
+              ><span class="nav-label">Overview</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/appointments" class="nav-link"
+              ><i class="bi bi-card-list nav-icon"></i
+              ><span class="nav-label">Appointments</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/appointments/calendar" class="nav-link"
+              ><i class="bi bi-calendar2 nav-icon"></i
+              ><span class="nav-label">Calendar</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Jobs -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#jobs-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-briefcase nav-icon"></i>
+        <span class="nav-label">Jobs</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="jobs-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/jobs/active" class="nav-link"
+              ><i class="bi bi-play-circle nav-icon"></i
+              ><span class="nav-label">Active Jobs</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/jobs/completed" class="nav-link"
+              ><i class="bi bi-check-circle nav-icon"></i
+              ><span class="nav-label">Completed Jobs</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Inventory -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#inventory-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-box-seam nav-icon"></i>
+        <span class="nav-label">Inventory</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="inventory-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/inventory" class="nav-link"
+              ><i class="bi bi-list-ul nav-icon"></i
+              ><span class="nav-label">Inventory List</span></a
+            >
+          </li>
+          <li>
+            <a href="#" class="nav-link"
+              ><i class="bi bi-upc-scan nav-icon"></i
+              ><span class="nav-label">Scan Item (Barcode)</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/inventory/history" class="nav-link"
+              ><i class="bi bi-clock-history nav-icon"></i
+              ><span class="nav-label">Stock History</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Customers -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#customers-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-people nav-icon"></i>
+        <span class="nav-label">Customers</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="customers-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/customers/list" class="nav-link"
+              ><i class="bi bi-people nav-icon"></i
+              ><span class="nav-label">Customer List</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/customers/privileges" class="nav-link"
+              ><i class="bi bi-key nav-icon"></i
+              ><span class="nav-label">Customer Privileges</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Staff -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#staff-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-person-badge nav-icon"></i>
+        <span class="nav-label">Staff</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="staff-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/staff/list" class="nav-link"
+              ><i class="bi bi-people-fill nav-icon"></i
+              ><span class="nav-label">Staff List</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Payments -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#payments-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-currency-dollar nav-icon"></i>
+        <span class="nav-label">Payments</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="payments-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/payments" class="nav-link"
+              ><i class="bi bi-list-ul nav-icon"></i
+              ><span class="nav-label">All payments</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/payments/pending" class="nav-link"
+              ><i class="bi bi-clock nav-icon"></i
+              ><span class="nav-label">Pending</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/payments/completed" class="nav-link"
+              ><i class="bi bi-check2-circle nav-icon"></i
+              ><span class="nav-label">Completed</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+    <!-- Services -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#services-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-tools nav-icon"></i>
+        <span class="nav-label">Services</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="services-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/services/core" class="nav-link"
+              ><i class="bi bi-gear nav-icon"></i
+              ><span class="nav-label">Core Services</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/services/repair" class="nav-link"
+              ><i class="bi bi-wrench nav-icon"></i
+              ><span class="nav-label">Repair Services</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Technicians -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#technicians-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-person-workspace nav-icon"></i>
+        <span class="nav-label">Technicians</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="technicians-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/technicians" class="nav-link"
+              ><i class="bi bi-people-fill nav-icon"></i
+              ><span class="nav-label">Technician List</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/technicians/schedules" class="nav-link"
+              ><i class="bi bi-calendar3 nav-icon"></i
+              ><span class="nav-label">Schedules</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/technicians/scheduling" class="nav-link"
+              ><i class="bi bi-sliders nav-icon"></i
+              ><span class="nav-label">Scheduling</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Settings -->
+    <li class="nav-item">
+      <button
+        class="btn btn-toggle nav-link collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#settings-collapse"
+        aria-expanded="false"
+      >
+        <i class="bi bi-gear nav-icon"></i>
+        <span class="nav-label">Settings</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </button>
+      <div class="collapse" id="settings-collapse">
+        <ul class="btn-toggle-nav list-unstyled">
+          <li>
+            <a href="/admin/settings/system" class="nav-link"
+              ><i class="bi bi-hdd-network nav-icon"></i
+              ><span class="nav-label">System settings</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/settings/email" class="nav-link"
+              ><i class="bi bi-envelope nav-icon"></i
+              ><span class="nav-label">Email / SMTP</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/roles" class="nav-link"
+              ><i class="bi bi-shield-lock nav-icon"></i
+              ><span class="nav-label">Roles & Permissions</span>
+              <span class="nav-tooltip">Access control</span></a
+            >
+          </li>
+          <li>
+            <a href="/admin/logs" class="nav-link"
+              ><i class="bi bi-file-text nav-icon"></i
+              ><span class="nav-label">System Logs</span>
+              <span class="nav-tooltip">System Logs</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</div>

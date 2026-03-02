@@ -43,13 +43,20 @@
         </li>
       </ul>
 
-      <a href="/login" class="btn btn-outline-primary ms-lg-3 me-2">
-        <i class="bi bi-box-arrow-in-right me-1"></i> Login
-      </a>
-
-      <a href="/register" class="btn btn-primary ms-lg-1">
-        <i class="bi bi-person-plus me-1"></i> Register
-      </a>
+      <% if (typeof user !== 'undefined' && user) { %>
+        <div class="d-flex align-items-center">
+          <button id="profileToggle" class="btn btn-light border rounded-circle me-2" aria-label="Profile">
+            <!-- apply darker gradient to icon instead of flat color -->
+            <i class="bi bi-person-circle fs-4 text-dark"></i>
+          </button>
+          <span class="d-none d-lg-inline me-3">Hello, <%= user.email.split('@')[0] %></span>
+        </div>
+        <%- include('../partials/sidebar') %>
+      <% } else { %>
+        <a href="/login" class="btn btn-outline-primary ms-lg-3">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Login / Register
+        </a>
+      <% } %>
     </div>
   </div>
-</nav>
+</nav> 

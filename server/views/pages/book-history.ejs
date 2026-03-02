@@ -1,0 +1,151 @@
+<div
+  class="container py-5 page-min-height"
+  id="bookHistoryRoot"
+  data-user-id="<%= user ? user._id : '' %>"
+  data-user-email="<%= user ? user.email : '' %>"
+  data-aos="fade-up"
+  data-aos-duration="800"
+>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3 mb-0">Booking History</h1>
+      <div class="small text-muted">
+        Your past bookings — view details, filter and download receipts.
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input
+              id="bh-search"
+              class="form-control"
+              placeholder="Search booking ID, service, technician..."
+            />
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <select id="bh-status" class="form-select">
+            <option value="all">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="re-scheduled">Re-scheduled</option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <input id="bh-from" type="date" class="form-control" />
+        </div>
+        <div class="col-md-2">
+          <input id="bh-to" type="date" class="form-control" />
+        </div>
+
+        <div class="col-md-1 text-end">
+          <button id="bh-clear" class="btn btn-outline-secondary btn-sm">
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bh-listing">
+    <div id="bh-loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div class="small text-muted mt-2">Loading bookings...</div>
+    </div>
+
+    <div id="bh-empty" class="text-center py-5 d-none">
+      <i
+        class="bi bi-calendar-x"
+        style="font-size: 48px; color: var(--bs-gray-400)"
+      ></i>
+      <h4 class="mt-3">No bookings found</h4>
+      <p class="text-muted">You don't have any bookings yet.</p>
+      <div class="mt-3">
+        <button id="bh-show-sample" class="btn btn-outline-primary btn-sm">
+          Show example bookings
+        </button>
+      </div>
+    </div>
+
+    <div id="bh-table-wrapper" class="table-responsive d-none">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th scope="col">Booking</th>
+            <th scope="col">Service</th>
+            <th scope="col">Date / Time</th>
+            <th scope="col">Status</th>
+            <th scope="col">Location</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bh-tbody"></tbody>
+      </table>
+
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <div class="small text-muted" id="bh-count"></div>
+        <div>
+          <button
+            id="bh-prev"
+            class="btn btn-outline-secondary btn-sm me-2"
+            disabled
+          >
+            Prev
+          </button>
+          <button
+            id="bh-next"
+            class="btn btn-outline-secondary btn-sm"
+            disabled
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details modal -->
+  <div class="modal fade" id="bhDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Booking details</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body" id="bh-modal-body">
+          <!-- populated by JS -->
+        </div>
+        <div class="modal-footer">
+          <button id="bh-download-json" class="btn btn-outline-secondary">
+            Download JSON
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/book-history.js"></script>

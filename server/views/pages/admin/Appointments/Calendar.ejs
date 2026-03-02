@@ -1,0 +1,543 @@
+<div class="admin-dashboard container-fluid py-4 appointments-calendar">
+  <%- include('../../../partials/dashboard-styles') %>
+  <link
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    .appointments-calendar {
+      --cal-radius: 14px;
+      --cal-border: #e5e7eb;
+      --cal-muted: #6b7280;
+      --cal-title: #0f172a;
+      --cal-bg: #f8fafc;
+    }
+
+    .appointments-calendar .page-shell {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .appointments-calendar .cal-card,
+    .appointments-calendar .list-card {
+      background: #fff;
+      border: 1px solid var(--cal-border);
+      border-radius: var(--cal-radius);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+      overflow: hidden;
+    }
+
+    .appointments-calendar .cal-head,
+    .appointments-calendar .list-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--cal-border);
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+    }
+
+    .appointments-calendar .cal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .appointments-calendar .title-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .appointments-calendar .title-row h5,
+    .appointments-calendar .list-head h5 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--cal-title);
+    }
+
+    .appointments-calendar .title-row small,
+    .appointments-calendar .list-head small {
+      color: var(--cal-muted);
+    }
+
+    .appointments-calendar .cal-tools {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .appointments-calendar .cal-body {
+      padding: 12px;
+      background: var(--cal-bg);
+    }
+
+    .appointments-calendar #adminAppointmentsCalendar {
+      min-height: 620px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--cal-border);
+      padding: 6px;
+    }
+
+    .appointments-calendar .list-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .appointments-calendar .list-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0 10px;
+    }
+
+    .appointments-calendar .list-body {
+      padding: 12px;
+      max-height: 700px;
+      overflow-y: auto;
+      background: #fff;
+    }
+
+    .appointments-calendar .appt-item {
+      border: 1px solid var(--cal-border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .appointments-calendar .appt-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .appointments-calendar .appt-item:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    .appointments-calendar .appt-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .appointments-calendar .appt-time {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #1e3a8a;
+      background: #eff6ff;
+      border-radius: 999px;
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+
+    .appointments-calendar .appt-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.2;
+    }
+
+    .appointments-calendar .appt-sub {
+      color: var(--cal-muted);
+      font-size: 0.82rem;
+      margin-top: 2px;
+    }
+
+    .appointments-calendar .appt-grid {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 5px 8px;
+      font-size: 0.82rem;
+      margin-top: 8px;
+    }
+
+    .appointments-calendar .appt-grid .k {
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .appointments-calendar .appt-grid .v {
+      color: #1f2937;
+    }
+
+    .appointments-calendar .appt-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .appointments-calendar .empty-state {
+      border: 1px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      color: #64748b;
+      background: #fafafa;
+      font-size: 0.9rem;
+    }
+
+    .appointments-calendar .fc .fc-daygrid-day.fc-day-today {
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .appointments-calendar .fc .fc-daygrid-event {
+      border-radius: 8px;
+      border: none;
+      padding: 1px 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    @media (min-width: 1200px) {
+      .appointments-calendar .page-shell {
+        grid-template-columns: minmax(0, 1fr) 390px;
+      }
+    }
+  </style>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-9">
+        <h1 class="page-title mb-1">
+          <i class="bi bi-calendar4-week me-2"></i>Appointments Calendar
+        </h1>
+        <p class="hero-sub mb-0">
+          Calendar-first planning with a live appointment list for the selected date.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-shell">
+    <section class="cal-card">
+      <div class="cal-head">
+        <div class="title-row">
+          <h5 id="calendarTitle">Schedule</h5>
+          <small id="calendarRangeLabel">&nbsp;</small>
+        </div>
+        <div class="cal-tools">
+          <button id="calPrev" class="btn btn-sm btn-outline-secondary" type="button">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button id="calToday" class="btn btn-sm btn-outline-secondary" type="button">
+            Today
+          </button>
+          <button id="calNext" class="btn btn-sm btn-outline-secondary" type="button">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <div class="btn-group btn-group-sm ms-1" role="group">
+            <button id="viewMonth" type="button" class="btn btn-outline-primary">Month</button>
+            <button id="viewWeek" type="button" class="btn btn-outline-primary">Week</button>
+            <button id="viewDay" type="button" class="btn btn-outline-primary">Day</button>
+          </div>
+        </div>
+      </div>
+      <div class="cal-body">
+        <div id="adminAppointmentsCalendar"></div>
+      </div>
+    </section>
+
+    <aside class="list-card">
+      <div class="list-head">
+        <div>
+          <h5 id="selectedDateLabel">Selected Date</h5>
+          <small id="selectedDateSub">Appointments for this day</small>
+        </div>
+        <span id="selectedDateCount" class="list-count">0</span>
+      </div>
+      <div id="selectedDateList" class="list-body"></div>
+    </aside>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!window.FullCalendar || !window.FullCalendar.Calendar) {
+        console.error("FullCalendar global failed to load");
+        const host = document.getElementById("adminAppointmentsCalendar");
+        if (host) {
+          host.innerHTML =
+            '<div class="empty-state">Calendar library failed to load. Please refresh the page.</div>';
+        }
+        return;
+      }
+
+      const byId = (id) => document.getElementById(id);
+
+      const dom = {
+        calendarEl: byId("adminAppointmentsCalendar"),
+        calPrev: byId("calPrev"),
+        calToday: byId("calToday"),
+        calNext: byId("calNext"),
+        viewMonth: byId("viewMonth"),
+        viewWeek: byId("viewWeek"),
+        viewDay: byId("viewDay"),
+        calendarRangeLabel: byId("calendarRangeLabel"),
+        selectedDateLabel: byId("selectedDateLabel"),
+        selectedDateSub: byId("selectedDateSub"),
+        selectedDateCount: byId("selectedDateCount"),
+        selectedDateList: byId("selectedDateList"),
+      };
+
+      const state = {
+        appointments: [],
+        selectedDateKey: toDateKey(new Date()),
+      };
+
+      function toDateKey(input) {
+        const d = new Date(input);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      }
+
+      function toPrettyDate(input) {
+        const d = new Date(input);
+        return d.toLocaleDateString(undefined, {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+
+      function statusBadge(status) {
+        const s = String(status || "pending").toLowerCase();
+        if (s === "confirmed" || s === "approved") return "success";
+        if (s === "completed") return "primary";
+        if (s === "cancelled" || s === "rejected") return "danger";
+        return "warning";
+      }
+
+      function serviceName(a) {
+        return (
+          (a.service && typeof a.service === "string" && a.service) ||
+          (a.service && a.service.name) ||
+          (a.serviceId && a.serviceId.name) ||
+          (a.serviceId && a.serviceId.title) ||
+          a.serviceType ||
+          "Service"
+        );
+      }
+
+      function customerName(a) {
+        return (
+          a.customerName ||
+          (a.customer && a.customer.name) ||
+          (a.customer && `${a.customer.firstName || ""} ${a.customer.lastName || ""}`.trim()) ||
+          a.customer ||
+          "Customer"
+        );
+      }
+
+      function technicianName(a) {
+        return (
+          a.technicianName ||
+          (a.technician && a.technician.name) ||
+          (a.technicianId && a.technicianId.name) ||
+          "Unassigned"
+        );
+      }
+
+      function timeLabel(a) {
+        const raw = a.startTime;
+        const parsed = Number(raw);
+        if (Number.isFinite(parsed)) {
+          const h = Math.floor(parsed / 60);
+          const m = parsed % 60;
+          const dt = new Date();
+          dt.setHours(h, m, 0, 0);
+          return dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
+        if (raw && /^\d{1,2}:\d{2}/.test(String(raw))) {
+          const dt = new Date(`1970-01-01T${String(raw).slice(0, 5)}:00`);
+          if (!Number.isNaN(dt.getTime())) {
+            return dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+          }
+        }
+        return raw || "Time not set";
+      }
+
+      function eventStart(a) {
+        const base = new Date(a.bookingDate || a.date || a.start || new Date());
+        const startNum = Number(a.startTime);
+        if (Number.isFinite(startNum)) {
+          const dt = new Date(base);
+          dt.setHours(0, 0, 0, 0);
+          dt.setMinutes(startNum);
+          return dt;
+        }
+        if (a.startTime && /^\d{1,2}:\d{2}/.test(String(a.startTime))) {
+          const [hh, mm] = String(a.startTime)
+            .slice(0, 5)
+            .split(":")
+            .map((x) => Number(x));
+          if (Number.isFinite(hh) && Number.isFinite(mm)) {
+            const dt = new Date(base);
+            dt.setHours(hh, mm, 0, 0);
+            return dt;
+          }
+        }
+        return base;
+      }
+
+      function setViewButtons(viewType) {
+        dom.viewMonth.classList.toggle("active", viewType === "dayGridMonth");
+        dom.viewWeek.classList.toggle("active", viewType === "timeGridWeek");
+        dom.viewDay.classList.toggle("active", viewType === "timeGridDay");
+      }
+
+      function renderDateList() {
+        const dayItems = state.appointments
+          .filter((a) => toDateKey(a.bookingDate || a.date || a.start || new Date()) === state.selectedDateKey)
+          .sort((a, b) => {
+            const ta = eventStart(a).getTime();
+            const tb = eventStart(b).getTime();
+            return ta - tb;
+          });
+
+        dom.selectedDateLabel.textContent = toPrettyDate(state.selectedDateKey);
+        dom.selectedDateSub.textContent = "Appointments for selected date";
+        dom.selectedDateCount.textContent = String(dayItems.length);
+
+        if (!dayItems.length) {
+          dom.selectedDateList.innerHTML = '<div class="empty-state">No appointments scheduled for this date.</div>';
+          return;
+        }
+
+        dom.selectedDateList.innerHTML = dayItems
+          .map((a) => {
+            const id = a._id || a.id || "";
+            return `
+              <article class="appt-item">
+                <div class="appt-top">
+                  <div>
+                    <div class="appt-name">${customerName(a)}</div>
+                    <div class="appt-sub">${serviceName(a)}</div>
+                  </div>
+                  <div class="appt-time">${timeLabel(a)}</div>
+                </div>
+                <div class="appt-grid">
+                  <div class="k">Technician</div><div class="v">${technicianName(a)}</div>
+                  <div class="k">Status</div><div class="v"><span class="badge bg-${statusBadge(a.status)}">${a.status || "pending"}</span></div>
+                  <div class="k">Reference</div><div class="v">${a.bookingReference || "—"}</div>
+                </div>
+                <div class="appt-actions">
+                  <a class="btn btn-sm btn-outline-secondary" href="/admin/appointments?sel=${encodeURIComponent(id)}">Open Details</a>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      async function fetchAppointmentsForRange(start, end) {
+        const params = new URLSearchParams({
+          limit: "1000",
+          start,
+          end,
+          status: "confirmed",
+        });
+        const res = await fetch(`/api/appointments?${params.toString()}`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          throw new Error(`appointments fetch failed: ${res.status}`);
+        }
+        const json = await res.json();
+        return json.items || json.appointments || [];
+      }
+
+      const calendar = new FullCalendar.Calendar(dom.calendarEl, {
+        initialView: "dayGridMonth",
+        headerToolbar: false,
+        height: "auto",
+        eventTimeFormat: { hour: "2-digit", minute: "2-digit", hour12: true },
+        dateClick(info) {
+          state.selectedDateKey = toDateKey(info.date);
+          renderDateList();
+        },
+        eventClick(info) {
+          state.selectedDateKey = toDateKey(info.event.start || new Date());
+          renderDateList();
+          const id = info.event.id;
+          if (id) {
+            location.href = `/admin/appointments?sel=${encodeURIComponent(id)}`;
+          }
+        },
+        async datesSet(arg) {
+          dom.calendarRangeLabel.textContent = arg.view.title;
+          setViewButtons(arg.view.type);
+          const start = toDateKey(arg.start);
+          const endDate = new Date(arg.end.getTime() - 1);
+          const end = toDateKey(endDate);
+          try {
+            const appts = await fetchAppointmentsForRange(start, end);
+            state.appointments = appts;
+            calendar.removeAllEvents();
+            calendar.addEventSource(
+              appts.map((a) => {
+                const id = String(a._id || a.id || "");
+                const s = String(a.status || "pending").toLowerCase();
+                const color =
+                  s === "confirmed" || s === "approved"
+                    ? "#2563eb"
+                    : s === "completed"
+                      ? "#16a34a"
+                      : s === "cancelled" || s === "rejected"
+                        ? "#dc2626"
+                        : "#f59e0b";
+
+                return {
+                  id,
+                  title: `${customerName(a)} • ${serviceName(a)}`,
+                  start: eventStart(a),
+                  color,
+                  extendedProps: { raw: a },
+                };
+              }),
+            );
+            renderDateList();
+          } catch (err) {
+            console.error(err);
+            dom.selectedDateList.innerHTML =
+              '<div class="empty-state">Failed to load appointments for calendar range.</div>';
+            dom.selectedDateCount.textContent = "0";
+          }
+        },
+      });
+
+      calendar.render();
+
+      dom.calPrev.addEventListener("click", () => calendar.prev());
+      dom.calToday.addEventListener("click", () => {
+        calendar.today();
+        state.selectedDateKey = toDateKey(new Date());
+        renderDateList();
+      });
+      dom.calNext.addEventListener("click", () => calendar.next());
+      dom.viewMonth.addEventListener("click", () => calendar.changeView("dayGridMonth"));
+      dom.viewWeek.addEventListener("click", () => calendar.changeView("timeGridWeek"));
+      dom.viewDay.addEventListener("click", () => calendar.changeView("timeGridDay"));
+    });
+  </script>
+</div>

@@ -1,0 +1,207 @@
+<%- include('../partials/dashboard-styles') %>
+<div class="admin-dashboard container-fluid px-0 pt-4 pb-2 profile-page">
+<% if (!user) { %>
+  <div class="alert alert-warning m-4">Please log in to view your profile.</div>
+<% } else { %>
+
+  <div class="row gx-0 justify-content-center py-2 px-5" data-aos="fade-up" data-aos-duration="800">
+    <!-- allow card to fill the row without artificial max-width or centering -->
+    <div class="col-12">
+      <div class="card shadow-lg bg-white w-100 mt-1 mb-0" data-aos="fade-up" data-aos-duration="800">
+        <div class="card-header text-white py-4" style="background: linear-gradient(135deg,#2f49a1,#2d0482);">
+          <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-person-circle fs-1 me-2"></i>
+              <h1 class="h2 mb-0">My Profile</h1>
+            </div>
+            <button id="editProfileBtn" class="btn btn-sm btn-light d-flex align-items-center" title="Edit profile">
+              <i class="bi bi-pencil text-gradient-dark me-1"></i>
+              <span>Edit</span>
+            </button>
+          </div>
+          <div class="small text-white-75 mt-1">
+            Manage your account information and preferences.
+          </div>
+        </div>
+        <div class="card-body px-5 py-4">
+          <!-- view mode container -->
+          <div id="profileView">
+            <h6 class="mb-3">Account details</h6>
+            <form class="row gx-3 gy-2">
+              <div class="col-md-6">
+                <label class="form-label small">First name</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                  <input type="text" class="form-control" id="displayFirstName" value="<%= user.firstName||'' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Last name</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                  <input type="text" class="form-control" id="displayLastName" value="<%= user.lastName||'' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Email</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                  <input type="email" class="form-control" id="displayEmail" value="<%= user.email||'' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Phone</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                  <input type="text" class="form-control" id="displayPhone" value="<%= user.phone||'' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Barangay</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-mailbox"></i></span>
+                  <input type="text" class="form-control" id="displayBarangay" value="<%= (user.address && user.address.barangay) || '' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Province</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-flag"></i></span>
+                  <input type="text" class="form-control" id="displayProvince" value="<%= (user.address && user.address.province) || '' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">City / Municipality</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-building"></i></span>
+                  <input type="text" class="form-control" id="displayCity" value="<%= (user.address && user.address.city) || '' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Postal / Zip</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-mailbox"></i></span>
+                  <input type="text" class="form-control" id="displayPostal" value="<%= (user.address && user.address.postalCode) || '' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Created</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
+                  <input type="text" class="form-control" value="<%= user.createdAt?new Date(user.createdAt).toLocaleString():'' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Last login</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                  <input type="text" class="form-control" value="<%= user.lastLogin?new Date(user.lastLogin).toLocaleString():'' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Booking limit</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                  <input type="text" class="form-control" value="<%= user.bookingLimit||0 %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Violations</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-exclamation-triangle"></i></span>
+                  <input type="text" class="form-control" value="<%= user.violations?user.violations.length:0 %>" readonly />
+                </div>
+              </div>
+            </form>
+          </div>
+          <!-- edit form container, hidden initially -->
+          <div id="profileEditForm" class="d-none">
+            <h6 class="mb-3">Account details</h6>
+            <div id="profileAlert" class="alert d-none"></div>
+            <form class="row gx-3 gy-2">
+              <div class="col-md-6">
+                <label class="form-label small">First name</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                  <input id="profileFirstName" name="firstName" type="text" class="form-control" value="<%= user.firstName||'' %>" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Last name</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                  <input id="profileLastName" name="lastName" type="text" class="form-control" value="<%= user.lastName||'' %>" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Email</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                  <input name="email" type="email" class="form-control" value="<%= user.email||'' %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Phone</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                  <input id="profilePhone" name="phone" type="tel" class="form-control" value="<%= user.phone||'' %>" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Barangay</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-mailbox"></i></span>
+                  <select id="profile-addressBarangay" name="address[barangay]" class="form-select">
+                    <option value=""><%= (user.address && user.address.barangay) || 'Select Barangay' %></option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Province</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-flag"></i></span>
+                  <select id="profile-addressProvince" name="address[province]" class="form-select">
+                    <option value=""><%= (user.address && user.address.province) || 'Select Province' %></option>
+                    <!-- options populated by psgc-handler.js -->
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">City / Municipality</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-building"></i></span>
+                  <select id="profile-addressCity" name="address[city]" class="form-select">
+                    <option value=""><%= (user.address && user.address.city) || 'Select City' %></option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Postal / Zip</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-mailbox"></i></span>
+                  <input id="profile-addressPostal" name="address[postalCode]" type="text" class="form-control" value="<%= (user.address && user.address.postalCode) || '' %>" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Booking limit</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                  <input type="text" class="form-control" value="<%= user.bookingLimit||0 %>" readonly />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Violations</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-exclamation-triangle"></i></span>
+                  <input type="text" class="form-control" value="<%= user.violations?user.violations.length:0 %>" readonly />
+                </div>
+              </div>
+            </form>
+            <div class="mt-3">
+              <button id="cancelProfileBtn" class="btn btn-secondary me-2">Cancel</button>
+              <button id="saveProfileBtn" class="btn btn-primary">Save</button>
+            </div>
+<% } %>
+</div>
+
+<script src="/js/profile.js"></script>
