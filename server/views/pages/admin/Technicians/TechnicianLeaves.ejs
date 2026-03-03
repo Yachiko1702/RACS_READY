@@ -1,0 +1,388 @@
+<%- include('../../../partials/dashboard-styles') %>
+
+<style>
+  /* leave-tab button colors */
+  #leaveTabs .btn-warning {
+    color: #fff !important;
+    background-color: #ffc107 !important; /* yellow base */
+    border-color: #ffc107 !important;
+  }
+  #leaveTabs .btn-warning:hover {
+    background-color: #e0a800 !important;
+    border-color: #e0a800 !important;
+    color: #212529 !important;
+  }
+  #leaveTabs .btn-success:hover { background-color: #28a745 !important; }
+  #leaveTabs .btn-danger:hover  { background-color: #dc3545 !important; }
+  #leaveTabs .btn-secondary:hover { background-color: #6c757d !important; }
+</style>
+
+<div class="admin-dashboard container-fluid py-4">
+  <!-- Page Hero -->
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-calendar-x me-2"></i>Technician Leave Requests
+        </h1>
+        <p class="hero-sub">
+          Review, approve, or reject day-off and leave requests submitted by technicians.
+        </p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <span id="pendingBadgeHero" class="badge bg-warning text-dark fs-6 py-2 px-3"
+          style="display:none;">
+          <i class="bi bi-hourglass-split me-1"></i>
+          <span id="pendingCountHero">0</span> Pending
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row mb-4 g-3 kpi-row" id="kpiRow">
+    <div class="col-sm-4 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, #ff9f1c, #ff7422)">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Pending</div>
+            <div class="kpi-value" id="kpiPending">—</div>
+          </div>
+        </div>
+        <div class="kpi-bar" style="background: linear-gradient(90deg, #ff9f1c, #ff7422)"></div>
+      </div>
+    </div>
+    <div class="col-sm-4 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, #2ec4b6, #1a8f85)">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Approved</div>
+            <div class="kpi-value" id="kpiApproved">—</div>
+          </div>
+        </div>
+        <div class="kpi-bar" style="background: linear-gradient(90deg, #2ec4b6, #1a8f85)"></div>
+      </div>
+    </div>
+    <div class="col-sm-4 d-flex">
+      <div class="kpi-card w-100 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, #e63946, #b11226)">
+            <i class="bi bi-x-circle"></i>
+          </div>
+          <div>
+            <div class="kpi-label">Rejected</div>
+            <div class="kpi-value" id="kpiRejected">—</div>
+          </div>
+        </div>
+        <div class="kpi-bar" style="background: linear-gradient(90deg, #e63946, #b11226)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Table Card -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-3">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <!-- Filter tabs as button group for compact layout -->
+        <div class="btn-group" id="leaveTabs" role="group" aria-label="Leave filters">
+          <button type="button" class="btn btn-sm btn-primary active" data-filter="all">All</button>
+          <button type="button" class="btn btn-sm btn-warning" data-filter="pending">Pending</button>
+          <button type="button" class="btn btn-sm btn-success" data-filter="approved">Approved</button>
+          <button type="button" class="btn btn-sm btn-danger" data-filter="rejected">Rejected</button>
+        </div>
+
+        <!-- Search bar floats to end on larger screens -->
+        <div class="ms-auto" style="min-width:220px; max-width:300px;">
+          <div class="input-group input-group-sm w-100">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="search" id="leaveSearch" class="form-control" placeholder="Search technician…" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="leavesTable">
+          <thead class="table-light small text-muted">
+            <tr>
+              <th>Technician</th>
+              <th>Requested Dates</th>
+              <th>Duration</th>
+              <th>Reason</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leavesTableBody">
+            <tr><td colspan="7" class="text-center py-4 text-muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer bg-white text-muted small" id="leavesFooter">
+      Showing all requests.
+    </div>
+  </div>
+</div>
+
+<!-- ── Review Modal (Approve / Reject) ──────────────────────────────────────── -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reviewModalLabel">Review Leave Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Request summary -->
+        <div class="alert alert-light border mb-3" id="reviewSummary">—</div>
+        <div class="mb-3">
+          <label for="reviewNote" class="form-label fw-semibold">Admin Note <span class="text-muted fw-normal">(optional)</span></label>
+          <textarea id="reviewNote" class="form-control" rows="3"
+            placeholder="Add a note for the technician (e.g. reason for rejection, reminder)…"
+            maxlength="500"></textarea>
+        </div>
+        <div id="reviewError" class="alert alert-danger d-none py-2 small"></div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <div class="d-flex gap-2">
+          <button type="button" id="btnRejectLeave" class="btn btn-outline-danger">
+            <i class="bi bi-x-circle me-1"></i>Reject
+          </button>
+          <button type="button" id="btnApproveLeave" class="btn btn-success">
+            <i class="bi bi-check-circle me-1"></i>Approve
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script id="techLeavesInitial" type="application/json"><%- JSON.stringify(initialLeaves || []) %></script>
+<script>
+(function () {
+  const rawData   = JSON.parse(document.getElementById("techLeavesInitial")?.textContent || "[]");
+  const tbody     = document.getElementById("leavesTableBody");
+  const footer    = document.getElementById("leavesFooter");
+  const searchEl  = document.getElementById("leaveSearch");
+
+  let allItems    = rawData;
+  let activeFilter = "all";
+
+  // ── Formatters ────────────────────────────────────────────────────────────
+  function fmtDate(d) {
+    const dt = new Date(d);
+    return isNaN(dt.getTime()) ? "—"
+      : dt.toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  function daysBetween(start, end) {
+    const s = new Date(start);
+    const e = new Date(end);
+    if (isNaN(s.getTime()) || isNaN(e.getTime())) return 1;
+    return Math.max(1, Math.round((e - s) / 86400000) + 1);
+  }
+
+  function statusBadge(s) {
+    if (s === "approved") return '<span class="badge bg-success">Approved</span>';
+    if (s === "rejected") return '<span class="badge bg-danger">Rejected</span>';
+    return '<span class="badge bg-warning text-dark">Pending</span>';
+  }
+
+  function actionButtons(lv) {
+    if (lv.status !== "pending") {
+      return `<button class="btn btn-xs btn-outline-secondary py-0 px-2"
+        onclick="openReview('${lv._id}')" title="Update decision">
+        <i class="bi bi-pencil"></i>
+      </button>`;
+    }
+    return `<div class="d-flex gap-1 justify-content-end">
+      <button class="btn btn-xs btn-success py-0 px-2"
+        onclick="quickAction('${lv._id}','approved')" title="Approve">
+        <i class="bi bi-check-lg"></i>
+      </button>
+      <button class="btn btn-xs btn-outline-danger py-0 px-2"
+        onclick="openReview('${lv._id}')" title="Reject / Review">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>`;
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function render() {
+    const q = (searchEl.value || "").toLowerCase().trim();
+    let items = allItems;
+
+    if (activeFilter !== "all") {
+      items = items.filter((lv) => lv.status === activeFilter);
+    }
+    if (q) {
+      items = items.filter((lv) => {
+        const tech = (lv.technician && (lv.technician.name || lv.technician.email)) || "";
+        return tech.toLowerCase().includes(q);
+      });
+    }
+
+    // KPI recount from full list
+    const pending  = allItems.filter((l) => l.status === "pending").length;
+    const approved = allItems.filter((l) => l.status === "approved").length;
+    const rejected = allItems.filter((l) => l.status === "rejected").length;
+    const kpiPending = document.getElementById("kpiPending");
+    const kpiApproved = document.getElementById("kpiApproved");
+    const kpiRejected = document.getElementById("kpiRejected");
+    const tabPendingBadge = document.getElementById("tabPendingBadge");
+    const hero = document.getElementById("pendingBadgeHero");
+    const pendingCountHero = document.getElementById("pendingCountHero");
+
+    if (kpiPending) kpiPending.textContent = pending;
+    if (kpiApproved) kpiApproved.textContent = approved;
+    if (kpiRejected) kpiRejected.textContent = rejected;
+    if (tabPendingBadge) tabPendingBadge.textContent = pending;
+    if (pendingCountHero) pendingCountHero.textContent = pending;
+    if (hero) hero.style.display = pending > 0 ? "" : "none";
+
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No leave requests found.</td></tr>';
+      footer.textContent = "No results.";
+      return;
+    }
+
+    tbody.innerHTML = items.map((lv) => {
+      const techName  = (lv.technician && (lv.technician.name || lv.technician.email)) || "Unknown";
+      const s         = fmtDate(lv.startDate);
+      const e         = fmtDate(lv.endDate);
+      const dateRange = s === e ? s : `${s} – ${e}`;
+      const days      = daysBetween(lv.startDate, lv.endDate);
+      const submitted = fmtDate(lv.createdAt);
+      const reason    = lv.reason || '<span class="text-muted fst-italic">—</span>';
+      return `<tr id="leaveRow-${lv._id}">
+        <td>
+          <div class="fw-semibold">${techName}</div>
+          ${lv.technician && lv.technician.email ? `<div class="small text-muted">${lv.technician.email}</div>` : ""}
+        </td>
+        <td>${dateRange}</td>
+        <td>${days} day${days > 1 ? "s" : ""}</td>
+        <td class="small" style="max-width:200px;">${reason}</td>
+        <td class="small text-muted">${submitted}</td>
+        <td>${statusBadge(lv.status)}
+          ${lv.adminNote ? `<div class="small text-muted mt-1 fst-italic">${lv.adminNote}</div>` : ""}
+        </td>
+        <td class="text-end">${actionButtons(lv)}</td>
+      </tr>`;
+    }).join("");
+
+    footer.textContent = `Showing ${items.length} of ${allItems.length} request${allItems.length !== 1 ? "s" : ""}.`;
+  }
+
+  // ── Fetch latest from server ───────────────────────────────────────────────
+  async function refreshFromServer() {
+    try {
+      const r = await fetch("/api/admin/leave-requests");
+      const d = await r.json();
+      if (r.ok && Array.isArray(d.items)) {
+        allItems = d.items;
+        render();
+      }
+    } catch (_) { /* ignore, keep current data */ }
+  }
+
+  // ── Quick approve without note ─────────────────────────────────────────────
+  window.quickAction = async function (id, status) {
+    if (!id || !status) return;
+    const row = document.getElementById(`leaveRow-${id}`);
+    if (row) row.style.opacity = "0.5";
+    try {
+      const r = await fetch(`/api/admin/leave-requests/${id}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ status, adminNote: "" }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed");
+      // Update local data
+      const item = allItems.find((l) => String(l._id) === String(id));
+      if (item) { item.status = status; item.adminNote = ""; }
+      render();
+      if (window.notify) window.notify.toast(`Leave request ${status}.`, status === "approved" ? "success" : "danger");
+    } catch (err) {
+      if (row) row.style.opacity = "";
+      if (window.notify) window.notify.toast(err.message || "Error", "danger");
+    }
+  };
+
+  // ── Review modal ───────────────────────────────────────────────────────────
+  let _reviewId = null;
+  window.openReview = function (id) {
+    _reviewId = id;
+    const lv = allItems.find((l) => String(l._id) === String(id));
+    if (!lv) return;
+    const techName  = (lv.technician && lv.technician.name) || "Unknown";
+    const s         = fmtDate(lv.startDate);
+    const e         = fmtDate(lv.endDate);
+    const dateRange = s === e ? s : `${s} – ${e}`;
+    document.getElementById("reviewSummary").innerHTML =
+      `<strong>${techName}</strong> — <span class="text-muted">${dateRange}</span><br/>` +
+      (lv.reason ? `<em class="small text-muted">${lv.reason}</em>` : "");
+    document.getElementById("reviewNote").value = lv.adminNote || "";
+    document.getElementById("reviewError").classList.add("d-none");
+    new bootstrap.Modal(document.getElementById("reviewModal")).show();
+  };
+
+  async function submitReview(status) {
+    if (!_reviewId) return;
+    const note = document.getElementById("reviewNote").value;
+    const errEl = document.getElementById("reviewError");
+    const approveBtn = document.getElementById("btnApproveLeave");
+    const rejectBtn  = document.getElementById("btnRejectLeave");
+    errEl.classList.add("d-none");
+    approveBtn.disabled = rejectBtn.disabled = true;
+    try {
+      const r = await fetch(`/api/admin/leave-requests/${_reviewId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ status, adminNote: note }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed");
+      const item = allItems.find((l) => String(l._id) === String(_reviewId));
+      if (item) { item.status = status; item.adminNote = note; }
+      bootstrap.Modal.getInstance(document.getElementById("reviewModal")).hide();
+      render();
+      if (window.notify) window.notify.toast(`Leave request ${status}.`, status === "approved" ? "success" : "danger");
+    } catch (err) {
+      errEl.textContent = err.message || "Action failed.";
+      errEl.classList.remove("d-none");
+    } finally {
+      approveBtn.disabled = rejectBtn.disabled = false;
+    }
+  }
+
+  document.getElementById("btnApproveLeave")?.addEventListener("click", () => submitReview("approved"));
+  document.getElementById("btnRejectLeave")?.addEventListener("click",  () => submitReview("rejected"));
+
+  // ── Filter tabs ────────────────────────────────────────────────────────────
+  document.getElementById("leaveTabs")?.querySelectorAll("[data-filter]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#leaveTabs [data-filter]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeFilter = btn.dataset.filter;
+      render();
+    });
+  });
+
+  searchEl?.addEventListener("input", render);
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  render();
+  // Silently refresh every 60 seconds (in case another admin acted)
+  setInterval(refreshFromServer, 60000);
+})();
+</script>

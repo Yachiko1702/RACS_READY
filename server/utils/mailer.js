@@ -68,8 +68,11 @@ async function sendBookingConfirmationEmail({
   dateLabel, timeLabel, totalLabel,
   paymentMethod, estimatedFee, locationAddress,
   issueDescription, travelMins, serviceDuration,
+  isConfirmed = false, // when true, this is the follow‑up confirmation email
 }) {
-  const subject = `Booking Confirmed – ${bookingReference} | CALIDRO RACS`;
+  const subject = isConfirmed
+    ? `Booking Confirmed – ${bookingReference} | CALIDRO RACS`
+    : `Booking Request Received – ${bookingReference} | CALIDRO RACS`;
   const feeDisplay = estimatedFee ? `₱${Number(estimatedFee).toFixed(2)}` : "To be confirmed";
   const payLabel   = paymentMethod === "gcash" ? "GCash" : "Cash on Delivery";
   const durationHr = serviceDuration >= 60
@@ -79,6 +82,14 @@ async function sendBookingConfirmationEmail({
       <tr><td style="padding:6px 0;color:#6c757d;">Travel time</td><td style="padding:6px 0;font-weight:600;">${travelMins} min</td></tr>` : "";
   const issueLine = issueDescription ? `
       <tr><td style="padding:6px 0;color:#6c757d;">Issue described</td><td style="padding:6px 0;">${issueDescription}</td></tr>` : "";
+  // dynamic header/body for pending vs confirmed
+  const headerSub = isConfirmed ? "Booking Confirmed" : "Booking Request Received";
+  const bodyIntro = isConfirmed
+    ? `Thank you for booking with CALIDRO RACS! Your request has been <strong>confirmed</strong>. We look forward to servicing you.`
+    : `Thank you for booking with CALIDRO RACS! Your request has been submitted and is currently <strong>pending confirmation</strong> by our team. You will receive another notification once it is confirmed.`;
+  const statusPill = isConfirmed
+    ? `<span class="status-pill" style="background:#ecfdf3;color:#047857;border:1px solid #86efac;">✅ CONFIRMED</span>`
+    : `<span class="status-pill">⏳ PENDING CONFIRMATION</span>`;
   const html = `
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <style>body{margin:0;padding:0;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif;}
@@ -97,13 +108,13 @@ td{vertical-align:top;font-size:14px;}
 <div class="wrap">
   <div class="header">
     <h1>🔧 CALIDRO RACS</h1>
-    <p style="margin:8px 0 4px;opacity:.85;">Booking Request Received</p>
+    <p style="margin:8px 0 4px;opacity:.85;">${headerSub}</p>
     <div class="ref-badge">${bookingReference}</div>
   </div>
   <div class="body">
     <p>Hi <strong>${customerName}</strong>,</p>
-    <p>Thank you for booking with CALIDRO RACS! Your request has been submitted and is currently <strong>pending confirmation</strong> by our team. You will receive another notification once it is confirmed.</p>
-    <span class="status-pill">⏳ PENDING CONFIRMATION</span>
+    <p>${bodyIntro}</p>
+    ${statusPill}
 
     <div class="section-title">Booking Details</div>
     <table>

@@ -50,6 +50,8 @@ body {
 /* ensure sidebar uses same font */
 .sidebar {
   font-family: 'Poppins', Inter, sans-serif;
+  /* apply gradient background even if other stylesheet overrides */
+  background: linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%) !important;
 }
 
 /* =========================
@@ -58,10 +60,8 @@ body {
 ========================= */
 .admin-topbar,
 .bg-admin-topbar {
-  /* use requested color and container fluid will also be updated below */
-  background: #1A0F3E;
-  /* border slightly darker for separation */
-  border-bottom: 1px solid #0b1220 !important;
+  /* matchScheduling page hero gradient */
+  background: linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%);
 }
 
 
@@ -130,8 +130,8 @@ body {
   width: 100%;
   max-width: var(--sidebar-width);
 
-  /* match admin dashboard hero gradient with a darker purple tail to mute brightness */
-  background: linear-gradient(120deg, #1a0f4e  0%, #1a0f4e 70%, #1a0f4e 100%);
+  /* match scheduling page hero gradient */
+  background: linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%);
 
   /* purple accents along both edges */
   box-shadow: inset 4px 0 0 #3a0ca3, inset -4px 0 0 #3a0ca3,
@@ -267,7 +267,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #1A0F3E; /* match requested navy-purple tone */
+  background: linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%) !important;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   color: #ffffff; /* ensure text stays white */
 }

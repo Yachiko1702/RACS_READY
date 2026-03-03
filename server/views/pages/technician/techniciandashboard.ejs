@@ -1,4 +1,6 @@
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.css" />
+
 <div class="admin-dashboard container-fluid px-0 py-4">
   <%- include('../../partials/dashboard-styles') %>
 
@@ -9,55 +11,758 @@
           <i class="bi bi-speedometer2 me-2"></i>Technician Dashboard
         </h1>
         <p class="hero-sub small">
-          Quick overview of your profile and tools
+          Your live schedule and location tracking workspace.
         </p>
       </div>
     </div>
   </div>
 
-  <div class="container py-5">
-  <% if (technician && technician.name) { %>
-  <div class="row">
-    <div class="col-md-6">
-      <div class="card shadow-sm mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Your Profile</h5>
-          <p class="card-text mb-1"><strong>Name:</strong> <%= technician.name %></p>
-          <% if (technician.userEmail) { %>
-          <p class="card-text mb-1"><strong>Email:</strong> <%= technician.userEmail %></p>
-          <% } %>
-          <% if (technician.phone) { %>
-          <p class="card-text mb-1"><strong>Phone:</strong> <%= technician.phone %></p>
-          <% } %>
-          <% if (technician.locationText) { %>
-          <p class="card-text mb-1"><strong>Location:</strong> <%= technician.locationText %></p>
-          <% } %>
-          <% if (technician.location && technician.location.coordinates) { %>
-          <p class="card-text"><strong>Coords:</strong> <%= technician.location.coordinates.join(', ') %></p>
-          <% } %>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card shadow-sm mb-4">
-        <div class="card-body">
-          <h5 class="card-title">Quick Actions</h5>
-          <a href="/technician/schedule" class="btn btn-primary mb-2 w-100">
-            <i class="bi bi-calendar3 me-1"></i> View Schedule
-          </a>
-          <a href="/technician/tracker" class="btn btn-success w-100">
-            <i class="bi bi-geo-alt me-1"></i> Start Tracking
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-  <% } else { %>
-  <div class="alert alert-warning">Technician record not found. Please contact support.</div>
-  <% } %>
+  <div class="container pb-4">
+    <% if (!(technician && technician.name)) { %>
+      <div class="alert alert-warning">Technician record not found. Please contact support.</div>
+    <% } %>
 
-  <div class="mt-4 text-center text-muted small">
-    This dashboard will be expanded with upcoming jobs, metrics and
-    notifications in future releases.
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#4361ee,#3a0ca3)">
+              <i class="bi bi-person-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Technician</div>
+              <div class="kpi-value fw-bold"><%= (technician && technician.name) || '—' %></div>
+            </div>
+          </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#4361ee,#3a0ca3)"></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#2ec4b6,#1a8f85)">
+              <i class="bi bi-briefcase-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Upcoming Jobs</div>
+              <div id="techDashUpcomingCount" class="kpi-value fs-4 fw-bold">0</div>
+            </div>
+          </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#2ec4b6,#1a8f85)"></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body d-grid gap-2">
+            <a href="/technician/schedule" class="btn btn-primary">
+              <i class="bi bi-calendar3 me-1"></i>View Full Schedule
+            </a>
+            <a href="/technician/tracker" class="btn btn-success">
+              <i class="bi bi-geo-alt me-1"></i>Open Tracker
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title mb-0">Technician Schedule</h5>
+              <button class="btn btn-sm btn-warning fw-semibold" id="btnRequestLeave"
+                data-bs-toggle="modal" data-bs-target="#leaveRequestModal">
+                <i class="bi bi-calendar-x me-1"></i>Request Day Off
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Customer</th>
+                    <th>Pay</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="techDashScheduleBody">
+                  <tr><td colspan="6" class="text-center text-muted py-3">No upcoming assignments.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="techDashLeaveHistory" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+              <h5 class="card-title mb-0">Live Map (Technician & Customer)</h5>
+              <select id="techDashBookingSelect" class="form-select form-select-sm" style="max-width: 300px;">
+                <option value="">Select booking</option>
+              </select>
+            </div>
+            <div class="small text-muted mb-2" id="techDashMapMeta">Waiting for GPS permission…</div>
+            <div id="techDashMap" style="height: 380px; border-radius: 10px; overflow: hidden; border:1px solid #e5e7eb;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- Leave Request Modal (must come before scripts so getElementById finds the form) -->
+<div class="modal fade" id="leaveRequestModal" tabindex="-1" aria-labelledby="leaveRequestModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="leaveRequestModalLabel">
+          <i class="bi bi-calendar-x me-2 text-warning"></i>Request Day Off / Leave
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="leaveRequestForm" novalidate>
+        <div class="modal-body">
+          <p class="text-muted small mb-3">Submit a leave request for admin review. You will be notified once it is approved or rejected.</p>
+          <div id="leaveFormError" class="alert alert-danger d-none py-2 small"></div>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label for="leaveStartDate" class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
+              <input type="date" id="leaveStartDate" name="startDate" class="form-control" required
+                min="<%= new Date().toISOString().slice(0,10) %>" />
+            </div>
+            <div class="col-sm-6">
+              <label for="leaveEndDate" class="form-label fw-semibold">End Date</label>
+              <input type="date" id="leaveEndDate" name="endDate" class="form-control"
+                min="<%= new Date().toISOString().slice(0,10) %>" />
+              <div class="form-text">Leave blank for a single-day request.</div>
+            </div>
+            <div class="col-12">
+              <label for="leaveReason" class="form-label fw-semibold">Reason</label>
+              <textarea id="leaveReason" name="reason" class="form-control" rows="3"
+                placeholder="Briefly describe your reason (optional)…" maxlength="500"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning">
+            <i class="bi bi-send me-1"></i>Submit Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Tool Usage Modal -->
+<div class="modal fade" id="techToolUsageModal" tabindex="-1" aria-labelledby="techToolUsageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="techToolUsageModalLabel">
+          <i class="bi bi-tools me-2"></i>Service Tool Tracking
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-light border py-2 mb-3 small" id="toolUsageAppointmentMeta">
+          Select an appointment to log tools.
+        </div>
+
+        <form id="techToolUsageForm" class="row g-2 align-items-end mb-3" novalidate>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold" for="toolItemSelect">Tool / Material</label>
+            <select id="toolItemSelect" class="form-select" required>
+              <option value="">Select inventory item</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold" for="toolQtyInput">Qty Used</label>
+            <input id="toolQtyInput" type="number" min="0.01" step="0.01" class="form-control" required />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold" for="toolFuelInput">Fuel Cost (₱)</label>
+            <input id="toolFuelInput" type="number" min="0" step="0.01" class="form-control" />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold" for="toolCostInput">Cost (₱)</label>
+            <input id="toolCostInput" type="number" min="0" step="0.01" class="form-control" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold" for="toolNotesInput">Notes</label>
+            <input id="toolNotesInput" type="text" maxlength="500" class="form-control" placeholder="Optional note (e.g. condenser cleaning)" />
+          </div>
+          <div class="col-12 d-flex justify-content-between align-items-center mt-2">
+            <div id="toolUsageFormError" class="text-danger small"></div>
+            <button class="btn btn-dark" type="submit" id="toolUsageSubmitBtn">
+              <i class="bi bi-plus-circle me-1"></i>Add Usage
+            </button>
+          </div>
+        </form>
+
+        <div class="table-responsive border rounded">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Time</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Fuel Cost</th>
+                <th>Cost</th>
+                <th>Notes</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody id="toolUsageTableBody">
+              <tr><td colspan="5" class="text-center text-muted py-3">No tool usage records yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js"></script>
+<script id="techDashInitialAppointments" type="application/json"><%- JSON.stringify(initialAppointments || []) %></script>
+<!-- prep modal placement and styles so it isn\'t blocked/blurred -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    ["leaveRequestModal", "techToolUsageModal"].forEach((id) => {
+      const modal = document.getElementById(id);
+      if (modal && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+      }
+    });
+    const style = document.createElement("style");
+    style.textContent = ".modal { z-index: 3500 !important; } " +
+                        ".modal-backdrop { z-index: 3400 !important; backdrop-filter: none !important; }";
+    document.head.appendChild(style);
+    ["leaveRequestModal", "techToolUsageModal"].forEach((id) => {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.addEventListener('show.bs.modal', function () {
+        const back = document.querySelector('.modal-backdrop');
+        if (back) {
+          back.style.zIndex = 3400;
+          back.style.backdropFilter = 'none';
+        }
+      });
+    });
+  });
+</script>
+<script>
+  (function () {
+    const appointments = JSON.parse(
+      document.getElementById("techDashInitialAppointments")?.textContent || "[]",
+    );
+    const scheduleBody = document.getElementById("techDashScheduleBody");
+    const bookingSelect = document.getElementById("techDashBookingSelect");
+    const mapMeta = document.getElementById("techDashMapMeta");
+    const upcomingCount = document.getElementById("techDashUpcomingCount");
+
+    function normalizeStatus(status) {
+      const s = String(status || "").toLowerCase();
+      if (s === "approved") return "confirmed";
+      return s || "pending";
+    }
+
+    function badgeClass(status) {
+      const s = normalizeStatus(status);
+      if (s === "confirmed") return "success";
+      if (s === "pending") return "warning";
+      if (s === "completed") return "info";
+      if (s === "cancelled") return "danger";
+      if (s === "re-scheduled") return "primary";
+      return "secondary";
+    }
+
+    function formatDate(d) {
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? "—" : dt.toLocaleDateString();
+    }
+
+    function formatTime(value) {
+      if (value === null || value === undefined || value === "") return "—";
+      const mins = Number(value);
+      if (Number.isFinite(mins)) {
+        const hh = Math.floor(mins / 60);
+        const mm = mins % 60;
+        const ampm = hh >= 12 ? "PM" : "AM";
+        const hh12 = ((hh + 11) % 12) + 1;
+        return `${String(hh12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${ampm}`;
+      }
+      return String(value);
+    }
+
+    function getCustomerLabel(a) {
+      return (
+        a.customerName ||
+        (a.customer && (a.customer.name || a.customer.email)) ||
+        "Customer"
+      );
+    }
+
+    function getCustomerCoords(a) {
+      const c = a && a.location && a.location.coordinates && a.location.coordinates.coordinates;
+      if (!Array.isArray(c) || c.length < 2) return null;
+      const lng = Number(c[0]);
+      const lat = Number(c[1]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      return [lat, lng];
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const list = (appointments || [])
+      .filter((a) => {
+        const d = new Date(a.bookingDate || a.date || 0);
+        return !isNaN(d.getTime()) && d >= today;
+      })
+      .sort((a, b) => {
+        const ad = new Date(a.bookingDate || a.date || 0).getTime();
+        const bd = new Date(b.bookingDate || b.date || 0).getTime();
+        if (ad !== bd) return ad - bd;
+        return Number(a.startTime || 0) - Number(b.startTime || 0);
+      })
+      .slice(0, 30);
+
+    upcomingCount.textContent = String(list.length);
+
+    function payMethodBadge(method) {
+      const m = String(method || "").toLowerCase();
+      if (m === "gcash")  return '<span class="badge bg-primary">GCash</span>';
+      if (m === "cod")    return '<span class="badge bg-secondary">COD</span>';
+      return '<span class="badge bg-light text-dark">' + (method || '—') + '</span>';
+    }
+
+    function buildActionButtons(a) {
+      const id     = String(a._id || a.id || "");
+      const status = normalizeStatus(a.status);
+      const payM   = String(a.paymentMethod || "").toLowerCase();
+      const payS   = String(a.paymentStatus || "").toLowerCase();
+      if (!id || status === "completed" || status === "cancelled") return '';
+      const buttons = [];
+      buttons.push(`<button class="btn btn-xs btn-outline-dark py-0 px-1 me-1" title="Log Tools Used" onclick="techDashOpenTools('${id}')"><i class="bi bi-tools"></i></button>`);
+      // COD only: show Collect Payment button when not yet marked paid
+      if (payM === "cod" && payS !== "paid") {
+        buttons.push(`<button class="btn btn-xs btn-outline-success py-0 px-1 me-1" title="Collect COD Payment" onclick="techDashMarkPaid('${id}', this)"><i class="bi bi-cash-coin"></i></button>`);
+      }
+      // GCash: show a Mark Done button (payment already handled upfront)
+      // Both: mark complete button
+      buttons.push(`<button class="btn btn-xs btn-outline-primary py-0 px-1" title="Mark as Done" onclick="techDashMarkDone('${id}', this)"><i class="bi bi-check-circle"></i></button>`);
+      return buttons.join("");
+    }
+
+    if (!list.length) {
+      scheduleBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No upcoming assignments.</td></tr>';
+    } else {
+      scheduleBody.innerHTML = list.slice(0, 8).map((a) => {
+        const status = normalizeStatus(a.status);
+        return `
+          <tr id="techRow-${a._id || a.id}">
+            <td>${formatDate(a.bookingDate || a.date)}</td>
+            <td>${formatTime(a.startTime || a.time)}</td>
+            <td>${getCustomerLabel(a)}</td>
+            <td>${payMethodBadge(a.paymentMethod)}</td>
+            <td><span class="badge bg-${badgeClass(status)} text-capitalize">${status}</span></td>
+            <td class="text-end">${buildActionButtons(a)}</td>
+          </tr>`;
+      }).join("");
+    }
+
+    list.forEach((a) => {
+      const id = String(a._id || a.id || "");
+      if (!id) return;
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = `${formatDate(a.bookingDate || a.date)} • ${formatTime(a.startTime || a.time)} • ${getCustomerLabel(a)}`;
+      bookingSelect.appendChild(option);
+    });
+
+    let map = L.map("techDashMap").setView([14.676049, 121.043731], 12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    let techMarker = null;
+    let customerMarker = null;
+    let line = null;
+    let currentTechCoords = null;
+
+    function redraw() {
+      const selected = list.find((a) => String(a._id || a.id || "") === String(bookingSelect.value));
+      const customerCoords = selected ? getCustomerCoords(selected) : null;
+
+      if (techMarker) map.removeLayer(techMarker);
+      if (customerMarker) map.removeLayer(customerMarker);
+      if (line) map.removeLayer(line);
+
+      if (currentTechCoords) {
+        techMarker = L.marker(currentTechCoords).addTo(map).bindPopup("Technician (live)");
+      }
+      if (customerCoords) {
+        customerMarker = L.marker(customerCoords).addTo(map).bindPopup("Customer");
+      }
+
+      if (currentTechCoords && customerCoords) {
+        line = L.polyline([currentTechCoords, customerCoords], { color: "#2563eb" }).addTo(map);
+        map.fitBounds([currentTechCoords, customerCoords], { padding: [24, 24] });
+        mapMeta.textContent = `Tracking live technician location for ${getCustomerLabel(selected)}.`;
+      } else if (currentTechCoords) {
+        map.setView(currentTechCoords, 14);
+        mapMeta.textContent = "Technician live location is active. Select a booking to plot the customer marker.";
+      } else {
+        mapMeta.textContent = "Waiting for technician GPS update…";
+      }
+    }
+
+    bookingSelect.addEventListener("change", redraw);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          currentTechCoords = [pos.coords.latitude, pos.coords.longitude];
+          redraw();
+        },
+        () => {
+          mapMeta.textContent = "GPS permission denied or unavailable. Open Tracker for stronger GPS updates.";
+          redraw();
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 },
+      );
+    }
+
+    if (bookingSelect.options.length > 1) {
+      bookingSelect.selectedIndex = 1;
+    }
+    redraw();
+
+    // ── Appointment action handlers (global scope via window.*) ─────────────
+    window.techDashMarkDone = async function (id, btn) {
+      if (!id) return;
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+      try {
+        const r = await fetch(`/api/appointments/${id}/complete`, { method: "POST" });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "Failed to mark done");
+        const row = document.getElementById(`techRow-${id}`);
+        if (row) {
+          const statusCell = row.querySelector("td:nth-child(5)");
+          if (statusCell) statusCell.innerHTML = '<span class="badge bg-info text-capitalize">completed</span>';
+          const actCell = row.querySelector("td:last-child");
+          if (actCell) actCell.innerHTML = '<span class="text-success small"><i class="bi bi-check-circle-fill"></i> Done</span>';
+        }
+        if (window.notify) window.notify.toast("Appointment marked as completed.", "success");
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        if (window.notify) window.notify.toast(err.message || "Error", "danger");
+      }
+    };
+
+    window.techDashMarkPaid = async function (id, btn) {
+      if (!id) return;
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+      try {
+        const r = await fetch(`/api/appointments/${id}/mark-paid`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ markComplete: false }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "Failed to record payment");
+        btn.remove(); // remove the pay button; job still needs to be marked done
+        if (window.notify) window.notify.toast("Payment collected and recorded.", "success");
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        if (window.notify) window.notify.toast(err.message || "Error", "danger");
+      }
+    };
+
+    // ── Leave request modal wiring ─────────────────────────────────────────
+    const leaveHistory = document.getElementById("techDashLeaveHistory");
+    const toolUsageModalEl = document.getElementById("techToolUsageModal");
+    const toolUsageTableBody = document.getElementById("toolUsageTableBody");
+    const toolUsageForm = document.getElementById("techToolUsageForm");
+    const toolItemSelect = document.getElementById("toolItemSelect");
+    const toolQtyInput = document.getElementById("toolQtyInput");
+    const toolNotesInput = document.getElementById("toolNotesInput");
+    const toolUsageFormError = document.getElementById("toolUsageFormError");
+    const toolUsageSubmitBtn = document.getElementById("toolUsageSubmitBtn");
+    const toolUsageAppointmentMeta = document.getElementById("toolUsageAppointmentMeta");
+    let activeToolBookingId = "";
+    let toolCatalog = [];
+
+    function formatDateTime(d) {
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? "—" : dt.toLocaleString();
+    }
+
+    async function ensureToolCatalog() {
+      if (toolCatalog.length) return;
+      const r = await fetch("/api/technician/tools/catalog");
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed to load tool catalog");
+      toolCatalog = d.items || [];
+      toolItemSelect.innerHTML = '<option value="">Select inventory item</option>';
+      toolCatalog.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = String(item._id);
+        const qty = Number(item.quantity || 0);
+        const stockLabel = qty > 0 ? `${qty} ${item.unit || "pcs"}` : "OUT OF STOCK";
+        const unitPrice = Number(item.costPrice || item.sellingPrice || 0);
+        const priceLabel = unitPrice > 0
+          ? ` • ₱${unitPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}/${item.unit || "pcs"}`
+          : " • No price";
+        option.textContent = `${item.itemName} (${stockLabel}${priceLabel})`;
+        option.dataset.costPrice = String(unitPrice || 0);
+        if (qty <= 0) option.disabled = true;
+        toolItemSelect.appendChild(option);
+      });
+    }
+
+    async function loadToolUsage(bookingId) {
+      if (!bookingId) return;
+      const r = await fetch(`/api/technician/appointments/${bookingId}/tools`);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed to load usage history");
+      const items = d.items || [];
+      if (!items.length) {
+        toolUsageTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No tool usage records yet.</td></tr>';
+        return;
+      }
+      toolUsageTableBody.innerHTML = items.map((u) => `
+        <tr>
+          <td>${formatDateTime(u.usedAt || u.createdAt)}</td>
+          <td>${u.itemName || "—"}</td>
+          <td>${u.quantityUsed} ${u.unit || "pcs"}</td>
+          <td>${typeof u.fuelUsed === 'number' ? u.fuelUsed : ''}</td>
+          <td>${typeof u.toolCost === 'number' ? '₱' + u.toolCost.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : ''}</td>
+          <td>${u.notes || "—"}</td>
+          <td class="text-end">
+            <button class="btn btn-xs btn-outline-danger py-0 px-1" onclick="techDashDeleteToolUsage('${u._id}')" title="Undo">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    window.techDashOpenTools = async function (bookingId) {
+      try {
+        activeToolBookingId = String(bookingId || "");
+        const booking = list.find((a) => String(a._id || a.id || "") === activeToolBookingId);
+        toolUsageAppointmentMeta.textContent = booking
+          ? `Logging tools for ${formatDate(booking.bookingDate || booking.date)} ${formatTime(booking.startTime || booking.time)} • ${getCustomerLabel(booking)}`
+          : "Logging tools for selected appointment.";
+        toolUsageFormError.textContent = "";
+        toolQtyInput.value = "";
+        toolNotesInput.value = "";
+        await ensureToolCatalog();
+        await loadToolUsage(activeToolBookingId);
+        const modalInstance = (window.bootstrap && bootstrap.Modal && toolUsageModalEl)
+          ? bootstrap.Modal.getOrCreateInstance(toolUsageModalEl)
+          : null;
+        if (modalInstance) modalInstance.show();
+      } catch (err) {
+        if (window.notify) window.notify.toast(err.message || "Failed to open tool tracker", "danger");
+      }
+    };
+
+    window.techDashDeleteToolUsage = async function (usageId) {
+      if (!usageId) return;
+      if (!confirm("Undo this tool usage entry and restore stock?")) return;
+      try {
+        const r = await fetch(`/api/technician/tool-usage/${usageId}`, { method: "DELETE" });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "Failed to undo usage");
+        await loadToolUsage(activeToolBookingId);
+        toolCatalog = [];
+        await ensureToolCatalog();
+        if (window.notify) window.notify.toast("Tool usage removed and stock restored.", "info");
+      } catch (err) {
+        if (window.notify) window.notify.toast(err.message || "Delete failed", "danger");
+      }
+    };
+
+    if (toolUsageForm) {
+      const syncToolCost = () => {
+        const opt = toolItemSelect.options[toolItemSelect.selectedIndex];
+        const unitCost = opt ? Number(opt.dataset.costPrice || 0) : 0;
+        const qty = Number(toolQtyInput.value || 0);
+        const autoCost = unitCost > 0 && qty > 0 ? unitCost * qty : unitCost;
+        const costInput = document.getElementById('toolCostInput');
+        if (costInput && Number.isFinite(autoCost)) {
+          costInput.value = autoCost ? autoCost.toFixed(2) : "";
+        }
+      };
+      toolItemSelect.addEventListener("change", syncToolCost);
+      toolQtyInput.addEventListener("input", syncToolCost);
+
+      toolUsageForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!activeToolBookingId) return;
+        const inventoryItemId = String(toolItemSelect.value || "");
+        const quantityUsed = Number(toolQtyInput.value);
+        const fuelUsed = Number(document.getElementById('toolFuelInput').value);
+        const toolCost = Number(document.getElementById('toolCostInput').value);
+        const notes = String(toolNotesInput.value || "").trim();
+        toolUsageFormError.textContent = "";
+        toolUsageSubmitBtn.disabled = true;
+        toolUsageSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving';
+        try {
+          const r = await fetch(`/api/technician/appointments/${activeToolBookingId}/tools`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inventoryItemId, quantityUsed, fuelUsed, toolCost, notes }),
+          });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || "Failed to save tool usage");
+          toolQtyInput.value = "";
+          document.getElementById('toolFuelInput').value = "";
+          document.getElementById('toolCostInput').value = "";
+          toolNotesInput.value = "";
+          toolCatalog = [];
+          await ensureToolCatalog();
+          await loadToolUsage(activeToolBookingId);
+          if (window.notify) window.notify.toast("Tool usage recorded successfully.", "success");
+        } catch (err) {
+          toolUsageFormError.textContent = err.message || "Save failed";
+        } finally {
+          toolUsageSubmitBtn.disabled = false;
+          toolUsageSubmitBtn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Add Usage';
+        }
+      });
+    }
+
+    // Leave request form submission
+    const leaveForm = document.getElementById("leaveRequestForm");
+    if (leaveForm) {
+      leaveForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const startDate = document.getElementById("leaveStartDate").value;
+        const endDate   = document.getElementById("leaveEndDate").value || startDate;
+        const reason    = document.getElementById("leaveReason").value;
+        const submitBtn = leaveForm.querySelector("[type=submit]");
+        const errEl     = document.getElementById("leaveFormError");
+        errEl.textContent = "";
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Submitting…';
+        try {
+          const r = await fetch("/api/technician/leave-requests", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ startDate, endDate, reason }),
+          });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || "Failed to submit");
+          bootstrap.Modal.getInstance(document.getElementById("leaveRequestModal")).hide();
+          leaveForm.reset();
+          if (window.notify) window.notify.toast("Leave request submitted successfully.", "success");
+          loadLeaveRequests(); // refresh the leave history panel
+        } catch (err) {
+          errEl.textContent = err.message || "Submission failed.";
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="bi bi-send me-1"></i>Submit Request';
+        }
+      });
+    }
+
+    // Leave cancel handler (global)
+    window.techDashCancelLeave = async function (id, btn) {
+      if (!id) return;
+      if (!confirm("Cancel this leave request?")) return;
+      btn.disabled = true;
+      try {
+        const r = await fetch(`/api/technician/leave-requests/${id}`, { method: "DELETE" });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "Failed");
+        if (window.notify) window.notify.toast("Leave request cancelled.", "info");
+        loadLeaveRequests();
+      } catch (err) {
+        btn.disabled = false;
+        if (window.notify) window.notify.toast(err.message || "Error", "danger");
+      }
+    };
+
+    // Load technician's own leave requests into the history panel
+    async function loadLeaveRequests() {
+      if (!leaveHistory) return;
+      try {
+        const r = await fetch("/api/technician/leave-requests");
+        const d = await r.json();
+        const items = (d.items || []).slice(0, 5);
+        if (!items.length) {
+          leaveHistory.innerHTML = '<p class="text-muted small mb-0">No leave requests yet.</p>';
+          return;
+        }
+        const statusBadge = (s) => {
+          if (s === "approved") return '<span class="badge bg-success">Approved</span>';
+          if (s === "rejected") return '<span class="badge bg-danger">Rejected</span>';
+          return '<span class="badge bg-warning text-dark">Pending</span>';
+        };
+        const formatDateShort = (d) => {
+          const dt = new Date(d);
+          return isNaN(dt.getTime()) ? "—" : dt.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+        };
+        leaveHistory.innerHTML = `
+          <div class="border-top pt-2 mt-2">
+            <div class="small fw-semibold text-muted mb-1">My Recent Leave Requests</div>
+            <div class="list-group list-group-flush">
+              ${items.map((lv) => {
+                const s = formatDateShort(lv.startDate);
+                const e = formatDateShort(lv.endDate);
+                const dateRange = s === e ? s : `${s} – ${e}`;
+                const canCancel  = lv.status === "pending";
+                return `<div class="list-group-item list-group-item-action px-0 py-2 d-flex justify-content-between align-items-start gap-2">
+                  <div class="small">
+                    <div class="fw-semibold">${dateRange}</div>
+                    ${lv.reason ? `<div class="text-muted">${lv.reason}</div>` : ""}
+                    ${lv.adminNote ? `<div class="text-info fst-italic">Admin: ${lv.adminNote}</div>` : ""}
+                  </div>
+                  <div class="d-flex gap-1 align-items-center flex-shrink-0">
+                    ${statusBadge(lv.status)}
+                    ${canCancel ? `<button class="btn btn-xs btn-outline-danger py-0 px-1" onclick="techDashCancelLeave('${lv._id}', this)" title="Cancel request"><i class="bi bi-x"></i></button>` : ""}
+                  </div>
+                </div>`;
+              }).join("")}
+            </div>
+          </div>`;
+      } catch (err) {
+        leaveHistory.innerHTML = '<p class="text-danger small mb-0">Could not load leave requests.</p>';
+      }
+    }
+
+    loadLeaveRequests();
+
+    // Start date change: keep end date >= start date
+    document.getElementById("leaveStartDate")?.addEventListener("change", function () {
+      const endInput = document.getElementById("leaveEndDate");
+      if (!endInput) return;
+      endInput.min = this.value;
+      if (endInput.value && endInput.value < this.value) endInput.value = this.value;
+    });
+
+    // Auto-show/hide error box when text is set
+    const _leaveErr = document.getElementById("leaveFormError");
+    if (_leaveErr) {
+      new MutationObserver(() => {
+        _leaveErr.classList.toggle("d-none", !_leaveErr.textContent.trim());
+      }).observe(_leaveErr, { childList: true, characterData: true, subtree: true });
+    }
+  })();
+</script>
+

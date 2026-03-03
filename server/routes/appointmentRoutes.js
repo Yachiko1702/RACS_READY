@@ -10,7 +10,7 @@ const RepairService = require("../models/RepairService");
 const axios = require("axios");
 const googleCalendarSync = require("../utils/googleCalendarSync");
 const { sendBookingConfirmationEmail, sendTechnicianNotificationEmail } = require("../utils/mailer");
-const paymongo = require("../utils/paymongo");
+const Payment = require("../models/Payment");
 const fs = require("fs");
 const path = require("path");
 
@@ -172,7 +172,9 @@ router.post("/create", auth.authenticate, async (req, res) => {
     technicianId,
     customerLocation,
     paymentMethod,
-    gcashPhone,
+    gcashNumber,
+    paymentReference,
+    paymentProof,
     downpaymentAmount,
     travelFare,
     travelTime,
@@ -185,17 +187,28 @@ router.post("/create", auth.authenticate, async (req, res) => {
 
   // ── Payment validation ────────────────────────────────────────────────
   if (paymentMethod === "gcash") {
-    // GCash is now processed entirely via PayMongo — no manual proof required.
-    // We only need the booking data; the PayMongo source is created post-save.
-    // Optional gcash phone stored for reference only.
+    const phone = String(gcashNumber || "").trim();
+    const reference = String(paymentReference || "").trim();
+    const proof = String(paymentProof || "").trim();
+    if (!phone || !reference || !proof) {
+      return res.status(400).json({
+        error: "GCash number, reference number, and receipt screenshot are required.",
+      });
+    }
   }
   if (paymentMethod === "cod") {
-    // enforce downpayment for cash bookings
+    // enforce downpayment (and a reference) for cash bookings
     const down = Number(req.body.downpaymentAmount || 0);
     if (!down || down <= 0) {
       return res
         .status(400)
         .json({ error: "A downpayment amount is required for cash bookings." });
+    }
+    const cref = String(paymentReference || "").trim();
+    if (!cref) {
+      return res
+        .status(400)
+        .json({ error: "A reference number is required for cash bookings." });
     }
     req.body.downpaymentAmount = down;
   }
@@ -288,8 +301,9 @@ router.post("/create", auth.authenticate, async (req, res) => {
       technicianId: technicianId || undefined,
       status: "pending",
       paymentMethod: paymentMethod || "cod",
-      // gcash phone (optional reference for GCash via PayMongo bookings)
-      gcashNumber:  (req.body.gcashPhone || undefined),
+      gcashNumber:  (gcashNumber || undefined),
+      paymentReference: paymentReference || undefined,
+      paymentProof: paymentProof || undefined,
       downpaymentAmount: req.body.downpaymentAmount || undefined,
       paymentNotes:  cashNotes || undefined,
       travelFare:  fare || undefined,
@@ -405,49 +419,43 @@ router.post("/create", auth.authenticate, async (req, res) => {
       })();
     }
 
-    // ── 8. If GCash, create a PayMongo GCash Source and return redirect ──
-    let paymongoData = null;
-    if (paymentMethod === "gcash") {
+    // ── 8. Create payment transaction record(s) ───────────────────────────
+    if (paymentMethod === "cod") {
       try {
-        const baseUrl = process.env.APP_BASE_URL || `${req.protocol}://${req.get("host")}`;
-        const gcashAmt = fee || (Number(req.body.downpaymentAmount) || 0);
-        const source = await paymongo.createGcashSource({
-          amount:        gcashAmt,
-          description:   `Booking #${bookingReference} – ${serviceName}`,
-          successUrl:    `${baseUrl}/payment/success?ref=${bookingReference}&method=gcash`,
-          failedUrl:     `${baseUrl}/payment/failed?ref=${bookingReference}&method=gcash`,
-          billingName:   req.user?.name || req.user?.fullName || undefined,
-          billingEmail:  req.user?.email || undefined,
-          billingPhone:  req.body.gcashPhone || undefined,
-          metadata: {
-            bookingId:  String(appointment._id),
-            bookingRef: bookingReference,
-            serviceId:  String(serviceId || ""),
-          },
+        await Payment.create({
+          bookingId: appointment._id,
+          amount: Number(req.body.downpaymentAmount || downpaymentAmount || 0),
+          method: "cod",
+          gateway: "cod",
+          type: "downpayment",
+          status: "pending",
+          notes: cashNotes || undefined,
         });
-        // store the source id on the booking so webhook can match it
-        await BookingService.findByIdAndUpdate(appointment._id, {
-          paymentGatewayId:     source.sourceId,
-          paymentGatewayStatus: source.status,
-        }).catch(() => {});
-        paymongoData = { redirect: source.checkoutUrl, sourceId: source.sourceId };
-      } catch (pmErr) {
-        console.error("PayMongo GCash source creation failed", pmErr.response?.data || pmErr.message);
-        // Return a graceful error — don't silently swallow it; the booking is saved but payment needs retry
-        return res.status(202).json({
-          success:    true,
-          bookingId:  appointment._id,
-          bookingReference,
-          date:       dateLabel,
-          time:       timeLabel,
-          serviceName,
-          estimatedFee: fee,
-          paymongoError: "Could not initiate GCash checkout. Please contact support with your booking reference.",
-        });
+      } catch (paymentErr) {
+        console.warn("cash payment record creation failed", paymentErr && paymentErr.message);
       }
     }
 
-    // ── 9. Respond ────────────────────────────────────────────────────────
+    // ── 9. Create manual GCash payment record ────────────────────────────
+    if (paymentMethod === "gcash") {
+      try {
+        const gcashAmt = fee || (Number(req.body.downpaymentAmount) || 0);
+        await Payment.create({
+          bookingId: appointment._id,
+          amount: gcashAmt,
+          method: "gcash",
+          gateway: "other",
+          type: "downpayment",
+          status: "pending",
+          reference: paymentReference || undefined,
+          proofUrl: paymentProof || undefined,
+        });
+      } catch (paymentErr) {
+        console.warn("gcash payment record creation failed", paymentErr && paymentErr.message);
+      }
+    }
+
+    // ── 10. Respond ───────────────────────────────────────────────────────
     const respObj = {
       success:          true,
       bookingId:        appointment._id,
@@ -457,9 +465,6 @@ router.post("/create", auth.authenticate, async (req, res) => {
       serviceName,
       estimatedFee:     fee,
     };
-    if (paymongoData) {
-      respObj.paymongo = paymongoData;
-    }
     return res.json(respObj);
   } catch (err) {
     console.error("booking create error", err);
@@ -514,8 +519,15 @@ router.get("/", async (req, res) => {
     }
     if (q.requests) {
       filter.status = "pending";
+    } else if (q.status && q.status !== "all") {
+      filter.status = q.status;
+    } else {
+      // default listing for main appointments view: exclude pending requests
+      filter.status = { $ne: "pending" };
     }
-    if (q.status && q.status !== "all") filter.status = q.status;
+    if (q.technicianId && q.technicianId !== "all") {
+      filter.technicianId = q.technicianId;
+    }
 
     // basic text search (customer name/service)
     if (q.search) {
@@ -642,6 +654,263 @@ router.get("/proof/:token", async (req, res) => {
   }
 });
 
+// GET /walk-in-options - lightweight data for walk-in appointment form
+router.get(
+  "/walk-in-options",
+  auth.authenticate,
+  auth.requireRole(["admin", "secretary"]),
+  async (req, res) => {
+    try {
+      const Technician = require("../models/Technician");
+      const [coreServices, repairServices, technicians] = await Promise.all([
+        CoreService.find({ active: true })
+          .select("_id name basePrice durationMinutes")
+          .sort({ name: 1 })
+          .lean(),
+        RepairService.find({ active: true })
+          .select("_id name basePrice estimatedDurationMinutes applianceType")
+          .sort({ name: 1 })
+          .lean(),
+        Technician.find({ active: true })
+          .select("_id name email phone")
+          .sort({ name: 1 })
+          .lean(),
+      ]);
+
+      return res.json({
+        coreServices,
+        repairServices,
+        technicians,
+      });
+    } catch (err) {
+      console.error("walk-in options error", err);
+      return res.status(500).json({ error: "Failed to load walk-in options" });
+    }
+  },
+);
+
+// POST /walk-in - create an on-site walk-in appointment (admin/secretary)
+router.post(
+  "/walk-in",
+  auth.authenticate,
+  auth.requireRole(["admin", "secretary"]),
+  async (req, res) => {
+    try {
+      let {
+        customerName,
+        customerPhone,
+        customerEmail,
+        customerAddress,
+        customerLocation,
+        serviceId,
+        technicianId,
+        date,
+        startTime,
+        issueDescription,
+        paymentMethod,
+        markPaid,
+        travelFare,
+        travelTime,
+        estimatedFee,
+      } = req.body || {};
+
+      customerName = String(customerName || "").trim();
+      customerPhone = String(customerPhone || "").trim();
+      customerEmail = String(customerEmail || "").trim();
+      customerAddress = String(customerAddress || "").trim();
+      issueDescription = String(issueDescription || "").trim();
+      paymentMethod = String(paymentMethod || "cod").trim().toLowerCase();
+      const parsedTravelFare = Number(travelFare) || 0;
+      const parsedTravelTime = Math.max(0, Number(travelTime) || 0);
+      const parsedEstimatedFee = Number(estimatedFee);
+
+      if (!customerName) {
+        return res.status(400).json({ error: "Customer name is required" });
+      }
+      if (!customerPhone) {
+        return res.status(400).json({ error: "Customer phone is required" });
+      }
+      if (!serviceId) {
+        return res.status(400).json({ error: "Service is required" });
+      }
+      if (!technicianId) {
+        return res.status(400).json({ error: "Technician is required" });
+      }
+      if (!date) {
+        return res.status(400).json({ error: "Booking date is required" });
+      }
+
+      const startMin = parseMinuteValue(startTime);
+      if (!Number.isFinite(startMin) || startMin < 0 || startMin > 1439) {
+        return res.status(400).json({ error: "Invalid start time" });
+      }
+
+      const bookingDate = new Date(String(date) + "T00:00:00");
+      if (Number.isNaN(bookingDate.getTime())) {
+        return res.status(400).json({ error: "Invalid booking date" });
+      }
+      bookingDate.setHours(0, 0, 0, 0);
+
+      // resolve service and duration
+      let serviceDoc = await CoreService.findById(serviceId).lean();
+      let serviceModelName = "CoreService";
+      let serviceDuration = 60;
+      if (!serviceDoc) {
+        serviceDoc = await RepairService.findById(serviceId).lean();
+        serviceModelName = "RepairService";
+        if (!serviceDoc) {
+          return res.status(404).json({ error: "Service not found" });
+        }
+        serviceDuration = Number(serviceDoc.estimatedDurationMinutes) || 60;
+      } else {
+        serviceDuration = Number(serviceDoc.durationMinutes) || 60;
+      }
+
+      const servicePrice = Number(serviceDoc.basePrice) || 0;
+      const endMin = startMin + serviceDuration;
+
+      // normalize technician id and prevent overlap
+      const technicianRefId = await resolveTechnicianRefId(technicianId);
+      await assertNoTechnicianOverlap({
+        technicianId: technicianRefId,
+        bookingDate,
+        startMin,
+        endMin,
+      });
+
+      // unique booking reference
+      let bookingReference = null;
+      for (let i = 0; i < 5; i++) {
+        const ref = generateBookingReference();
+        const exists = await BookingService.findOne({ bookingReference: ref }).lean();
+        if (!exists) {
+          bookingReference = ref;
+          break;
+        }
+      }
+      if (!bookingReference) bookingReference = generateBookingReference();
+
+      const selectedTimeLabel =
+        `${minutesTo12h(startMin)} – ${minutesTo12h(endMin)}`;
+
+      let locationPayload = undefined;
+      if (customerLocation && typeof customerLocation === "object") {
+        const lat = Number(customerLocation.lat);
+        const lng = Number(customerLocation.lng);
+        const locAddress = String(customerLocation.address || customerAddress || "").trim();
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          locationPayload = {
+            address: locAddress,
+            coordinates: {
+              type: "Point",
+              coordinates: [lng, lat],
+            },
+          };
+        } else if (locAddress) {
+          locationPayload = { address: locAddress };
+        }
+      } else if (customerAddress) {
+        locationPayload = { address: customerAddress };
+      }
+
+      const computedEstimatedFee = Number.isFinite(parsedEstimatedFee)
+        ? parsedEstimatedFee
+        : (servicePrice + parsedTravelFare);
+
+      const appointment = new BookingService({
+        bookingReference,
+        serviceId: serviceDoc._id,
+        serviceModel: serviceModelName,
+        service: {
+          _id: serviceDoc._id,
+          name: serviceDoc.name || "",
+          description:
+            serviceModelName === "RepairService"
+              ? (Array.isArray(serviceDoc.commonFaults)
+                  ? serviceDoc.commonFaults.join(", ")
+                  : "")
+              : (serviceDoc.description || ""),
+          basePrice: servicePrice,
+        },
+        servicePrice,
+        serviceDurationMinutes: serviceDuration,
+        bookingDate,
+        startTime: String(startMin),
+        endTime: String(endMin),
+        selectedTimeLabel,
+        technicianId: technicianRefId,
+        customer: {
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+          address: customerAddress,
+        },
+        location: locationPayload,
+        issueDescription: issueDescription || undefined,
+        status: "confirmed",
+        paymentMethod: ["cod", "gcash", "other"].includes(paymentMethod)
+          ? paymentMethod
+          : "cod",
+        paymentStatus:
+          markPaid === true || String(markPaid) === "true"
+            ? "paid"
+            : "pending",
+        travelFare: parsedTravelFare,
+        travelTime: parsedTravelTime,
+        estimatedFee: computedEstimatedFee,
+      });
+
+      await appointment.save();
+
+      // optional payment row if marked as paid at creation time
+      if (appointment.paymentStatus === "paid") {
+        try {
+          await Payment.create({
+            bookingId: appointment._id,
+            amount: servicePrice,
+            method: appointment.paymentMethod,
+            gateway: appointment.paymentMethod,
+            type: "full",
+            status: "paid",
+            paidAt: new Date(),
+            completedAt: new Date(),
+            notes: "Walk-in payment recorded by admin/secretary.",
+          });
+        } catch (paymentErr) {
+          console.warn("walk-in payment create failed", paymentErr && paymentErr.message);
+        }
+      }
+
+      await audit.logEvent({
+        actor: req.user && req.user._id,
+        target: appointment._id,
+        action: "appointment.walkin.create",
+        module: "appointments",
+        req,
+        details: {
+          bookingReference,
+          customerName,
+          customerPhone,
+          serviceId: serviceDoc._id,
+          technicianId: technicianRefId,
+          date,
+          startTime,
+        },
+      });
+
+      return res.status(201).json({
+        message: "Walk-in appointment created successfully",
+        appointment,
+      });
+    } catch (err) {
+      console.error("walk-in create error", err);
+      return res.status(500).json({
+        error: err && err.message ? err.message : "Failed to create walk-in appointment",
+      });
+    }
+  },
+);
+
 // GET /:id - single appointment
 router.get("/:id", async (req, res) => {
   try {
@@ -685,7 +954,112 @@ router.post(
       }
 
       appt.status = "confirmed";
+      // if there is a related payment record, mark it paid as part of confirmation
+      try {
+        const Payment = require("../models/Payment");
+        const pay = await Payment.findOne({ bookingId: appt._id }).sort({ submittedAt: -1 });
+        if (pay && String(pay.status || "").toLowerCase() !== "paid") {
+          pay.status = "paid";
+          if (!pay.paidAt) pay.paidAt = new Date();
+          if (!pay.completedAt) pay.completedAt = new Date();
+          // add note indicating admin approved via booking
+          pay.notes = pay.notes
+            ? pay.notes + "\nAuto-marked paid when booking approved."
+            : "Auto-marked paid when booking approved.";
+          await pay.save();
+          // sync booking paymentStatus
+          appt.paymentStatus = "paid";
+        }
+      } catch (payErr) {
+        console.warn("approve handler: failed to sync payment", payErr && payErr.message);
+      }
       await appt.save();
+
+      // send confirmation email to customer (similar to original booking flow)
+      try {
+        const { sendBookingConfirmationEmail, sendTechnicianNotificationEmail } = require("../utils/mailer");
+        let customerEmail = null;
+        let customerName = "Valued Customer";
+        if (appt.customer && appt.customer.email) {
+          customerEmail = appt.customer.email;
+          customerName = appt.customer.name || appt.customer.fullName || customerName;
+        } else if (appt.customerEmail) {
+          customerEmail = appt.customerEmail;
+        }
+        // compute common labels for email outside the condition so they can be used
+        // for technician notification as well
+        const bookingReference = appt.bookingReference || String(appt._id);
+        const serviceName =
+          (appt.service && (appt.service.name || appt.service.title)) ||
+          appt.serviceType ||
+          "Service";
+        const bookingDate = appt.bookingDate || new Date();
+        const startMin = parseInt(appt.startTime, 10);
+        const duration = Number(appt.serviceDurationMinutes) || 0;
+        const travelMins = Number(appt.travelTime) || 0;
+        const dateLabel = bookingDate.toLocaleDateString("en-PH", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        // reuse helper defined earlier in this file
+        const timeLabel =
+          !isNaN(startMin) && duration
+            ? `${minutesTo12h(startMin)} – ${minutesTo12h(startMin + duration)}`
+            : appt.startTime || "";
+        const totalLabel = travelMins
+          ? `${minutesTo12h(startMin)} – ${minutesTo12h(startMin + duration + travelMins)} (incl. ${travelMins}m travel)`
+          : timeLabel;
+        if (customerEmail) {
+          await sendBookingConfirmationEmail({
+            to: customerEmail,
+            customerName,
+            bookingReference,
+            serviceName,
+            dateLabel,
+            timeLabel,
+            totalLabel,
+            paymentMethod: appt.paymentMethod,
+            estimatedFee: appt.estimatedFee,
+            locationAddress:
+              (appt.location && appt.location.address) || "" ,
+            issueDescription: appt.issueDescription || "",
+            travelMins,
+            serviceDuration: duration,
+            isConfirmed: true,
+          }).catch((e) => console.warn("confirmation email failed", e && e.message));
+        }
+        // also notify technician if associated
+        if (appt.technicianId) {
+          try {
+            const Technician = require("../models/Technician");
+            const tech = await Technician.findById(appt.technicianId).lean();
+            const techEmail = tech?.email || tech?.user?.email;
+            const techName = tech?.name || tech?.fullName || "Technician";
+            if (techEmail) {
+              await sendTechnicianNotificationEmail({
+                to: techEmail,
+                technicianName: techName,
+                customerName: customerName,
+                bookingReference: bookingReference,
+                serviceName: serviceName,
+                dateLabel,
+                timeLabel,
+                totalLabel,
+                locationAddress:
+                  (appt.location && appt.location.address) || "",
+                issueDescription: appt.issueDescription || "",
+              });
+            }
+          } catch (e) {
+            console.warn("technician email (confirm) failed", e && e.message);
+          }
+        }
+      } catch (e) {
+        console.warn("approve handler: mailing error", e && e.message);
+      }
+
 
       // Server-side: create Google Calendar event when appointment is confirmed
       if (googleCalendarSync.isConfigured() && !appt.googleCalendarEventId) {
@@ -789,6 +1163,106 @@ router.post(
   },
 );
 
+// Mark appointment as completed (admin/secretary/technician)
+router.post(
+  "/:id/complete",
+  auth.authenticate,
+  auth.requireRole(["admin", "secretary", "technician"]),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+      const appt = await BookingService.findById(id);
+      if (!appt)
+        return res.status(404).json({ error: "Appointment not found" });
+      // only allow completion once and only for non-cancelled bookings
+      if (appt.status === "cancelled") {
+        return res.status(400).json({ error: "Cannot complete a cancelled appointment" });
+      }
+      if (appt.status === "completed") {
+        return res.status(400).json({ error: "Appointment is already completed" });
+      }
+      appt.status = "completed";
+      await appt.save();
+
+      // audit log
+      await audit.logEvent({
+        actor: req.user && req.user._id,
+        target: appt.customerId || appt.customer,
+        action: "appointment.complete",
+        module: "appointments",
+        req,
+        details: { appointmentId: id },
+      });
+      return res.json({ message: "Appointment marked completed", appointment: appt });
+    } catch (err) {
+      console.error("complete error", err);
+      return res.status(500).json({ error: "Failed to mark appointment completed" });
+    }
+  },
+);
+
+// Mark COD payment as collected by technician (paid/completed update)
+// Supports body: { markComplete: true } to simultaneously flip the booking to completed
+router.post(
+  "/:id/mark-paid",
+  auth.authenticate,
+  auth.requireRole(["admin", "secretary", "technician"]),
+  async (req, res) => {
+    try {
+      const id   = req.params.id;
+      const appt = await BookingService.findById(id);
+      if (!appt) return res.status(404).json({ error: "Appointment not found" });
+
+      if (appt.status === "cancelled") {
+        return res.status(400).json({ error: "Cannot update a cancelled appointment" });
+      }
+
+      const markComplete =
+        req.body.markComplete === true || req.body.markComplete === "true";
+
+      appt.paymentStatus = "paid";
+      if (markComplete && appt.status !== "completed") {
+        appt.status = "completed";
+      }
+      await appt.save();
+
+      // Keep associated Payment record in sync
+      try {
+        const pay = await Payment.findOne({ bookingId: appt._id }).sort({ createdAt: -1 });
+        if (pay && String(pay.status || "").toLowerCase() !== "paid") {
+          pay.status      = "paid";
+          pay.paidAt      = pay.paidAt      || new Date();
+          pay.completedAt = pay.completedAt || new Date();
+          pay.notes       = pay.notes
+            ? pay.notes + "\nMarked paid by technician/staff."
+            : "Marked paid by technician/staff.";
+          await pay.save();
+        }
+      } catch (payErr) {
+        console.warn("mark-paid: payment record sync failed", payErr && payErr.message);
+      }
+
+      await audit.logEvent({
+        actor:   req.user && req.user._id,
+        target:  appt.customerId || appt.customer,
+        action:  "appointment.mark_paid",
+        module:  "appointments",
+        req,
+        details: { appointmentId: id, markComplete },
+      });
+
+      return res.json({
+        message:     markComplete ? "Payment collected and appointment completed" : "Payment marked as collected",
+        appointment: appt,
+      });
+    } catch (err) {
+      console.error("mark-paid error", err);
+      return res.status(500).json({ error: "Failed to mark payment" });
+    }
+  },
+);
+
+
 // Create appointment / booking request
 router.post("/", auth.authenticate, async (req, res) => {
   try {
@@ -820,13 +1294,15 @@ router.post("/", auth.authenticate, async (req, res) => {
         return res.status(400).json({ error: "Proof of payment is required." });
     }
     if (paymentMethod === "cod") {
-      const down = Number(req.body.downpaymentAmount || 0);
-      if (!down || down <= 0) {
-        return res
-          .status(400)
-          .json({ error: "A downpayment is required for cash bookings." });
-      }
-      req.body.downpaymentAmount = down;
+      // for COD we now collect phone, reference and proof as well
+      if (!gcashNumber?.toString().trim())
+        return res.status(400).json({ error: "Mobile number is required for cash bookings." });
+      if (!paymentReference?.toString().trim())
+        return res.status(400).json({ error: "Payment reference is required for cash bookings." });
+      if (!paymentProof?.toString().trim())
+        return res.status(400).json({ error: "Proof of payment is required for cash bookings." });
+      // fixed downpayment of 400
+      req.body.downpaymentAmount = 400;
     }
     if (paymentMethod === "cash") paymentMethod = "cod";
 
@@ -881,6 +1357,7 @@ router.post("/", auth.authenticate, async (req, res) => {
           method: "cod",
           type: "downpayment",
           status: "pending",
+          reference: paymentReference || undefined,
         });
         await p.save();
       } else if (paymentMethod === "gcash") {

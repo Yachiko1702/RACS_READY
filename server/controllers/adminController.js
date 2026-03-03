@@ -863,6 +863,14 @@ exports.createInventory = async (req, res, next) => {
     } = req.body || {};
     if (!itemName)
       return res.status(400).json({ error: "itemName is required" });
+    const normalizedCostPrice = Number(costPrice);
+    if (!Number.isFinite(normalizedCostPrice) || normalizedCostPrice < 0) {
+      return res.status(400).json({ error: "costPrice must be a valid non-negative number" });
+    }
+    const stockFlag = isStockItem !== false;
+    if (stockFlag && normalizedCostPrice <= 0) {
+      return res.status(400).json({ error: "Tool price (costPrice) is required for stock items" });
+    }
     const Inventory = require("../models/Inventory");
     const Category = require("../models/Category");
     const Brand = require("../models/Brand");
@@ -900,7 +908,7 @@ exports.createInventory = async (req, res, next) => {
       barcode: barcode || undefined,
       category: categoryId,
       brand: brandId,
-      costPrice: costPrice || 0,
+      costPrice: normalizedCostPrice,
       quantity: quantity || 0,
       minStockLevel: minStockLevel || 0,
       sellingPrice: sellingPrice || 0,
@@ -909,7 +917,7 @@ exports.createInventory = async (req, res, next) => {
       variant: variant || undefined,
       size: size || undefined,
       specification: specification || undefined,
-      isStockItem: isStockItem !== false,
+      isStockItem: stockFlag,
       salesChannel: salesChannel || undefined,
       active: active !== false,
     });
@@ -930,6 +938,26 @@ exports.editInventory = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ error: "invalid id" });
     const updates = req.body || {};
+        if (updates.costPrice !== undefined) {
+          const parsed = Number(updates.costPrice);
+          if (!Number.isFinite(parsed) || parsed < 0) {
+            return res.status(400).json({ error: "costPrice must be a valid non-negative number" });
+          }
+          updates.costPrice = parsed;
+        }
+
+        if (updates.isStockItem !== undefined || updates.costPrice !== undefined) {
+          const existing = await Inventory.findById(id).lean();
+          if (!existing) return res.status(404).json({ error: "not found" });
+          const nextStockFlag =
+            updates.isStockItem !== undefined ? updates.isStockItem !== false : existing.isStockItem !== false;
+          const nextCostPrice =
+            updates.costPrice !== undefined ? Number(updates.costPrice) : Number(existing.costPrice || 0);
+          if (nextStockFlag && (!Number.isFinite(nextCostPrice) || nextCostPrice <= 0)) {
+            return res.status(400).json({ error: "Tool price (costPrice) is required for stock items" });
+          }
+        }
+
     const Inventory = require("../models/Inventory");
     const Category = require("../models/Category");
     const Brand = require("../models/Brand");

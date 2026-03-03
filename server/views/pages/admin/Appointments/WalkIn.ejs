@@ -1,0 +1,1296 @@
+<div class="admin-dashboard container-fluid py-4 walkin-page">
+  <%- include('../../../partials/dashboard-styles') %>
+
+  <style>
+    .walkin-page .walkin-shell {
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      background: #fff;
+      padding: 1.5rem;
+    }
+    .walkin-page .booking-layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 1rem;
+    }
+    .walkin-page .booking-stepper {
+      border-right: 1px solid #e5e7eb;
+      padding-right: 1rem;
+      position: sticky;
+      top: 88px;
+      height: fit-content;
+    }
+    .walkin-page .stepper-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.55rem;
+    }
+    .walkin-page .stepper-step {
+      width: 100%;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 12px;
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: #1f2937;
+      font-size: 0.86rem;
+      cursor: pointer;
+    }
+    .walkin-page .stepper-step.is-active {
+      border-color: #0d6efd;
+      background: #e7f1ff;
+      color: #0b4fb5;
+    }
+    .walkin-page .stepper-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex: 0 0 auto;
+    }
+    .walkin-page .booking-step {
+      border: 1px solid #eef2f7;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 0.9rem;
+      background: #fff;
+    }
+    .walkin-page .booking-step h5 {
+      font-size: 1rem;
+      margin-bottom: 0.65rem;
+    }
+    .walkin-page .service-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.75rem;
+    }
+    .walkin-page .service-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #f8fafc;
+    }
+    .walkin-page .service-card.is-selected {
+      border-color: #0d6efd;
+      background: #e7f1ff;
+      box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.16);
+    }
+    .walkin-page .service-title {
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: #1f2937;
+      font-size: 0.93rem;
+    }
+    .walkin-page .service-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      color: #4b5563;
+      font-size: 0.8rem;
+    }
+    .walkin-page .map-wrapper {
+      min-height: 320px;
+      background: #f8f9fa;
+      position: relative;
+      clip-path: inset(0 round 1rem);
+      isolation: isolate;
+      border: 1px solid #e5e7eb;
+    }
+    .walkin-page #technicianMap {
+      height: 320px;
+      width: 100%;
+      z-index: 1;
+    }
+    .walkin-page .map-overlay {
+      position: absolute;
+      left: 0.75rem;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 10px;
+      padding: 0.5rem 0.65rem;
+      font-size: 0.78rem;
+      color: #1f2937;
+      z-index: 3;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+    }
+    .walkin-page .map-locate-btns {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      display: flex;
+      gap: 0.45rem;
+      z-index: 3;
+    }
+    .walkin-page .calendar-widget {
+      padding: 1rem;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(13, 110, 253, 0.05));
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+    }
+    .walkin-page .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0.35rem;
+    }
+    .walkin-page .calendar-cell {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 8px;
+      min-height: 44px;
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #1f2937;
+      transition: all 0.16s ease;
+      position: relative;
+    }
+    .walkin-page .calendar-cell:hover:not(.disabled) {
+      border-color: rgba(13, 110, 253, 0.35);
+      transform: translateY(-1px);
+    }
+    .walkin-page .calendar-cell[data-status="available"] {
+      background: #ecfdf3;
+      border-color: #9dd8b5;
+      color: #0f5132;
+    }
+    .walkin-page .calendar-cell[data-status="booked"] {
+      background: #fee2e2;
+      border-color: #f5b3b3;
+      color: #7f1d1d;
+    }
+    .walkin-page .calendar-cell[data-status="blocked"],
+    .walkin-page .calendar-cell[data-status="public"] {
+      background: #f3f4f6;
+      color: #6b7280;
+      border-color: #e5e7eb;
+    }
+    .walkin-page .calendar-cell.is-selected {
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.35) inset;
+      border-color: #0d6efd;
+    }
+    .walkin-page .calendar-cell.disabled {
+      opacity: 0.72;
+      cursor: not-allowed;
+    }
+    .walkin-page #timeSlots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+    .walkin-page #timeSlots .time-slot {
+      flex: 1 1 calc(33.333% - .5rem);
+      max-width: calc(33.333% - .5rem);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      border-radius: .6rem;
+      padding: .45rem .75rem;
+      min-height: 52px;
+      height: auto;
+      font-size: .88rem;
+      text-align: left;
+      border: 1px solid rgba(13, 110, 253, 0.12);
+      background: #fff;
+      transition: transform .12s, box-shadow .12s, background .12s;
+      white-space: normal;
+      overflow: visible;
+      box-sizing: border-box;
+    }
+    .walkin-page #timeSlots .time-slot:hover {
+      background: rgba(13, 110, 253, 0.06);
+      transform: translateY(-2px);
+      border-color: rgba(13, 110, 253, 0.28);
+    }
+    .walkin-page #timeSlots .time-slot.active {
+      background: linear-gradient(90deg,#0d6efd,#4f9dff);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 10px 20px rgba(13,110,253,0.15);
+    }
+    .walkin-page #timeSlots .time-slot.active .text-muted {
+      color: rgba(255,255,255,0.8) !important;
+    }
+    .walkin-page .summary-box {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.86rem;
+      color: #374151;
+    }
+    .walkin-page .walkin-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 0.5rem;
+    }
+    @media (max-width: 991.98px) {
+      .walkin-page .booking-layout { grid-template-columns: 1fr; }
+      .walkin-page .booking-stepper {
+        border-right: 0;
+        border-bottom: 1px solid #e5e7eb;
+        padding-right: 0;
+        padding-bottom: 0.8rem;
+        position: static;
+      }
+      .walkin-page .stepper-list { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    }
+    @media (max-width: 767px) {
+      .walkin-page #timeSlots .time-slot {
+        flex: 1 1 calc(50% - .5rem);
+        max-width: calc(50% - .5rem);
+      }
+    }
+  </style>
+
+  <div class="dashboard-hero mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title"><i class="bi bi-person-plus-fill me-2"></i>Create Walk-in Appointment</h1>
+        <p class="hero-sub">Register in-store customers using a guided booking flow with live location and schedule availability.</p>
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/admin/appointments" class="btn hero-btn"><i class="bi bi-arrow-left me-1"></i>Back to Appointments</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="walkinAlert" class="alert d-none" role="alert"></div>
+
+  <form id="walkinForm" class="walkin-shell">
+    <div class="booking-layout">
+      <aside class="booking-stepper" id="walkinStepper" aria-label="Walk-in booking steps">
+        <ol class="stepper-list" role="list">
+          <li><button type="button" class="stepper-step is-active" data-step="1"><span class="stepper-icon">1</span><span>Customer</span></button></li>
+          <li><button type="button" class="stepper-step" data-step="2"><span class="stepper-icon">2</span><span>Service</span></button></li>
+          <li><button type="button" class="stepper-step" data-step="3"><span class="stepper-icon">3</span><span>Schedule</span></button></li>
+          <li><button type="button" class="stepper-step" data-step="4"><span class="stepper-icon">4</span><span>Payment</span></button></li>
+          <li><button type="button" class="stepper-step" data-step="5"><span class="stepper-icon">5</span><span>Review</span></button></li>
+        </ol>
+      </aside>
+
+      <div class="booking-body">
+        <div class="booking-step" data-step="1">
+          <h5><i class="bi bi-person-vcard me-2"></i>Step 1: Customer Details</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="customerName">Customer Name</label>
+              <input id="customerName" name="customerName" class="form-control" required maxlength="120" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="customerPhone">Phone Number</label>
+              <input id="customerPhone" name="customerPhone" class="form-control" required maxlength="40" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="customerEmail">Email (Optional)</label>
+              <input id="customerEmail" name="customerEmail" type="email" class="form-control" maxlength="120" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="customerAddress">Customer Address (Used for service location)</label>
+              <input id="customerAddress" name="customerAddress" class="form-control" maxlength="180" required />
+            </div>
+          </div>
+          <div class="walkin-actions">
+            <button type="button" class="btn btn-primary btn-sm" data-next-step="2">Continue to Service</button>
+          </div>
+        </div>
+
+        <div class="booking-step d-none" data-step="2">
+          <h5><i class="bi bi-tools me-2"></i>Step 2: Choose Service</h5>
+          <p class="small text-muted mb-2">Pick a service category and select one service card.</p>
+
+          <div class="d-flex gap-2 flex-wrap mb-3">
+            <button type="button" class="btn btn-outline-primary category-btn active" data-category="core">Core Services</button>
+            <button type="button" class="btn btn-outline-primary category-btn" data-category="repair">Repair Services</button>
+          </div>
+
+          <input id="serviceType" type="hidden" value="core" />
+          <input id="serviceId" name="serviceId" type="hidden" />
+
+          <div id="serviceCards" class="service-grid"></div>
+
+          <div class="walkin-actions">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-prev-step="1">Back</button>
+            <button type="button" class="btn btn-primary btn-sm" data-next-step="3">Continue to Schedule</button>
+          </div>
+        </div>
+
+        <div class="booking-step d-none" data-step="3">
+          <h5><i class="bi bi-calendar-check me-2"></i>Step 3: Technician, Map Tracker & Calendar</h5>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="technicianId">Technician</label>
+              <select id="technicianId" name="technicianId" class="form-select" required></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="locationInput">Service Location Address</label>
+              <input id="locationInput" class="form-control" placeholder="Type full address or coordinates (lat, lng)" />
+              <div class="d-flex flex-wrap gap-2 mt-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="resolveAddressBtn">Resolve address on map</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="detectLocationBtn">Use current location</button>
+              </div>
+              <p class="small text-muted mt-2 mb-0" id="locationStatus">Provide customer address to compute distance fare and schedule accurately.</p>
+            </div>
+          </div>
+
+          <div class="map-wrapper mb-3">
+            <div id="technicianMap"></div>
+            <div class="map-locate-btns">
+              <button type="button" class="btn btn-sm btn-light shadow-sm" id="locateTechBtn" title="Go to Technician"><i class="bi bi-car-front-fill text-primary me-1"></i>Technician</button>
+              <button type="button" class="btn btn-sm btn-light shadow-sm" id="locateCustomerBtn" title="Go to Customer"><i class="bi bi-person-fill text-success me-1"></i>Customer</button>
+            </div>
+            <div class="map-overlay">
+              <div><i class="bi bi-info-circle me-1"></i>Blue marker: technician • Green marker: customer/service location</div>
+              <div id="mapDistanceInfo" class="mt-1"></div>
+            </div>
+          </div>
+
+          <div class="summary-box mb-3">
+            <div class="small text-muted" id="mapInfoDistance">Distance meter waiting for both markers…</div>
+            <div class="small" id="mapInfoFare">—</div>
+          </div>
+
+          <div class="calendar-widget mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <button type="button" class="btn btn-sm btn-light" data-calendar-nav="prev"><i class="bi bi-chevron-left"></i></button>
+              <div class="fw-semibold" data-calendar-label></div>
+              <button type="button" class="btn btn-sm btn-light" data-calendar-nav="next"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid" role="grid" aria-live="polite"></div>
+
+            <div class="mt-3 d-none" id="timeSelection">
+              <div class="small text-muted mb-2" id="timeNotice">Select a date to view available slots.</div>
+              <div class="small text-muted mb-2" id="timeRangeInfo"></div>
+              <div class="d-flex flex-wrap gap-2" id="timeSlots"></div>
+            </div>
+          </div>
+
+          <input id="bookingDate" name="bookingDate" type="hidden" />
+          <input id="startTime" name="startTime" type="hidden" />
+
+          <div>
+            <label class="form-label" for="issueDescription">Issue/Notes (Optional)</label>
+            <textarea id="issueDescription" name="issueDescription" rows="3" class="form-control" maxlength="600"></textarea>
+          </div>
+
+          <div class="walkin-actions">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-prev-step="2">Back</button>
+            <button type="button" class="btn btn-primary btn-sm" data-next-step="4">Continue to Payment</button>
+          </div>
+        </div>
+
+        <div class="booking-step d-none" data-step="4">
+          <h5><i class="bi bi-cash-coin me-2"></i>Step 4: Payment</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="paymentMethod">Payment Method</label>
+              <select id="paymentMethod" name="paymentMethod" class="form-select">
+                <option value="cod">Cash</option>
+                <option value="gcash">GCash</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check mb-2">
+                <input id="markPaid" name="markPaid" type="checkbox" class="form-check-input" />
+                <label class="form-check-label" for="markPaid">Mark payment as paid on creation</label>
+              </div>
+            </div>
+          </div>
+          <div class="walkin-actions">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-prev-step="3">Back</button>
+            <button type="button" class="btn btn-primary btn-sm" data-next-step="5">Continue to Review</button>
+          </div>
+        </div>
+
+        <div class="booking-step d-none" data-step="5">
+          <h5><i class="bi bi-receipt me-2"></i>Step 5: Review & Create</h5>
+          <div class="summary-box mb-3" id="walkinSummary">Fill in the form to preview service fee, distance fare, and estimated end time.</div>
+          <div class="walkin-actions">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-prev-step="4">Back</button>
+            <button id="saveWalkinBtn" type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check2-circle me-1"></i>Create Walk-in Appointment</button>
+            <a href="/admin/appointments" class="btn btn-outline-secondary btn-sm">Cancel</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  const state = {
+    coreServices: [],
+    repairServices: [],
+    technicians: [],
+    currentStep: 1,
+    selectedServiceId: "",
+    selectedSlot: null,
+    travelFare: 0,
+    travelTime: 0,
+    farePerKm: 40,
+    calendar: {
+      activeMonth: startOfMonth(new Date()),
+      selectedDate: null,
+      bookedDates: new Set(),
+      blockedDates: new Set(),
+      publicHolidays: new Map(),
+      nonWorkingWeekdays: [],
+      restDates: new Set(),
+    },
+  };
+
+  const mapState = {
+    map: null,
+    technicianCoords: { lat: 14.676049, lng: 121.043731 },
+    userCoords: null,
+    markers: { technician: null, user: null },
+    route: null,
+  };
+
+  const form = document.getElementById("walkinForm");
+  const alertEl = document.getElementById("walkinAlert");
+  const customerAddressEl = document.getElementById("customerAddress");
+  const locationInputEl = document.getElementById("locationInput");
+  const locationStatusEl = document.getElementById("locationStatus");
+  const serviceTypeEl = document.getElementById("serviceType");
+  const serviceIdEl = document.getElementById("serviceId");
+  const serviceCardsEl = document.getElementById("serviceCards");
+  const techEl = document.getElementById("technicianId");
+  const bookingDateEl = document.getElementById("bookingDate");
+  const startTimeEl = document.getElementById("startTime");
+  const saveBtn = document.getElementById("saveWalkinBtn");
+  const summaryEl = document.getElementById("walkinSummary");
+  const calendarGridEl = document.getElementById("calendarGrid");
+  const calendarLabelEl = document.querySelector("[data-calendar-label]");
+  const timeSelectionEl = document.getElementById("timeSelection");
+  const timeSlotsEl = document.getElementById("timeSlots");
+  const timeNoticeEl = document.getElementById("timeNotice");
+  const timeRangeInfoEl = document.getElementById("timeRangeInfo");
+
+  function showAlert(type, message) {
+    alertEl.className = "alert alert-" + type;
+    alertEl.textContent = message;
+    alertEl.classList.remove("d-none");
+  }
+
+  function hideAlert() {
+    alertEl.classList.add("d-none");
+  }
+
+  function setLocationStatus(message, tone = "muted") {
+    locationStatusEl.className = "small mt-2 mb-0 text-" + tone;
+    locationStatusEl.textContent = message;
+  }
+
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function minutesTo12HourLabel(totalMinutes) {
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    const ampm = h >= 12 ? "PM" : "AM";
+    const hour12 = ((h + 11) % 12) + 1;
+    return `${pad2(hour12)}:${pad2(m)} ${ampm}`;
+  }
+
+  function currentServiceList() {
+    return serviceTypeEl.value === "repair" ? state.repairServices : state.coreServices;
+  }
+
+  function currentService() {
+    return currentServiceList().find((s) => String(s._id) === String(state.selectedServiceId));
+  }
+
+  function goToStep(step) {
+    state.currentStep = Number(step);
+    document.querySelectorAll(".booking-step[data-step]").forEach((el) => {
+      const isActive = Number(el.getAttribute("data-step")) === state.currentStep;
+      el.classList.toggle("d-none", !isActive);
+    });
+    document.querySelectorAll(".stepper-step[data-step]").forEach((el) => {
+      const isActive = Number(el.getAttribute("data-step")) === state.currentStep;
+      el.classList.toggle("is-active", isActive);
+    });
+
+    if (state.currentStep === 3) {
+      attemptMapMount();
+      setTimeout(() => {
+        try {
+          if (mapState.map) mapState.map.invalidateSize();
+        } catch (e) {}
+      }, 140);
+    }
+  }
+
+  function validateStep(step) {
+    if (step === 1) {
+      const name = document.getElementById("customerName").value.trim();
+      const phone = document.getElementById("customerPhone").value.trim();
+      const addr = customerAddressEl.value.trim();
+      if (!name || !phone || !addr) {
+        showAlert("warning", "Customer name, phone number, and address are required.");
+        return false;
+      }
+    }
+    if (step === 2 && !state.selectedServiceId) {
+      showAlert("warning", "Please select one service card to continue.");
+      return false;
+    }
+    if (step === 3) {
+      if (!techEl.value) {
+        showAlert("warning", "Please select a technician.");
+        return false;
+      }
+      if (!mapState.userCoords) {
+        showAlert("warning", "Please resolve the customer address on the map first.");
+        return false;
+      }
+      if (!bookingDateEl.value || !startTimeEl.value) {
+        showAlert("warning", "Please pick a calendar date and one available time slot.");
+        return false;
+      }
+    }
+    hideAlert();
+    return true;
+  }
+
+  function renderServiceCards() {
+    const list = currentServiceList();
+    if (!list.length) {
+      serviceCardsEl.innerHTML = '<div class="text-muted small">No active services available for this category.</div>';
+      state.selectedServiceId = "";
+      serviceIdEl.value = "";
+      updateSummary();
+      return;
+    }
+
+    if (!list.some((s) => String(s._id) === String(state.selectedServiceId))) {
+      state.selectedServiceId = String(list[0]._id);
+    }
+
+    serviceCardsEl.innerHTML = list
+      .map((s) => {
+        const selected = String(s._id) === String(state.selectedServiceId);
+        const duration = Number(s.durationMinutes || s.estimatedDurationMinutes || 60);
+        const price = Number(s.basePrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `
+          <button type="button" class="service-card ${selected ? "is-selected" : ""}" data-service-id="${s._id}">
+            <div class="service-title">${s.name || "Unnamed Service"}</div>
+            <div class="service-meta">
+              <span><i class="bi bi-cash me-1"></i>₱${price}</span>
+              <span><i class="bi bi-clock me-1"></i>${duration} min</span>
+            </div>
+          </button>
+        `;
+      })
+      .join("");
+
+    serviceIdEl.value = state.selectedServiceId;
+    resetScheduleSelection();
+    updateSummary();
+  }
+
+  function renderTechnicians() {
+    techEl.innerHTML = state.technicians
+      .map((t) => `<option value="${t._id}">${t.name || "Unnamed"}${t.phone ? " • " + t.phone : ""}</option>`)
+      .join("");
+  }
+
+  function updateSummary() {
+    const svc = currentService();
+    if (!svc) {
+      summaryEl.textContent = "Select a service to see the preview.";
+      return;
+    }
+
+    const duration = Number(svc.durationMinutes || svc.estimatedDurationMinutes || 60);
+    const baseFee = Number(svc.basePrice || 0);
+    const totalFee = baseFee + (state.travelFare || 0);
+    let endText = "—";
+
+    if (state.selectedSlot && Number.isFinite(state.selectedSlot.startMinutes)) {
+      endText = minutesTo12HourLabel(state.selectedSlot.startMinutes + duration);
+    }
+
+    const categoryLabel = serviceTypeEl.value === "repair" ? "Repair Service" : "Core Service";
+    const techLabel = techEl.options[techEl.selectedIndex] ? techEl.options[techEl.selectedIndex].text : "—";
+    const slotLabel = state.selectedSlot ? state.selectedSlot.label : "—";
+
+    summaryEl.innerHTML = `
+      <div class="mb-2"><strong>Category:</strong> ${categoryLabel}</div>
+      <div class="mb-2"><strong>Service:</strong> ${svc.name || "—"}</div>
+      <div class="mb-2"><strong>Technician:</strong> ${techLabel}</div>
+      <div class="mb-2"><strong>Address:</strong> ${customerAddressEl.value || "—"}</div>
+      <div class="mb-2"><strong>Date:</strong> ${bookingDateEl.value || "—"}</div>
+      <div class="mb-2"><strong>Slot:</strong> ${slotLabel}</div>
+      <div class="mb-2"><strong>Service Fee:</strong> ₱${baseFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div class="mb-2"><strong>Distance Fare:</strong> ₱${Number(state.travelFare || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div class="mb-2"><strong>Estimated Total:</strong> ₱${totalFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div><strong>Estimated End:</strong> ${endText}</div>
+    `;
+  }
+
+  function resetScheduleSelection() {
+    state.selectedSlot = null;
+    bookingDateEl.value = "";
+    startTimeEl.value = "";
+    timeSlotsEl.innerHTML = "";
+    timeSelectionEl.classList.add("d-none");
+    timeNoticeEl.textContent = "Select a date to view available slots.";
+    timeRangeInfoEl.textContent = "";
+  }
+
+  function parseCoordinateInput(value) {
+    if (!value || typeof value !== "string") return null;
+    const normalized = value.trim().replace(/[()\u2013\u2014]/g, " ");
+    const sepMatch = normalized.match(/(-?\d+(?:\.\d+)?)[\s,;]+(-?\d+(?:\.\d+)?)/);
+    if (!sepMatch) return null;
+    const lat = parseFloat(sepMatch[1]);
+    const lng = parseFloat(sepMatch[2]);
+    if (!isFinite(lat) || !isFinite(lng)) return null;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+    return { lat, lng };
+  }
+
+  async function geocodeAddress(query) {
+    const r = await fetch("/api/services/geocode?q=" + encodeURIComponent(query));
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d || !d.lat || !d.lon) return null;
+    return {
+      lat: Number(d.lat),
+      lng: Number(d.lon),
+      formatted: d.display_name || query,
+    };
+  }
+
+  function attemptMapMount() {
+    if (mapState.map || !window.L) return;
+    const mapEl = document.getElementById("technicianMap");
+    if (!mapEl) return;
+
+    mapState.map = L.map(mapEl).setView([mapState.technicianCoords.lat, mapState.technicianCoords.lng], 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    }).addTo(mapState.map);
+
+    const techIcon = L.divIcon({
+      className: "bootstrap-icon-marker bootstrap-icon-marker-tech",
+      html: `<div style="transform: translate(-50%, -100%);"><i class="bi bi-car-front-fill text-primary" style="font-size:28px; line-height:1;"></i></div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+    });
+
+    mapState.markers.technician = L.marker([mapState.technicianCoords.lat, mapState.technicianCoords.lng], { icon: techIcon })
+      .addTo(mapState.map)
+      .bindPopup("Technician location");
+
+    if (mapState.userCoords) placeUserMarker(mapState.userCoords);
+  }
+
+  function placeUserMarker(coords) {
+    if (!mapState.map) return;
+    const userIcon = L.divIcon({
+      className: "bootstrap-icon-marker bootstrap-icon-marker-user",
+      html: `<div style="transform: translate(-50%, -100%);"><i class="bi bi-person-fill text-success" style="font-size:28px; line-height:1;"></i></div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+    });
+
+    if (!mapState.markers.user) {
+      mapState.markers.user = L.marker([coords.lat, coords.lng], { icon: userIcon })
+        .addTo(mapState.map)
+        .bindPopup("Customer location");
+    } else {
+      mapState.markers.user.setLatLng([coords.lat, coords.lng]);
+    }
+
+    const bounds = [];
+    if (mapState.markers.technician) bounds.push(mapState.markers.technician.getLatLng());
+    if (mapState.markers.user) bounds.push(mapState.markers.user.getLatLng());
+    if (bounds.length) mapState.map.fitBounds(L.latLngBounds(bounds), { padding: [80, 80], animate: false });
+
+    updateRoute();
+  }
+
+  async function updateRoute() {
+    if (!mapState.map || !mapState.markers.technician || !mapState.markers.user) return;
+
+    const techPos = mapState.markers.technician.getLatLng();
+    const userPos = mapState.markers.user.getLatLng();
+    try {
+      const coords = `${techPos.lng},${techPos.lat};${userPos.lng},${userPos.lat}`;
+      const resp = await fetch(`/api/services/osrm-route?coords=${encodeURIComponent(coords)}`, { cache: "no-store" });
+      if (!resp.ok) throw new Error("route fetch failed");
+      const json = await resp.json();
+      if (!json.routes || !json.routes.length) throw new Error("no routes");
+
+      const route = json.routes[0];
+      const pts = route.geometry.coordinates.map((c) => L.latLng(c[1], c[0]));
+      if (mapState.route) {
+        mapState.route.setLatLngs(pts);
+      } else {
+        mapState.route = L.polyline(pts, { color: "purple", weight: 4 }).addTo(mapState.map);
+      }
+
+      const km = Number(route.distance || 0) / 1000;
+      const eta = Math.round(Number(route.duration || 0) / 60);
+      state.travelFare = Number((km * state.farePerKm).toFixed(2));
+      state.travelTime = Number.isFinite(eta) ? eta : 0;
+
+      const info = document.getElementById("mapDistanceInfo");
+      if (info) info.textContent = `Distance: ${km.toFixed(1)} km • Fare: ₱${state.travelFare.toFixed(2)} • ETA: ${eta} min`;
+      const mapInfoDistance = document.getElementById("mapInfoDistance");
+      const mapInfoFare = document.getElementById("mapInfoFare");
+      if (mapInfoDistance) mapInfoDistance.textContent = `Road distance: ${km.toFixed(1)} km • ETA ~${eta} min`;
+      if (mapInfoFare) mapInfoFare.innerHTML = `Distance meter fare: <strong>₱${state.travelFare.toFixed(2)}</strong> (${km.toFixed(1)} km × ₱${state.farePerKm})`;
+
+      if (bookingDateEl.value) renderTimeSlotsForDate(new Date(bookingDateEl.value + "T00:00:00"));
+      updateSummary();
+    } catch (err) {
+      const mapInfoDistance = document.getElementById("mapInfoDistance");
+      const mapInfoFare = document.getElementById("mapInfoFare");
+      if (mapInfoDistance) mapInfoDistance.textContent = "Route distance unavailable. Please re-check address pin.";
+      if (mapInfoFare) mapInfoFare.textContent = "—";
+    }
+  }
+
+  async function loadTechnicianLocation() {
+    if (!techEl.value) return;
+    try {
+      const r = await fetch(`/api/services/technician-location?id=${encodeURIComponent(techEl.value)}`, { cache: "no-store" });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (!Number.isFinite(Number(d.lat)) || !Number.isFinite(Number(d.lng))) return;
+
+      mapState.technicianCoords = { lat: Number(d.lat), lng: Number(d.lng) };
+      attemptMapMount();
+      if (mapState.markers.technician) {
+        mapState.markers.technician.setLatLng([mapState.technicianCoords.lat, mapState.technicianCoords.lng]);
+      }
+      if (mapState.userCoords) placeUserMarker(mapState.userCoords);
+    } catch (e) {}
+  }
+
+  function startOfDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function startOfMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  }
+
+  function addMonths(date, amount) {
+    const clone = new Date(date);
+    clone.setMonth(clone.getMonth() + amount);
+    return startOfMonth(clone);
+  }
+
+  function addDays(date, amount) {
+    const clone = new Date(date);
+    clone.setDate(clone.getDate() + amount);
+    return clone;
+  }
+
+  function formatDateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function isSameDate(a, b) {
+    return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  async function loadTechnicianSchedule() {
+    try {
+      let url = "/api/services/technician-schedule";
+      if (techEl.value) url += "/" + encodeURIComponent(techEl.value);
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error("schedule failed");
+      const d = await r.json();
+      state.calendar.nonWorkingWeekdays = Array.isArray(d.nonWorkingWeekdays) ? d.nonWorkingWeekdays : [];
+      state.calendar.restDates = new Set(Array.isArray(d.restDates) ? d.restDates : []);
+    } catch (e) {
+      state.calendar.nonWorkingWeekdays = [];
+      state.calendar.restDates = new Set();
+    }
+  }
+
+  async function loadServiceCalendar(serviceId, startDate, endDate) {
+    if (!serviceId) return;
+    try {
+      const params = new URLSearchParams();
+      params.set("start", formatDateKey(startDate));
+      params.set("end", formatDateKey(endDate));
+      if (techEl.value) params.set("technicianId", techEl.value);
+
+      const url = `/api/services/${encodeURIComponent(serviceId)}/calendar?${params.toString()}`;
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error("calendar failed");
+      const d = await r.json();
+
+      state.calendar.bookedDates = new Set(d.bookedDates || []);
+      state.calendar.blockedDates = new Set(d.blockedDates || []);
+      state.calendar.publicHolidays = new Map((d.publicHolidays || []).map((h) => [h.date, h.name || ""]));
+    } catch (e) {
+      state.calendar.bookedDates = new Set();
+      state.calendar.blockedDates = new Set();
+      state.calendar.publicHolidays = new Map();
+    }
+  }
+
+  function resolveDateStatus(date) {
+    const key = formatDateKey(date);
+    const today = startOfDay(new Date());
+    if (startOfDay(date) < today) return "blocked";
+    if (state.calendar.nonWorkingWeekdays.includes(date.getDay())) return "blocked";
+    if (state.calendar.restDates.has(key)) return "blocked";
+    if (state.calendar.publicHolidays.has(key)) return "public";
+    if (state.calendar.blockedDates.has(key)) return "blocked";
+    if (state.calendar.bookedDates.has(key)) return "booked";
+    return "available";
+  }
+
+  function updateCalendarLabel() {
+    const fmt = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" });
+    calendarLabelEl.textContent = fmt.format(state.calendar.activeMonth);
+  }
+
+  async function selectCalendarDate(date) {
+    state.calendar.selectedDate = startOfDay(date);
+    bookingDateEl.value = formatDateKey(date);
+    state.selectedSlot = null;
+    startTimeEl.value = "";
+    renderCalendarDays();
+    await renderTimeSlotsForDate(date);
+    updateSummary();
+  }
+
+  function renderCalendarDays() {
+    calendarGridEl.innerHTML = "";
+
+    const monthStart = startOfMonth(state.calendar.activeMonth);
+    const year = monthStart.getFullYear();
+    const month = monthStart.getMonth();
+    const leading = new Date(year, month, 1).getDay();
+
+    for (let i = 0; i < leading; i += 1) {
+      const filler = document.createElement("div");
+      filler.className = "calendar-cell disabled";
+      filler.setAttribute("aria-hidden", "true");
+      calendarGridEl.appendChild(filler);
+    }
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const current = new Date(year, month, day);
+      const status = resolveDateStatus(current);
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = "calendar-cell";
+      cell.textContent = day.toString().padStart(2, "0");
+      cell.dataset.status = status;
+
+      if (status !== "available") {
+        cell.classList.add("disabled");
+        cell.disabled = true;
+      } else {
+        cell.addEventListener("click", () => selectCalendarDate(current));
+      }
+
+      if (isSameDate(current, state.calendar.selectedDate)) {
+        cell.classList.add("is-selected");
+      }
+
+      calendarGridEl.appendChild(cell);
+    }
+
+    updateCalendarLabel();
+  }
+
+  async function renderTimeSlotsForDate(date) {
+    if (!state.selectedServiceId || !techEl.value) {
+      timeSelectionEl.classList.add("d-none");
+      timeNoticeEl.textContent = "Select service and technician first.";
+      return;
+    }
+
+    timeSelectionEl.classList.remove("d-none");
+    timeSlotsEl.innerHTML = "";
+    timeNoticeEl.textContent = "Loading availability...";
+    timeRangeInfoEl.textContent = "";
+
+    const dateKey = formatDateKey(date);
+    try {
+      const url = new URL("/api/services/availability", window.location.origin);
+      url.searchParams.set("date", dateKey);
+      url.searchParams.set("serviceId", state.selectedServiceId);
+      url.searchParams.set("technicianId", techEl.value);
+      if (typeof state.travelTime === "number") {
+        url.searchParams.set("travelTime", String(state.travelTime || 0));
+      }
+
+      const r = await fetch(url.toString(), { cache: "no-store" });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed to load time slots");
+
+      const slots = d.slots || [];
+      if (!slots.length) {
+        timeNoticeEl.textContent = "No available time slots for this date.";
+        return;
+      }
+
+      let first = null;
+      let last = null;
+
+      slots.forEach((slot) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "time-slot";
+        btn.dataset.start = String(slot.startMinutes);
+        btn.innerHTML = `<span class="fw-semibold">${slot.label || ""}</span>${slot.detail ? `<span class="small text-muted lh-1" style="font-size:.72rem;">${slot.detail}</span>` : ""}`;
+
+        if (slot.status !== "available") {
+          btn.disabled = true;
+          btn.classList.add("disabled");
+        } else {
+          if (first == null) first = slot.startMinutes;
+          last = slot.endMinutes;
+          btn.addEventListener("click", () => {
+            timeSlotsEl.querySelectorAll(".time-slot").forEach((n) => n.classList.remove("active"));
+            btn.classList.add("active");
+            state.selectedSlot = {
+              label: slot.label,
+              startMinutes: slot.startMinutes,
+              endMinutes: slot.endMinutes,
+            };
+            bookingDateEl.value = dateKey;
+            startTimeEl.value = String(slot.startMinutes);
+            updateSummary();
+          });
+        }
+        timeSlotsEl.appendChild(btn);
+      });
+
+      if (first != null && last != null) {
+        timeNoticeEl.textContent = "";
+        timeRangeInfoEl.textContent = `Available between ${minutesTo12HourLabel(first)} and ${minutesTo12HourLabel(last)}`;
+      }
+
+      if (state.selectedSlot && Number.isFinite(state.selectedSlot.startMinutes)) {
+        const prev = timeSlotsEl.querySelector(`[data-start="${state.selectedSlot.startMinutes}"]`);
+        if (prev && !prev.disabled) prev.classList.add("active");
+      }
+    } catch (err) {
+      timeNoticeEl.textContent = "Unable to load time slots right now.";
+    }
+  }
+
+  async function refreshScheduleData() {
+    if (!state.selectedServiceId || !techEl.value) return;
+    const monthStart = startOfMonth(state.calendar.activeMonth);
+    const monthEnd = addMonths(monthStart, 1);
+    await loadTechnicianSchedule();
+    await loadServiceCalendar(state.selectedServiceId, monthStart, monthEnd);
+    renderCalendarDays();
+    if (state.calendar.selectedDate) {
+      await renderTimeSlotsForDate(state.calendar.selectedDate);
+    }
+  }
+
+  async function loadFarePerKm() {
+    try {
+      const r = await fetch("/api/services/fare-per-km", { cache: "no-store" });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (Number.isFinite(Number(d.farePerKm))) state.farePerKm = Number(d.farePerKm);
+    } catch (e) {}
+  }
+
+  async function resolveAddressToMap() {
+    const raw = String(locationInputEl.value || "").trim();
+    if (!raw) {
+      setLocationStatus("Please enter a customer address first.", "warning");
+      return;
+    }
+
+    const coords = parseCoordinateInput(raw);
+    if (coords) {
+      mapState.userCoords = coords;
+      customerAddressEl.value = raw;
+      setLocationStatus("Customer location pinned from coordinates.", "success");
+      attemptMapMount();
+      placeUserMarker(coords);
+      await refreshScheduleData();
+      return;
+    }
+
+    setLocationStatus("Resolving address…", "info");
+    const res = await geocodeAddress(raw);
+    if (!res) {
+      setLocationStatus("Unable to resolve address. Please enter full address or coordinates.", "danger");
+      return;
+    }
+
+    mapState.userCoords = { lat: res.lat, lng: res.lng };
+    locationInputEl.value = res.formatted || raw;
+    customerAddressEl.value = locationInputEl.value;
+    setLocationStatus("Address resolved and pinned on map.", "success");
+    attemptMapMount();
+    placeUserMarker(mapState.userCoords);
+    await refreshScheduleData();
+  }
+
+  function detectCurrentLocation() {
+    if (!navigator.geolocation) {
+      setLocationStatus("Geolocation not available in this browser.", "danger");
+      return;
+    }
+
+    setLocationStatus("Detecting current location…", "info");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        mapState.userCoords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        locationInputEl.value = `${mapState.userCoords.lat.toFixed(5)}, ${mapState.userCoords.lng.toFixed(5)}`;
+        customerAddressEl.value = locationInputEl.value;
+        setLocationStatus("Current location pinned. You can replace with full address if needed.", "success");
+        attemptMapMount();
+        placeUserMarker(mapState.userCoords);
+        await refreshScheduleData();
+      },
+      () => setLocationStatus("Unable to get current location. Try typing address manually.", "danger"),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    );
+  }
+
+  async function loadOptions() {
+    const r = await fetch("/api/appointments/walk-in-options", { credentials: "same-origin" });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Failed to load options");
+
+    state.coreServices = d.coreServices || [];
+    state.repairServices = d.repairServices || [];
+    state.technicians = d.technicians || [];
+
+    if (!state.coreServices.length && !state.repairServices.length) {
+      throw new Error("No active services found. Please activate at least one service first.");
+    }
+    if (!state.technicians.length) {
+      throw new Error("No active technicians found. Please activate technician records first.");
+    }
+
+    renderServiceCards();
+    renderTechnicians();
+    await loadTechnicianLocation();
+    updateSummary();
+  }
+
+  document.querySelectorAll(".category-btn").forEach((btn) => {
+    btn.addEventListener("click", async function () {
+      document.querySelectorAll(".category-btn").forEach((item) => item.classList.remove("active"));
+      this.classList.add("active");
+      serviceTypeEl.value = this.getAttribute("data-category") || "core";
+      state.selectedServiceId = "";
+      renderServiceCards();
+      await refreshScheduleData();
+    });
+  });
+
+  serviceCardsEl.addEventListener("click", async (e) => {
+    const card = e.target.closest(".service-card[data-service-id]");
+    if (!card) return;
+    state.selectedServiceId = card.getAttribute("data-service-id") || "";
+    serviceIdEl.value = state.selectedServiceId;
+    renderServiceCards();
+    await refreshScheduleData();
+  });
+
+  techEl.addEventListener("change", async () => {
+    resetScheduleSelection();
+    await loadTechnicianLocation();
+    await refreshScheduleData();
+    updateSummary();
+  });
+
+  document.querySelectorAll("[data-calendar-nav]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const direction = btn.getAttribute("data-calendar-nav");
+      state.calendar.activeMonth = addMonths(state.calendar.activeMonth, direction === "prev" ? -1 : 1);
+      await refreshScheduleData();
+    });
+  });
+
+  document.getElementById("resolveAddressBtn").addEventListener("click", resolveAddressToMap);
+  document.getElementById("detectLocationBtn").addEventListener("click", detectCurrentLocation);
+
+  customerAddressEl.addEventListener("input", () => {
+    if (state.currentStep !== 3) return;
+    locationInputEl.value = customerAddressEl.value;
+    updateSummary();
+  });
+
+  locationInputEl.addEventListener("input", () => {
+    customerAddressEl.value = locationInputEl.value;
+    updateSummary();
+  });
+
+  document.getElementById("locateTechBtn").addEventListener("click", () => {
+    if (!mapState.map || !mapState.markers.technician) return;
+    mapState.map.flyTo(mapState.markers.technician.getLatLng(), 16, { duration: 0.8 });
+  });
+
+  document.getElementById("locateCustomerBtn").addEventListener("click", () => {
+    if (!mapState.map || !mapState.markers.user) return;
+    mapState.map.flyTo(mapState.markers.user.getLatLng(), 16, { duration: 0.8 });
+  });
+
+  document.querySelectorAll("[data-next-step]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const target = Number(btn.getAttribute("data-next-step"));
+      if (!validateStep(state.currentStep)) return;
+      goToStep(target);
+      if (target === 3) {
+        locationInputEl.value = customerAddressEl.value;
+        await refreshScheduleData();
+      }
+      updateSummary();
+    });
+  });
+
+  document.querySelectorAll("[data-prev-step]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = Number(btn.getAttribute("data-prev-step"));
+      goToStep(target);
+      hideAlert();
+      updateSummary();
+    });
+  });
+
+  document.querySelectorAll(".stepper-step[data-step]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const target = Number(btn.getAttribute("data-step"));
+      if (target > state.currentStep && !validateStep(state.currentStep)) return;
+      goToStep(target);
+      if (target === 3) {
+        locationInputEl.value = customerAddressEl.value;
+        await refreshScheduleData();
+      }
+      updateSummary();
+    });
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAlert();
+
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+      return;
+    }
+
+    const svc = currentService();
+    const baseFee = Number((svc && svc.basePrice) || 0);
+    const payload = {
+      customerName: document.getElementById("customerName").value.trim(),
+      customerPhone: document.getElementById("customerPhone").value.trim(),
+      customerEmail: document.getElementById("customerEmail").value.trim(),
+      customerAddress: customerAddressEl.value.trim(),
+      serviceId: state.selectedServiceId,
+      technicianId: techEl.value,
+      date: bookingDateEl.value,
+      startTime: startTimeEl.value,
+      issueDescription: document.getElementById("issueDescription").value.trim(),
+      paymentMethod: document.getElementById("paymentMethod").value,
+      markPaid: document.getElementById("markPaid").checked,
+      travelFare: Number(state.travelFare || 0),
+      travelTime: Number(state.travelTime || 0),
+      estimatedFee: baseFee + Number(state.travelFare || 0),
+      customerLocation: mapState.userCoords
+        ? {
+            lat: mapState.userCoords.lat,
+            lng: mapState.userCoords.lng,
+            address: customerAddressEl.value.trim(),
+          }
+        : null,
+    };
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating…';
+
+    try {
+      const r = await fetch("/api/appointments/walk-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(payload),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed to create walk-in appointment");
+
+      const ref = (d.appointment && d.appointment.bookingReference) || "(no reference)";
+      showAlert("success", "Walk-in appointment created successfully. Reference: " + ref);
+
+      form.reset();
+      serviceTypeEl.value = "core";
+      document.querySelectorAll(".category-btn").forEach((item) => {
+        item.classList.toggle("active", item.getAttribute("data-category") === "core");
+      });
+
+      state.selectedServiceId = "";
+      state.selectedSlot = null;
+      state.travelFare = 0;
+      state.travelTime = 0;
+      mapState.userCoords = null;
+
+      if (mapState.markers.user && mapState.map) {
+        mapState.map.removeLayer(mapState.markers.user);
+        mapState.markers.user = null;
+      }
+      if (mapState.route && mapState.map) {
+        mapState.map.removeLayer(mapState.route);
+        mapState.route = null;
+      }
+
+      renderServiceCards();
+      renderTechnicians();
+      resetScheduleSelection();
+      state.calendar.selectedDate = null;
+      state.calendar.activeMonth = startOfMonth(new Date());
+      renderCalendarDays();
+      goToStep(1);
+      setLocationStatus("Provide customer address to compute distance fare and schedule accurately.", "muted");
+      updateSummary();
+    } catch (err) {
+      showAlert("danger", err.message || "Create failed");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Create Walk-in Appointment';
+    }
+  });
+
+  loadFarePerKm();
+  goToStep(1);
+  loadOptions().catch((err) => showAlert("danger", err.message || "Failed to load options"));
+})();
+</script>

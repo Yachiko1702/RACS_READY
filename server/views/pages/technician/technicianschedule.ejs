@@ -3,55 +3,82 @@
 <div class="admin-dashboard container-fluid px-0 py-4">
   <%- include('../../partials/dashboard-styles') %>
 
-  <div class="dashboard-hero mb-4">
-    <div class="row align-items-center">
+  <div class="container pb-4">
+    <div class="dashboard-hero mb-4">
+      <div class="row align-items-center">
       <div class="col-md-8">
+        <% if (technician && technician.name) { %>
+        <h1 class="page-title">
+          <i class="bi bi-calendar3 me-2"></i>Displaying schedule for <%= technician.name %>
+        </h1>
+        <% } else { %>
         <h1 class="page-title">
           <i class="bi bi-calendar3 me-2"></i>Your Schedule
         </h1>
+        <% } %>
         <p class="hero-sub small">
           Your assigned appointments for the last 30 days and upcoming jobs.
         </p>
       </div>
     </div>
-  </div>
+    </div>
 
-  <div class="container pb-4">
-    <% if (technician && technician.name) { %>
-    <p class="text-center mb-3">Displaying schedule for <strong><%= technician.name %></strong>.</p>
-    <% } %>
-
-    <div class="row g-3 mb-3">
-      <div class="col-12 col-md-3">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <div class="text-muted small">Total</div>
-            <div id="kpiTotal" class="fs-4 fw-bold">—</div>
+    <!-- KPI SUMMARY -->
+    <div class="row mb-4 g-3 kpi-row align-items-stretch">
+      <div class="col-6 col-md-4 col-xl-3">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#4361ee,#3a0ca3)">
+              <i class="bi bi-calendar3-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Total</div>
+              <div id="kpiTotal" class="kpi-value" style="color:#4361ee">—</div>
+            </div>
           </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#4361ee,#3a0ca3)"></div>
         </div>
       </div>
-      <div class="col-12 col-md-3">
-        <div class="card shadow-sm h-100 border-success-subtle">
-          <div class="card-body">
-            <div class="text-muted small">Confirmed</div>
-            <div id="kpiConfirmed" class="fs-4 fw-bold text-success">—</div>
+      <div class="col-6 col-md-4 col-xl-3">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Confirmed</div>
+              <div id="kpiConfirmed" class="kpi-value" style="color:#16a34a">—</div>
+            </div>
           </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#22c55e,#16a34a)"></div>
         </div>
       </div>
-      <div class="col-12 col-md-3">
-        <div class="card shadow-sm h-100 border-warning-subtle">
-          <div class="card-body">
-            <div class="text-muted small">Pending</div>
-            <div id="kpiPending" class="fs-4 fw-bold text-warning">—</div>
+      <div class="col-6 col-md-4 col-xl-3">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+              <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Pending</div>
+              <div id="kpiPending" class="kpi-value" style="color:#d97706">—</div>
+            </div>
           </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#f59e0b,#d97706)"></div>
         </div>
       </div>
-      <div class="col-12 col-md-3">
-        <div class="card shadow-sm h-100 border-primary-subtle">
-          <div class="card-body">
-            <div class="text-muted small">Today</div>
-            <div id="kpiToday" class="fs-4 fw-bold text-primary">—</div>
+      <div class="col-6 col-md-4 col-xl-3">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kpi-icon" style="background:linear-gradient(135deg,#4361ee,#3a0ca3)">
+              <i class="bi bi-calendar-day"></i>
+            </div>
+            <div>
+              <div class="kpi-label">Today</div>
+              <div id="kpiToday" class="kpi-value" style="color:#4361ee">—</div>
+            </div>
           </div>
+          <div class="kpi-bar" style="background:linear-gradient(90deg,#4361ee,#3a0ca3)"></div>
         </div>
       </div>
     </div>
@@ -97,6 +124,7 @@
 </div>
 
 <style>
+  
   #technicianScheduleCalendar {
     min-height: 620px;
   }

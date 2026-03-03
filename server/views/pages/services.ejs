@@ -20,6 +20,8 @@
     <script>
       // make admin's gcash number available to client scripts
       window.adminGcashNumber = "<%= adminGcashNumber %>";
+      // admin-configured fare per km (₱/km) used for distance meter calculations
+      window._farePerKm = <%= typeof farePerKm !== 'undefined' ? farePerKm : 40 %>;
     </script>
     <!-- Floating left stepper (outside card) -->
     <aside class="booking-stepper floating" id="bookingStepper" aria-label="Booking steps">
@@ -150,7 +152,7 @@
               <p class="location-hint small text-muted mt-2" id="locationStatus">We will never store your location without consent.</p>
             </div>
             <div class="col-lg-7">
-              <div class="map-wrapper rounded-4 overflow-hidden shadow-sm">
+              <div class="map-wrapper rounded-4 shadow-sm">
                 <div
                   id="technicianMap"
                   class="technician-map"
@@ -196,7 +198,7 @@
                   <span class="small" id="mapInfoFare">&mdash;</span>
                 </div>
                 <p class="mb-0 text-muted" style="font-size:0.75rem;">
-                  <i class="bi bi-info-circle me-1"></i>Distance meter fare is calculated at <strong>₱40 per kilometer</strong> based on the road distance between the technician and your location.
+                  <i class="bi bi-info-circle me-1"></i>Distance meter fare is calculated at <strong>₱<span id="fareRateDisplay"><%= typeof farePerKm !== 'undefined' ? farePerKm : 40 %></span> per kilometer</strong> based on the road distance between the technician and your location.
                 </p>
               </div>
               </div>
@@ -290,10 +292,7 @@
           <!-- Payment tab selection -->
           <div class="payment-tabs mb-4" role="tablist" aria-label="Payment methods">
             <button type="button" class="payment-tab" data-method="gcash" aria-pressed="false">
-              <span class="payment-tab-icons d-flex align-items-center gap-1">
-                <i class="bi bi-phone"></i>
-                <span class="badge bg-success text-white" style="font-size:0.6rem;padding:2px 5px;border-radius:4px;vertical-align:middle;">PayMongo</span>
-              </span>
+              <i class="bi bi-phone"></i>
               <span>GCash</span>
             </button>
             <button type="button" class="payment-tab" data-method="cash" aria-pressed="false">
@@ -306,57 +305,71 @@
           <input class="d-none" type="radio" name="paymentMethod" id="payGcash" value="gcash">
           <input class="d-none" type="radio" name="paymentMethod" id="payCash" value="cash">
 
-          <!-- GCash via PayMongo form -->
+          <!-- Manual GCash payment form -->
           <div id="gcashFields" class="d-none">
             <div class="payment-form">
-              <!-- Provider badge row -->
-              <div class="d-flex align-items-center justify-content-between mb-3">
-                <h6 class="fw-semibold mb-0">Pay with GCash</h6>
-                <span class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded" style="background:#e8f5e9;border:1px solid #a5d6a7;font-size:0.78rem;font-weight:600;color:#2e7d32;">
-                  <i class="bi bi-shield-check"></i> Secured by PayMongo
-                </span>
-              </div>
+              <h6 class="fw-semibold mb-3">Pay with GCash</h6>
 
-              <!-- What happens box -->
               <div class="card-option-box mb-3" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#16a34a;">
                 <div class="card-option-header mb-2">
                   <i class="bi bi-phone text-success fs-4"></i>
-                  <span class="fw-semibold">GCash Checkout</span>
+                  <span class="fw-semibold">Manual GCash Transfer</span>
                 </div>
                 <ol class="mb-0 ps-3 small text-muted" style="line-height:1.8;">
-                  <li>Click <strong>Confirm Booking</strong> below.</li>
-                  <li>You'll be securely redirected to <strong>PayMongo's GCash checkout</strong>.</li>
-                  <li>Approve the payment inside your <strong>GCash app</strong>.</li>
-                  <li>You'll be sent back here and your booking is <strong>automatically confirmed</strong>.</li>
+                  <li>Scan our GCash QR code below in your GCash app.</li>
+                  <li>Send the required payment amount.</li>
+                  <li>Enter your payment reference number.</li>
+                  <li>Upload your receipt screenshot before confirming the booking.</li>
                 </ol>
               </div>
 
-              <!-- Optional: GCash mobile number for our records -->
+              <div class="text-center mb-3">
+                <label class="form-label text-muted d-block fw-semibold">Scan this GCash QR</label>
+                <img
+                  id="gcashQrImage"
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=RACSREADY-GCASH-PAYMENT"
+                  alt="GCash QR Code"
+                  class="img-thumbnail"
+                  style="max-width:220px;border-radius:12px;"
+                />
+                <div class="form-text">Replace this QR with your official merchant GCash QR image before go-live.</div>
+              </div>
+
               <div class="mb-3">
-                <label class="form-label text-muted">Your GCash mobile number <span class="text-muted fw-normal">(optional)</span></label>
+                <label class="form-label text-muted">Your GCash mobile number <span class="text-danger">*</span></label>
                 <div class="position-relative">
                   <input id="gcashNumber" class="form-control" inputmode="tel" placeholder="+639XXXXXXXXX" />
                   <i class="bi bi-phone gcash-icon-input"></i>
                 </div>
-                <div class="form-text">Stored for reference only. Payment is handled by PayMongo.</div>
+                <div class="form-text">Use the sender number used for this payment.</div>
               </div>
 
-              <!-- Amount summary (auto-filled from estimated fee) -->
+              <div class="mb-3">
+                <label class="form-label text-muted">GCash Reference Number <span class="text-danger">*</span></label>
+                <input id="gcashReference" class="form-control" placeholder="e.g. 123456789012" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-muted">Receipt Screenshot <span class="text-danger">*</span></label>
+                <input id="gcashProof" type="file" class="form-control" accept="image/*" />
+                <div class="form-text">Accepted: image files only (JPG, PNG, WEBP).</div>
+                <img id="gcashProofPreview" alt="GCash receipt preview" class="img-thumbnail mt-2 d-none" style="max-height:160px;border-radius:10px;" />
+              </div>
+
               <div class="rounded-3 p-3 mb-3" style="background:#f8fdff;border:1px solid #bee3f8;">
                 <div class="d-flex justify-content-between align-items-center">
-                  <span class="text-muted small">Total amount to pay</span>
+                  <span class="text-muted small">Amount to send via GCash</span>
                   <span class="fw-bold text-primary fs-5" id="gcashAmountDisplay">—</span>
                 </div>
-                <div class="text-muted" style="font-size:0.75rem;margin-top:4px;"><i class="bi bi-info-circle me-1"></i>Final amount includes service fee + travel fare.</div>
+                <div class="text-muted" style="font-size:0.75rem;margin-top:4px;"><i class="bi bi-info-circle me-1"></i>Please send this amount, then upload the receipt screenshot.</div>
               </div>
 
-              <!-- Security info -->
               <div class="alert alert-success border-0" role="alert" style="background:#f0fdf4;border-left:4px solid #16a34a !important;">
                 <div class="d-flex align-items-start gap-2">
                   <i class="bi bi-lock-fill text-success mt-1"></i>
                   <div>
-                    <div class="fw-semibold small">Enterprise-grade security</div>
-                    <small class="text-muted">Your payment is processed through <strong>PayMongo</strong>, a BSP-licensed e-money issuer. We never store your GCash credentials.</small>
+                    <div class="fw-semibold small">Manual verification required</div>
+                    <small class="text-muted">Your payment proof and reference number will be reviewed by admin before final confirmation.</small>
                   </div>
                 </div>
               </div>
@@ -441,19 +454,52 @@
                   <i class="bi bi-cash-stack text-warning fs-4"></i>
                   <span class="fw-semibold">Pay Cash on Completion</span>
                 </div>
-                <p class="mb-0 small text-muted ps-4">Pay the full amount to the technician after the work is done. A <strong>required downpayment</strong> is collected in advance to secure your slot.</p>
+                <p class="mb-0 small text-muted ps-4">Pay the full amount to the technician after the work is done. A <strong>required downpayment</strong> of ₱400 is collected in advance to secure your slot.</p>
               </div>
 
-              <!-- Required downpayment -->
+              <div class="text-center mb-3">
+                <label class="form-label text-muted d-block fw-semibold">Scan this Cash QR</label>
+                <img
+                  id="cashQrImage"
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=RACSREADY-CASH-PAYMENT"
+                  alt="Cash QR Code"
+                  class="img-thumbnail"
+                  style="max-width:220px;border-radius:12px;"
+                />
+                <div class="form-text">Replace this QR with your official merchant cash QR image before go-live.</div>
+              </div>
+
               <div class="mb-3">
-                <label class="form-label text-muted fw-semibold">Downpayment amount <span class="text-danger">*</span></label>
+                <label class="form-label text-muted">Your mobile number <span class="text-danger">*</span></label>
+                <div class="position-relative">
+                  <input id="cashNumber" class="form-control" inputmode="tel" placeholder="+639XXXXXXXXX" />
+                  <i class="bi bi-phone gcash-icon-input"></i>
+                </div>
+                <div class="form-text">Use the sender number used for this payment.</div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-muted">Cash Reference Number <span class="text-danger">*</span></label>
+                <input id="cashReference" class="form-control" placeholder="e.g. 123456789012" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-muted">Receipt Screenshot <span class="text-danger">*</span></label>
+                <input id="cashProof" type="file" class="form-control" accept="image/*" />
+                <div class="form-text">Accepted: image files only (JPG, PNG, WEBP).</div>
+                <img id="cashProofPreview" alt="Cash receipt preview" class="img-thumbnail mt-2 d-none" style="max-height:160px;border-radius:10px;" />
+              </div>
+
+              <!-- Fixed downpayment display -->
+              <div class="mb-3">
+                <label class="form-label text-muted fw-semibold">Downpayment amount</label>
                 <div class="input-group">
                   <span class="input-group-text fw-semibold">&#8369;</span>
-                  <input id="downpaymentAmt" type="number" min="1" step="0.01" class="form-control" placeholder="e.g. 500" required />
+                  <input id="downpaymentAmt" type="number" class="form-control" value="400" readonly />
                 </div>
                 <div class="form-text">
                   <i class="bi bi-info-circle me-1 text-primary"></i>
-                  A downpayment is <strong>required</strong> to confirm your slot. The technician collects the remaining balance on completion.
+                  Downpayment is fixed at ₱400 and will be applied toward the total.
                 </div>
               </div>
 
@@ -489,7 +535,7 @@
               </div>
             </div>
           </div>
-          <!-- (Bank Transfer and Other removed — only GCash via PayMongo and Cash accepted) -->
+          <!-- (Bank Transfer and Other removed — only GCash and Cash accepted) -->
 
           <div id="paymentError" class="text-danger small mt-2" role="alert" aria-live="polite" style="display:none"></div>
         </div>
@@ -675,11 +721,10 @@ html {
   50% { transform: translate(-50%, -50%) scale(1.14); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
 }
-.booking-stepper.floating .stepper-step .stepper-icon.teleport-pop { animation: teleportPop 420ms cubic-bezier(.2,.9,.2,1) both; }
+.booking-stepper.floating .stepper-step .stepper-icon.teljeport-pop { animation: teleportPop 420ms cubic-bezier(.2,.9,.2,1) both; }
 
 /* Booking animations */
 .booking-container { animation: fadeSlideIn 420ms ease both; }
-.booking-step { animation: fadeUp 380ms ease both; animation-delay: 120ms; }
 .booking-hero h2, .booking-hero p { animation: fadeUp 420ms ease both; }
 .service-card, .payment-tab { animation: fadeUp 400ms ease both; animation-delay: 160ms; }
 
@@ -691,6 +736,15 @@ html {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Step reveal animation — plays each time a booking step becomes visible */
+@keyframes stepReveal {
+  0%   { opacity: 0; transform: translateY(22px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.booking-step.step-reveal {
+  animation: stepReveal 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Micro-interactions */
@@ -838,7 +892,7 @@ html {
   .legend-dot.available { background-color:#4bc0c0; }
   .legend-dot.booked { background-color:#ff6384; }
   .legend-dot.blocked { background-color:#e9ecef; }
-.map-wrapper { min-height: 320px; background: #f8f9fa; position: relative; }
+.map-wrapper { min-height: 320px; background: #f8f9fa; position: relative; clip-path: inset(0 round 1rem); isolation: isolate; }
 .technician-map { width: 100%; height: 320px; }
 .map-overlay { position: absolute; bottom: 0.75rem; left: 0.75rem; background: rgba(255,255,255,0.96); padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
 .map-pin { width:20px; height:28px; display:inline-block; vertical-align:middle; flex: 0 0 auto; color: currentColor; }
@@ -893,3 +947,97 @@ html {
 <% } %>
 
 <script type="module" src="/js/services.js"></script>
+<script>
+(function () {
+  // Animate booking steps in when they become visible (d-none removed)
+  const bookingBody = document.querySelector('.booking-body');
+  if (!bookingBody || !window.MutationObserver) return;
+
+  function triggerReveal(el) {
+    // only animate actual booking-step blocks (not containers that hide permanently)
+    if (!el.classList.contains('booking-step')) return;
+    el.classList.remove('step-reveal');
+    // force a reflow so the animation restarts from scratch
+    void el.offsetWidth;
+    el.classList.add('step-reveal');
+    // clean up the class after the animation so it can replay next show
+    el.addEventListener('animationend', function cleanup() {
+      el.classList.remove('step-reveal');
+      el.removeEventListener('animationend', cleanup);
+    });
+  }
+
+  const observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (m) {
+      if (m.type !== 'attributes' || m.attributeName !== 'class') return;
+      const el = m.target;
+      // fire only when d-none is removed (step becomes visible for the first time in this flow)
+      const wasHidden = m.oldValue && m.oldValue.split(' ').includes('d-none');
+      const nowVisible = !el.classList.contains('d-none');
+      if (wasHidden && nowVisible) {
+        triggerReveal(el);
+      }
+    });
+  });
+
+  // observe every booking step
+  bookingBody.querySelectorAll('.booking-step').forEach(function (step) {
+    observer.observe(step, { attributes: true, attributeOldValue: true });
+  });
+
+  // Animate newly injected cards/slots in service, suggestion and time-slot containers.
+  // calendarGrid is intentionally excluded — it re-renders on every month change and
+  // would cause constant tweaking if observed.
+  var childTargets = ['serviceCards', 'suggestedCards'];
+  var childObserver = new MutationObserver(function (mutations) {
+    // collect all added element nodes from this batch (deduplicated per container)
+    var added = [];
+    mutations.forEach(function (m) {
+      if (m.type !== 'childList') return;
+      m.addedNodes.forEach(function (node) {
+        if (node.nodeType === 1) added.push(node);
+      });
+    });
+    added.forEach(function (node, i) {
+      var delay = Math.min(i, 10) * 55;
+      node.style.animationDelay = delay + 'ms';
+      node.style.animation = 'none';
+      void node.offsetWidth;
+      node.style.animation = 'fadeUp 320ms cubic-bezier(0.22,1,0.36,1) both';
+      node.style.animationDelay = delay + 'ms';
+    });
+  });
+  childTargets.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) childObserver.observe(el, { childList: true });
+  });
+
+  // Time slots get a separate observer so they animate as a clean batch
+  // each time the slot list is rebuilt (cleared then re-populated).
+  var slotContainer = document.getElementById('timeSlots');
+  if (slotContainer) {
+    var slotBatch = [], slotTimer = null;
+    var slotObserver = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        if (m.type !== 'childList') return;
+        m.addedNodes.forEach(function (node) {
+          if (node.nodeType === 1) slotBatch.push(node);
+        });
+      });
+      clearTimeout(slotTimer);
+      slotTimer = setTimeout(function () {
+        // animate the whole batch at once with stagger
+        slotBatch.forEach(function (node, i) {
+          node.style.animationDelay = (Math.min(i, 10) * 50) + 'ms';
+          node.style.animation = 'none';
+          void node.offsetWidth;
+          node.style.animation = 'fadeUp 300ms cubic-bezier(0.22,1,0.36,1) both';
+          node.style.animationDelay = (Math.min(i, 10) * 50) + 'ms';
+        });
+        slotBatch = [];
+      }, 20);
+    });
+    slotObserver.observe(slotContainer, { childList: true });
+  }
+})();
+</script>

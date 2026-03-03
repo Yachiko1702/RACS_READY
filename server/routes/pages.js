@@ -40,6 +40,7 @@ const RepairService = require("../models/RepairService");
 
 router.get("/services", async (req, res) => {
   let initialServices = { coreServices: [], repairs: [] };
+  let farePerKm = 40;
   try {
     const core = await CoreService.find({ active: true }).lean().limit(100);
     const repairs = await RepairService.find({ active: true })
@@ -54,6 +55,13 @@ router.get("/services", async (req, res) => {
     );
   }
 
+  // load the admin-configured fare per km (falls back to 40 if not set)
+  try {
+    const SiteSetting = require("../models/SiteSetting");
+    const setting = await SiteSetting.findOne({ key: "farePerKm" }).lean();
+    if (setting && typeof setting.value === "number") farePerKm = setting.value;
+  } catch (e) { /* ignore — fallback already set */ }
+
   res.render("pages/services", {
     title: "Our Services",
     googleCalendarClientId: process.env.GOOGLE_CALENDAR_CLIENT_ID || "",
@@ -61,6 +69,7 @@ router.get("/services", async (req, res) => {
     initialServices,
     // supply the admin's GCash number for the QR code
     adminGcashNumber: process.env.ADMIN_GCASH_NUMBER || "",
+    farePerKm,
   });
 });
 
@@ -233,6 +242,40 @@ router.get("/book-history", pageAuth.requireRole("customer"), (req, res) => {
   res.render("pages/book-history", { title: "Booking History" });
 });
 
+// Live Tracking (customers only)
+router.get("/tracking", pageAuth.requireRole("customer"), async (req, res, next) => {
+  try {
+    const BookingService = require("../models/BookingService");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const items = await BookingService.find({
+      customerId: req.user._id,
+      status: { $in: ["pending", "confirmed", "re-scheduled"] },
+    })
+      .sort({ bookingDate: 1, startTime: 1 })
+      .limit(100)
+      .populate("technicianId")
+      .lean();
+
+    const current =
+      items.find(
+        (b) =>
+          String(b.status || "").toLowerCase() === "confirmed" &&
+          b.bookingDate &&
+          new Date(b.bookingDate) >= today,
+      ) || items[0] || null;
+
+    res.render("pages/tracking", {
+      title: "Live Tracking",
+      initialBookings: items,
+      initialBooking: current,
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
 // ── PayMongo GCash redirect landing pages ────────────────────────────────────
 // PayMongo redirects the customer here after GCash payment completes or fails.
 router.get("/payment/success", (req, res) => {
@@ -356,6 +399,51 @@ router.get(
   },
 );
 router.get(
+  "/admin/appointments/completed",
+  pageAuth.requireRole("admin"),
+  async (req, res) => {
+    try {
+      const BookingService = require("../models/BookingService");
+      const bookings = await BookingService.find({ status: "completed" })
+        .sort({ bookingDate: -1, startTime: -1 })
+        .limit(400)
+        .populate("serviceId")
+        .populate("technicianId")
+        .lean();
+
+      bookings.forEach((b) => {
+        if (b.serviceId && (b.serviceId.name || b.serviceId.title)) {
+          b.service = b.serviceId.name || b.serviceId.title;
+        } else if (!b.service) {
+          b.service = b.serviceType || "";
+        }
+        if (!b.technicianName) {
+          if (b.technician && b.technician.name) {
+            b.technicianName = b.technician.name;
+          } else if (b.technicianId && typeof b.technicianId === "object") {
+            b.technicianName =
+              b.technicianId.name || b.technicianId.fullName ||
+              ((b.technicianId.firstName || "") + " " + (b.technicianId.lastName || "")).trim();
+          }
+        }
+      });
+
+      res.render("pages/admin/Appointments/Appointments", {
+        title: "Completed Appointments",
+        layout: "layouts/admin",
+        initialBookings: bookings,
+      });
+    } catch (err) {
+      console.error("/admin/appointments/completed failed", err && err.message);
+      res.render("pages/admin/Appointments/Appointments", {
+        title: "Completed Appointments",
+        layout: "layouts/admin",
+        initialBookings: [],
+      });
+    }
+  },
+);
+router.get(
   "/admin/appointments/overview",
   pageAuth.requireRole("admin"),
   (req, res) => {
@@ -391,6 +479,16 @@ router.get(
   (req, res) => {
     res.render("pages/admin/Appointments/Reschedule", {
       title: "Reschedule Appointment",
+      layout: "layouts/admin",
+    });
+  },
+);
+router.get(
+  "/admin/appointments/walk-in",
+  pageAuth.requireRole("admin"),
+  (req, res) => {
+    res.render("pages/admin/Appointments/WalkIn", {
+      title: "Walk-in Appointment",
       layout: "layouts/admin",
     });
   },
@@ -438,6 +536,18 @@ router.get(
     res.render("pages/admin/Inventory/StockHistory", {
       title: "Stock History",
       layout: "layouts/admin",
+    });
+  },
+);
+router.get(
+  "/admin/tool-usage",
+  pageAuth.requireRole("admin"),
+  (req, res) => {
+    res.render("pages/shared/ToolUsageManagement", {
+      title: "Tool Usage Management",
+      layout: "layouts/admin",
+      apiBase: "/api/admin",
+      roleLabel: "admin",
     });
   },
 );
@@ -588,11 +698,34 @@ router.get(
   async (req, res, next) => {
     try {
       const Technician = require("../models/Technician");
+      const BookingService = require("../models/BookingService");
       const tech = await Technician.findOne({ user: req.user._id }).lean();
+
+      let appointments = [];
+      if (tech && tech._id) {
+        const technicianIds = [String(tech._id)];
+        if (tech.user) technicianIds.push(String(tech.user));
+        if (req.user && req.user._id) technicianIds.push(String(req.user._id));
+
+        const since = new Date();
+        since.setDate(since.getDate() - 1);
+        since.setHours(0, 0, 0, 0);
+
+        appointments = await BookingService.find({
+          technicianId: { $in: Array.from(new Set(technicianIds)) },
+          bookingDate: { $gte: since },
+          status: { $in: ["pending", "confirmed", "re-scheduled"] },
+        })
+          .sort({ bookingDate: 1, startTime: 1 })
+          .limit(120)
+          .lean();
+      }
+
       res.render("pages/technician/techniciandashboard", {
         title: "Technician Dashboard",
         layout: "layouts/technician",
         technician: tech || {},
+        initialAppointments: appointments,
       });
     } catch (e) {
       next(e);
@@ -671,6 +804,29 @@ router.get(
       title: "Technician Skills",
       layout: "layouts/admin",
     });
+  },
+);
+
+// Admin - Technician Leave Requests
+router.get(
+  "/admin/technicians/leaves",
+  pageAuth.requireRole("admin"),
+  async (req, res, next) => {
+    try {
+      const LeaveRequest = require("../models/LeaveRequest");
+      const [items, pendingCount] = await Promise.all([
+        LeaveRequest.find({}).sort({ status: 1, createdAt: -1 }).limit(500).lean(),
+        LeaveRequest.countDocuments({ status: "pending" }),
+      ]);
+      res.render("pages/admin/Technicians/TechnicianLeaves", {
+        title:        "Leave Requests",
+        layout:       "layouts/admin",
+        initialLeaves: items,
+        pendingCount,
+      });
+    } catch (e) {
+      next(e);
+    }
   },
 );
 
@@ -754,6 +910,16 @@ router.get(
   },
 );
 router.get(
+  "/admin/settings/fare",
+  pageAuth.requireRole("admin"),
+  (req, res) => {
+    res.render("pages/admin/Settings/Fare", {
+      title: "Fare Settings",
+      layout: "layouts/admin",
+    });
+  },
+);
+router.get(
   "/admin/settings/email",
   pageAuth.requireRole("admin"),
   (req, res) => {
@@ -826,6 +992,18 @@ router.get(
     res.render("pages/secretary/Appointments/Pointofsale", {
       title: "Point of Sale",
       layout: "layouts/secretary",
+    });
+  },
+);
+router.get(
+  "/secretary/tool-usage",
+  pageAuth.requireRole("secretary"),
+  (req, res) => {
+    res.render("pages/shared/ToolUsageManagement", {
+      title: "Tool Usage Management",
+      layout: "layouts/secretary",
+      apiBase: "/api/secretary",
+      roleLabel: "secretary",
     });
   },
 );

@@ -204,6 +204,9 @@ app.use("/api/psgc", psgcRoutes);
 const secretaryApi = require("./routes/secretaryApi");
 app.use("/api/secretary", secretaryApi);
 
+const technicianApi = require("./routes/technicianApi");
+app.use("/api/technician", technicianApi);
+
 // Public holidays (supports multiple providers: google or nager)
 const holidayRoutes = require("./routes/holidayRoutes");
 app.use("/api/holidays", holidayRoutes);

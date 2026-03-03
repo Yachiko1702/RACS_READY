@@ -287,7 +287,14 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // relocate modal to top-level to avoid being clipped by parent stacking contexts
     const modalEl = document.getElementById('repairServiceModal');
+    if (modalEl && modalEl.parentElement !== document.body) {
+      document.body.appendChild(modalEl);
+    }
+    const css = document.createElement('style');
+    css.textContent = ".modal { z-index: 2050 !important; } .modal-backdrop { z-index: 2040 !important; }";
+    document.head.appendChild(css);
     if (!modalEl) return;
     const modal = window.bootstrap && bootstrap.Modal ? new bootstrap.Modal(modalEl) : null;
     const form = document.getElementById('repairServiceForm');

@@ -383,6 +383,7 @@
       border: 1px solid #2ec4b6;
     }
 
+
     /* maintain tint on hover */
     .appointments-combined .tabs .nav-link:hover {
       filter: brightness(0.9);
@@ -651,6 +652,7 @@
     <li class="nav-item">
       <button class="nav-link" data-tab="tab-reschedule">Reschedule</button>
     </li>
+
   </ul>
 
   <div class="appts-grid">
@@ -711,8 +713,8 @@
                     class="form-select form-select-sm"
                   >
                     <option value="all">All statuses</option>
-                    <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>
+                    <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
@@ -728,6 +730,11 @@
                     <option value="all">All technicians</option>
                   </select>
                 </div>
+                <div class="col-md-2 d-flex align-items-end">
+                  <button id="btn-filter-combined" type="button" class="btn btn-sm btn-primary w-100">
+                    Apply Filter
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -742,6 +749,7 @@
                   <th>Service</th>
                   <th>Technician</th>
                   <th>Location</th>
+                  <th>Payment</th>
                   <th>Status</th>
                   <th style="width: 160px">Actions</th>
                 </tr>
@@ -789,6 +797,7 @@
                 <option value="all">All statuses</option>
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
@@ -808,7 +817,7 @@
             <div>
               <div class="fw-bold">Booking Request Validation Queue</div>
               <div class="muted-small">
-                Review requests, validate details, then approve or cancel.
+                Review requests, validate details, then confirm (this will also mark payment paid) or cancel.
               </div>
             </div>
           </div>
@@ -1013,6 +1022,14 @@
           >
             Close</button
           ><button
+            id="apptsModalComplete"
+            type="button"
+            class="btn btn-sm btn-success"
+            style="display:none;"
+          >
+            Mark Completed
+          </button>
+          <button
             id="apptsModalEdit"
             type="button"
             class="btn btn-sm btn-primary"
@@ -1023,6 +1040,8 @@
       </div>
     </div>
   </div>
+
+  <script id="apptsInitialBookingsJson" type="application/json"><%- JSON.stringify(initialBookings || []) %></script>
 
   <script>
     (function () {
@@ -1058,7 +1077,16 @@
           const allTabs = qsa(".tab-pane");
           allTabs.forEach((t) => t.classList.add("d-none"));
           const sel = this.getAttribute("data-tab");
+
+          // select appropriate content panel and refresh data if needed
           document.getElementById(sel).classList.remove("d-none");
+          const pageTitle = document.querySelector(
+            ".dashboard-hero .page-title",
+          );
+          if (pageTitle) pageTitle.textContent = "Appointments";
+          if (sel === "tab-list") {
+            loadCombinedOverview();
+          }
         }),
       );
 
@@ -1071,8 +1099,14 @@
       });
 
       // Shared data stores
+      // Combined appointments list will exclude pending by default
+      // server does not supply any completed-only flag
+      
+
       // if the server sent us some bookings, use them as initial state
-      let combinedAppointments = <%- JSON.stringify(initialBookings || []) %> || [];
+      let combinedAppointments = JSON.parse(
+        document.getElementById("apptsInitialBookingsJson")?.textContent || "[]",
+      ) || [];
       // move shared modal into <body> to avoid stacking context/z-index issues
       document.addEventListener("DOMContentLoaded", () => {
         const modal = document.getElementById("apptsSharedModal");
@@ -1109,10 +1143,12 @@
           });
         }
       }
+
       let combinedStaff = [];
       let bookingRequests = [];
 
       // Load initial overview (list KPIs + table + trend)
+      // load overview: metrics + appointment list (all statuses except pending)
       async function loadCombinedOverview() {
         try {
           const sRes = await fetch("/api/admin/analytics/summary");
@@ -1133,10 +1169,6 @@
 
           const hasMetricList = Array.isArray(metricAppointments) && metricAppointments.length > 0;
 
-          // Use appointment list metrics as primary source so these KPIs are consistent with
-          // what the Appointments module is currently handling (not only today's summary).
-          // "Appointments" KPI should mirror confirmed jobs per user request
-          // use confirmedCount regardless of metric list size so the two cards always match
           document.getElementById("kpi-today-combined").innerText =
             hasMetricList ? confirmedCount : (s.activeJobsInProgress ?? "—");
           document.getElementById("kpi-pending-combined").innerText =
@@ -1146,21 +1178,41 @@
           document.getElementById("kpi-cancelled-combined").innerText =
             hasMetricList ? cancelledCount : "0";
 
-          // load appointments (try network, but fall back to server-provided data)
+          // adjust status filter UI if needed (status dropdown already contains options)
+          const statusNode = document.getElementById("filterStatusCombined");
+          if (statusNode) {
+            // ensure pending not selected by default
+            if (statusNode.value === "pending") statusNode.value = "all";
+            statusNode.disabled = false;
+          }
+
+          // load appointments from server (will exclude pending automatically)
           let appts = [];
           try {
-            // only fetch confirmed/upcoming slots – pending bookings are handled in the requests tab
-            const r = await fetch("/api/appointments?upcoming=1&status=confirmed");
+            // build query string from filter inputs
+            const params = new URLSearchParams();
+            params.set("upcoming", "1");
+            const searchVal = document.getElementById("filterSearchCombined")?.value.trim();
+            if (searchVal) params.set("search", searchVal);
+            const startVal = document.getElementById("filterStartCombined")?.value;
+            if (startVal) params.set("start", startVal);
+            const endVal = document.getElementById("filterEndCombined")?.value;
+            if (endVal) params.set("end", endVal);
+            const statusVal = document.getElementById("filterStatusCombined")?.value;
+            if (statusVal && statusVal !== "all") params.set("status", statusVal);
+            const techVal = document.getElementById("filterTechCombined")?.value;
+            if (techVal && techVal !== "all") params.set("technicianId", techVal);
+            const url = "/api/appointments?" + params.toString();
+            console.debug("appointments fetch URL", url);
+            const r = await fetch(url);
             if (r.ok) {
               const j = await r.json();
-              // server returns { items, count }
               appts = j.items || j.appointments || [];
             }
           } catch (e) {
             console.warn("appointment fetch failed, using seed data", e);
           }
           if (!appts.length) {
-            // use page-rendered bookings if available
             appts = combinedAppointments || [];
           }
           combinedAppointments = appts;
@@ -1202,13 +1254,11 @@
             console.warn("load staff error", e);
           }
 
-          // requests list (best-effort)
           loadBookingRequests();
         } catch (err) {
           console.error("loadCombinedOverview failed", err);
         }
       }
-
       function renderAppointmentsTable(list) {
         const tbody = document.getElementById("appointmentsBodyCombined");
         tbody.innerHTML = "";
@@ -1222,6 +1272,12 @@
         list.slice(0, 200).forEach((a) => {
           const tr = document.createElement("tr");
           const date = a.bookingDate || a.date || a.start || new Date();
+          const badge = `<span class='badge bg-${statusBadgeClass(a.status)}'>${statusLabel(a.status)}</span>`;
+          const paymentBadge = `<span class='badge bg-${a.paymentStatus === "paid" ? "success" : a.paymentStatus === "failed" ? "danger" : "warning"} text-uppercase'>${a.paymentStatus || "pending"}</span>`;
+          const completeBtn =
+            a.status === "confirmed"
+              ? `<button class='btn btn-sm btn-outline-success complete-appt' data-id='${a._id || a.id || ""}' title='Complete'><i class='bi bi-check2-circle'></i></button>`
+              : "";
           tr.innerHTML = `<td>${new Date(date).toLocaleDateString()}</td><td>${a.startTime || a.time || ""}</td><td><strong>${a.customerName || (a.customer && a.customer.name) || a.customer || "Customer"}</strong><div class='small text-muted'>${a.customerEmail || ""}</div></td><td>${a.service || a.serviceType || (a.serviceId && (a.serviceId.name || a.serviceId.title)) || ""}</td><td>${a.technicianName || (a.technician && a.technician.name) || a.technician || (a.technician && a.technician._id) || "TBD"}</td><td>${(() => {
             if (a.location && a.location.address) return a.location.address;
             if (
@@ -1233,7 +1289,7 @@
               return lat + ", " + lng;
             }
             return a.address || "";
-          })()}</td><td><span class='badge bg-${a.status === "confirmed" ? "success" : a.status === "pending" ? "warning" : "secondary"}'>${a.status || "n/a"}</span></td><td><div class='d-flex gap-2'><button class='btn btn-sm btn-outline-secondary view-appt' data-id='${a._id || a.id || ""}' title='View'><i class='bi bi-eye'></i></button><button class='btn btn-sm btn-outline-secondary edit-appt' data-id='${a._id || a.id || ""}' title='Edit'><i class='bi bi-pencil'></i></button></div></td>`;
+          })()}</td><td>${paymentBadge}</td><td>${badge}</td><td><div class='d-flex gap-2'><button class='btn btn-sm btn-outline-secondary view-appt' data-id='${a._id || a.id || ""}' title='View'><i class='bi bi-eye'></i></button><button class='btn btn-sm btn-outline-secondary edit-appt' data-id='${a._id || a.id || ""}' title='Edit'><i class='bi bi-pencil'></i></button>${completeBtn}</div></td>`;
           tbody.appendChild(tr);
         });
         document.getElementById("appointmentsCountCombined").innerText =
@@ -1243,6 +1299,28 @@
         );
         qsa(".edit-appt").forEach((b) =>
           b.addEventListener("click", onEditAppt),
+        );
+        qsa(".complete-appt").forEach((b) =>
+          b.addEventListener("click", async function (e) {
+            const id = this.getAttribute("data-id");
+            if (!id) return;
+            if (!confirm("Mark this appointment completed?")) return;
+            try {
+              const resp = await fetch(
+                `/appointments/${encodeURIComponent(id)}/complete`,
+                { method: "POST", credentials: "same-origin" },
+              );
+              if (resp.ok) {
+                window.notify?.success("Appointment marked completed");
+                await loadCombinedOverview();
+              } else {
+                const text = await resp.text();
+                window.notify?.error("Failed to complete: " + text);
+              }
+            } catch (err) {
+              window.notify?.error("Failed to complete appointment");
+            }
+          }),
         );
 
 
@@ -1420,52 +1498,109 @@
             // keep fallback text if reverse geocode fails
           }
         }
-        // build a structured display with sections
-        let html = `<div class="appt-detail-grid">
-            <div class="section-header" style="grid-column:1/-1;font-weight:600;">Service Information</div>
-            <span class="appt-detail-label">Service</span><span class="appt-detail-val">${serviceName}</span>
-        `;
-        if (serviceDescription) {
-          html += `<span class="appt-detail-label">Description</span><span class="appt-detail-val">${serviceDescription}</span>`;
-        }
-        html += `<span class="appt-detail-label">Service fee</span><span class="appt-detail-val">${serviceFeeText}</span>`;
-        html += `<span class="appt-detail-label">Distance fare</span><span class="appt-detail-val">${distanceFareText}</span>`;
-        html += `<span class="appt-detail-label">Estimated fee</span><span class="appt-detail-val">${estimatedFeeText}</span>`;
-        html += `<div class="section-header" style="grid-column:1/-1;font-weight:600;">Schedule</div>
-            <span class="appt-detail-label">Date</span><span class="appt-detail-val">${bookingDateText}</span>
-          <span class="appt-detail-label">Time</span><span class="appt-detail-val">${timeRangeText}</span>
-            <div class="section-header" style="grid-column:1/-1;font-weight:600;">Customer Information</div>
-            <span class="appt-detail-label">Name</span><span class="appt-detail-val">${appt.customerName || (appt.customer && (appt.customer.name || `${appt.customer.firstName||""} ${appt.customer.lastName||""}`)) || "—"}</span>
-        `;
-        if (appt.customer && appt.customer.email) {
-          html += `<span class="appt-detail-label">Email</span><span class="appt-detail-val">${appt.customer.email}</span>`;
-        }
-        if (appt.customer && appt.customer.phone) {
-          html += `<span class="appt-detail-label">Phone</span><span class="appt-detail-val">${appt.customer.phone}</span>`;
-        }
-        const _tlng = Number(appt?.technicianLocation?.coordinates?.coordinates?.[0]);
-        const _tlat = Number(appt?.technicianLocation?.coordinates?.coordinates?.[1]);
-        html += `<span class="appt-detail-label">Address</span><span class="appt-detail-val">${locationAddressText}</span>`;
-        if (Number.isFinite(_tlat) && Number.isFinite(_tlng)) {
-          html += `<span class="appt-detail-label">Tech location</span><span class="appt-detail-val">${_tlat.toFixed(5)}, ${_tlng.toFixed(5)}</span>`;
-          if (Number.isFinite(_clat) && Number.isFinite(_clng)) {
-            const dist = haversine(_clat, _clng, _tlat, _tlng).toFixed(1);
-            html += `<span class="appt-detail-label">Distance</span><span class="appt-detail-val">${dist} km</span>`;
-          }
-        }
-        // map placeholder
-        html += `<div id="apptMap" style="grid-column:1/-1;height:200px;margin-top:8px;"></div>`;
-        html += `<div class="section-header" style="grid-column:1/-1;font-weight:600;">Administrative</div>
-            <span class="appt-detail-label">Technician</span><span class="appt-detail-val">${appt.technicianName || appt.technician || "—"}</span>
-            <span class="appt-detail-label">Status</span><span class="appt-detail-val"><span class="badge bg-${statusBadgeClass(appt.status)}">${appt.status||"—"}</span></span>
-        `;
+        const customerNameText =
+          appt.customerName ||
+          (appt.customer &&
+            (appt.customer.name ||
+              `${appt.customer.firstName || ""} ${appt.customer.lastName || ""}`.trim())) ||
+          "—";
+        const customerEmailText = (appt.customer && appt.customer.email) || appt.customerEmail || "—";
+        const customerPhoneText = (appt.customer && appt.customer.phone) || "—";
+        const paymentStatusText = appt.paymentStatus ? String(appt.paymentStatus).toUpperCase() : "PENDING";
+        const paymentMethodText = appt.paymentMethod || "—";
+        const paymentReferenceText = appt.paymentReference || "—";
+        const gcashNumberText = appt.gcashNumber || "—";
+        const statusBadge = `<span class="badge bg-${statusBadgeClass(appt.status)}">${statusLabel(appt.status)}</span>`;
+        const technicianText = appt.technicianName || appt.technician || "—";
+        const downpaymentText = Number.isFinite(Number(appt.downpaymentAmount))
+          ? "₱" + Number(appt.downpaymentAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "—";
+        const travelTimeText = Number.isFinite(Number(appt.travelTime))
+          ? `${Number(appt.travelTime)} min`
+          : "—";
+
+        let proofHtml = "—";
         if (appt.paymentProof) {
           const imgSrc = normalizeProofSrc(appt.paymentProof);
           if (imgSrc) {
-            html += `<span class="appt-detail-label">Proof</span><span class="appt-detail-val"><a href="${imgSrc}" target="_blank" class="proof-link"><img src="${imgSrc}" style="max-width:100%;cursor:pointer;" loading="lazy"/></a></span>`;
+            proofHtml = `<a href="${imgSrc}" target="_blank"><img src="${imgSrc}" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer;" loading="lazy"/></a>`;
           }
         }
-        html += `</div>`;
+
+        const _tlng = Number(appt?.technicianLocation?.coordinates?.coordinates?.[0]);
+        const _tlat = Number(appt?.technicianLocation?.coordinates?.coordinates?.[1]);
+        const distanceText =
+          Number.isFinite(_tlat) && Number.isFinite(_tlng) && Number.isFinite(_clat) && Number.isFinite(_clng)
+            ? `${haversine(_clat, _clng, _tlat, _tlng).toFixed(1)} km`
+            : "—";
+
+        const issueDescriptionText = appt.issueDescription || "—";
+
+        const html = `
+          <div class="req-detail-header">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+              <div>
+                <div class="small opacity-75">Appointment Details</div>
+                <div class="ref">${appt.bookingReference || appt._id || "—"}</div>
+              </div>
+              <div class="text-end">
+                <div class="small opacity-75">Status</div>
+                ${statusBadge}
+              </div>
+            </div>
+          </div>
+
+          <div class="req-detail-cards">
+            <div class="req-card">
+              <div class="title">Service & Schedule</div>
+              <div class="req-kv">
+                <div class="k">Service</div><div class="v">${serviceName}</div>
+                <div class="k">Description</div><div class="v">${serviceDescription || "—"}</div>
+                <div class="k">Date</div><div class="v">${bookingDateText}</div>
+                <div class="k">Time Window</div><div class="v">${timeRangeText}</div>
+                <div class="k">Issue</div><div class="v">${issueDescriptionText}</div>
+              </div>
+            </div>
+
+            <div class="req-card">
+              <div class="title">Customer & Location</div>
+              <div class="req-kv">
+                <div class="k">Customer</div><div class="v">${customerNameText}</div>
+                <div class="k">Email</div><div class="v">${customerEmailText}</div>
+                <div class="k">Phone</div><div class="v">${customerPhoneText}</div>
+                <div class="k">Address</div><div class="v">${locationAddressText}</div>
+                <div class="k">Tech Location</div><div class="v">${Number.isFinite(_tlat) && Number.isFinite(_tlng) ? `${_tlat.toFixed(5)}, ${_tlng.toFixed(5)}` : "—"}</div>
+                <div class="k">Distance</div><div class="v">${distanceText}</div>
+              </div>
+            </div>
+
+            <div class="req-card">
+              <div class="title">Payment</div>
+              <div class="req-kv">
+                <div class="k">Status</div><div class="v"><span class="badge bg-${paymentStatusText === 'PAID' ? 'success' : paymentStatusText === 'FAILED' ? 'danger' : 'warning'} text-uppercase">${paymentStatusText}</span></div>
+                <div class="k">Method</div><div class="v">${paymentMethodText}</div>
+                <div class="k">GCash Number</div><div class="v">${gcashNumberText}</div>
+                <div class="k">Reference</div><div class="v">${paymentReferenceText}</div>
+                <div class="k">Service Fee</div><div class="v">${serviceFeeText}</div>
+                <div class="k">Travel Fare</div><div class="v">${distanceFareText}</div>
+                <div class="k">Travel Time</div><div class="v">${travelTimeText}</div>
+                <div class="k">Downpayment</div><div class="v">${downpaymentText}</div>
+                <div class="k">Estimated Fee</div><div class="v"><strong>${estimatedFeeText}</strong></div>
+              </div>
+            </div>
+
+            <div class="req-card">
+              <div class="title">Administrative</div>
+              <div class="req-kv">
+                <div class="k">Technician</div><div class="v">${technicianText}</div>
+                <div class="k">Booking ID</div><div class="v">${appt._id || "—"}</div>
+                <div class="k">Proof</div><div class="v">${proofHtml}</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="apptMap" style="height:220px;margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;"></div>
+        `;
         document.getElementById("apptsSharedModalBody").innerHTML = html;
         const modalEl = document.getElementById("apptsSharedModal");
         const bsModal = new bootstrap.Modal(modalEl);
@@ -1565,7 +1700,8 @@
 
       function statusBadgeClass(status) {
         const s = statusLabel(status);
-        if (s === "confirmed" || s === "completed") return "success";
+        if (s === "confirmed") return "success";
+        if (s === "completed") return "info"; // completed appointments are distinguished with blue badge
         if (s === "cancelled") return "danger";
         if (s === "re-scheduled") return "primary";
         return "warning";
@@ -1870,6 +2006,35 @@
           </div>
         `;
         document.getElementById("apptsModalEdit").style.display = "none";
+        // configure complete button
+        const completeBtn = document.getElementById("apptsModalComplete");
+        if (completeBtn) {
+          if (appt.status === "confirmed") {
+            completeBtn.style.display = "inline-block";
+          } else {
+            completeBtn.style.display = "none";
+          }
+          completeBtn.onclick = async () => {
+            if (!appt._id) return;
+            if (!confirm("Mark this appointment completed?")) return;
+            try {
+              const r = await fetch(`/appointments/${encodeURIComponent(
+                appt._id,
+              )}/complete`, { method: "POST", credentials: "same-origin" });
+              if (r.ok) {
+                window.notify?.success("Appointment marked completed");
+                appt.status = "completed";
+                await loadCombinedOverview();
+                bsModal.hide();
+              } else {
+                const txt = await r.text();
+                window.notify?.error("Complete failed: " + txt);
+              }
+            } catch (e) {
+              window.notify?.error("Complete request failed");
+            }
+          };
+        }
         const modalEl = document.getElementById("apptsSharedModal");
         const bsModal = new bootstrap.Modal(modalEl);
         bsModal.show();
@@ -2115,8 +2280,7 @@
               <td class="text-start">
                 <div class="d-flex gap-2 flex-wrap">
                   <button class="btn btn-sm btn-outline-secondary view-req-details" data-id="${rq.id}">Details</button>
-                  <button class="btn btn-sm btn-outline-success approve-req" data-id="${rq.id}" ${canValidate ? "" : "disabled"}>Approve</button>
-                  <button class="btn btn-sm btn-outline-danger reject-req" data-id="${rq.id}" ${canValidate ? "" : "disabled"}>Cancel</button>
+                  <button class="btn btn-sm btn-outline-secondary view-payment" data-id="${rq.id}" title="View payment"><i class="bi bi-credit-card-2-front-fill"></i></button>
                 </div>
               </td>
             `;
@@ -2135,46 +2299,18 @@
           }),
         );
 
-        qsa(".approve-req").forEach((b) =>
-          b.addEventListener("click", async function () {
+        // redirect to payments when payment button clicked
+        qsa(".view-payment").forEach((b) =>
+          b.addEventListener("click", function () {
             const id = this.getAttribute("data-id");
-            await processBookingRequest(id, "approve");
-          }),
-        );
-
-        qsa(".reject-req").forEach((b) =>
-          b.addEventListener("click", async function () {
-            const id = this.getAttribute("data-id");
-            await processBookingRequest(id, "cancel");
+            if (id) {
+              window.location.href = `/admin/payments?bookingId=${encodeURIComponent(id)}`;
+            }
           }),
         );
       }
 
-      async function processBookingRequest(id, action) {
-        if (!id) return;
-        const isCancel = action === "cancel";
-        if (isCancel && !confirm("Cancel this booking request?")) return;
-        try {
-          const res = await fetch(
-            `/appointments/${encodeURIComponent(id)}/${action}`,
-            { method: "POST", credentials: "same-origin" },
-          );
-          if (res.ok) {
-            window.notify?.success(
-              isCancel ? "Request cancelled" : "Request approved",
-            );
-            await loadBookingRequests();
-            await loadCombinedOverview();
-          } else {
-            const t = await res.text();
-            window.notify?.error(
-              `Failed to ${isCancel ? "cancel" : "approve"}: ${t}`,
-            );
-          }
-        } catch (e) {
-          window.notify?.error(`Failed to ${isCancel ? "cancel" : "approve"}`);
-        }
-      }
+      // no inline approve/cancel handlers any more; all actions happen in payments view
 
       // Booking requests validation queue
       async function loadBookingRequests() {
@@ -2244,6 +2380,13 @@
         });
 
       // wire controls
+      // filter/apply button for combined appointments
+      const filterBtn = document.getElementById("btn-filter-combined");
+      if (filterBtn) {
+        filterBtn.addEventListener("click", () => {
+          loadCombinedOverview();
+        });
+      }
       const refreshBtn = document.getElementById("btn-refresh-combined");
       if (refreshBtn) {
         refreshBtn.addEventListener("click", () => {
@@ -2268,8 +2411,14 @@
         .getElementById("requestRefreshCombined")
         ?.addEventListener("click", loadBookingRequests);
 
-      // initial load
+      // initial load of appointments list
       loadCombinedOverview();
+      // also wire change events so filters auto-refresh
+      ["filterSearchCombined","filterStartCombined","filterEndCombined","filterStatusCombined","filterTechCombined"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', () => loadCombinedOverview());
+      });
 
       // if URL contains ?sel=<id> open Reschedule tab and preselect the appointment
       (function preselectFromQuery() {

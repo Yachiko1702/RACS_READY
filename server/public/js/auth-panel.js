@@ -194,6 +194,44 @@ document.addEventListener("DOMContentLoaded", function () {
   var signUpForm = document.getElementById("auth-register-form");
   var signInForm = document.getElementById("auth-login-form");
 
+  // add loading spinner to form submit buttons
+  function makeButtonLoading(btn) {
+    if (!btn) return;
+    // prevent double-click
+    btn.disabled = true;
+    // backup original content so it could be restored if needed
+    if (typeof btn.dataset.origHtml === "undefined") {
+      btn.dataset.origHtml = btn.innerHTML;
+    }
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' +
+      (btn.dataset.origHtml ? btn.dataset.origHtml.replace(/<[^>]+>/g, "") : "Loading...");
+  }
+
+  if (signUpForm) {
+    var regBtn = document.getElementById("registerBtn");
+    signUpForm.addEventListener("submit", function () {
+      makeButtonLoading(regBtn);
+    });
+    if (regBtn) {
+      regBtn.addEventListener("click", function () {
+        // show loading even if form submission is prevented later
+        makeButtonLoading(this);
+      });
+    }
+  }
+
+  if (signInForm) {
+    var loginBtn = document.getElementById("loginBtn");
+    signInForm.addEventListener("submit", function () {
+      makeButtonLoading(loginBtn);
+    });
+    if (loginBtn) {
+      loginBtn.addEventListener("click", function () {
+        makeButtonLoading(this);
+      });
+    }
+  }
+
   // small UX: pressing Enter in the register email moves focus to password
   var registerEmail = document.getElementById("register-email");
   if (registerEmail)

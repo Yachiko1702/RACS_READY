@@ -70,7 +70,7 @@ const bookingSchema = new mongoose.Schema({
   },
 
   // payment information
-  paymentMethod: { type: String, enum: ["cod", "gcash", "paymongo", "cash", "other"], default: "cod" },
+  paymentMethod: { type: String, enum: ["cod", "gcash", "other"], default: "cod" },
 
   // downpayment / proof information (customer-submitted when booking)
   gcashNumber: { type: String }, // raw mobile number entered by customer (optional reference)
@@ -81,13 +81,13 @@ const bookingSchema = new mongoose.Schema({
   // payment status tracking
   paymentStatus: { type: String, enum: ["pending", "paid", "failed", "partial"], default: "pending" },
 
-  // PayMongo gateway tracking
-  paymentGatewayId: { type: String },        // PayMongo source / payment ID
-  paymentGatewayStatus: { type: String },    // raw status from PayMongo
+  // optional external gateway tracking (kept for compatibility)
+  paymentGatewayId: { type: String },
+  paymentGatewayStatus: { type: String },
 
   // legacy fields kept for backwards compatibility
   paymentProof: { type: String }, // base64 data URL or URL to uploaded proof image
-  gateway: { type: String, enum: ["paymongo", "other"] },
+  gateway: { type: String, enum: ["gcash", "cod", "other"] },
   gatewayId: String,
   gatewayStatus: String,
 
@@ -155,6 +155,35 @@ bookingSchema.virtual("serviceDescription").get(function () {
   if (this.service && this.service.description) return this.service.description;
   if (this.serviceId && this.serviceId.description) return this.serviceId.description;
   return undefined;
+});
+
+
+// validation: ensure cash/GCash fields are present depending on method
+bookingSchema.pre("validate", function () {
+  // require downpayment and reference when using cash (cod)
+  if (this.paymentMethod === "cod") {
+    if (!this.downpaymentAmount || this.downpaymentAmount <= 0) {
+      this.invalidate(
+        "downpaymentAmount",
+        "Downpayment amount is required for cash bookings",
+      );
+    }
+    if (!this.paymentReference || !String(this.paymentReference).trim()) {
+      this.invalidate(
+        "paymentReference",
+        "Reference number is required for cash bookings",
+      );
+    }
+  }
+  // require reference/proof for gcash entries (helper, though controller also checks)
+  if (this.paymentMethod === "gcash") {
+    if (this.paymentReference && String(this.paymentReference).length < 3) {
+      this.invalidate(
+        "paymentReference",
+        "GCash reference appears too short",
+      );
+    }
+  }
 });
 
 // make sure virtuals are included when converting to objects/json

@@ -150,6 +150,7 @@ const mapState = {
 
 const locationState = {
   userCoords: null,
+  _initialized: false, // prevents repeat GPS ticks from re-triggering scroll/mode logic
 };
 
 // schedule information for the currently selected technician (or global fallback)
@@ -161,6 +162,7 @@ const scheduleState = {
 
 function resetUserLocationState() {
   locationState.userCoords = null;
+  locationState._initialized = false;
   if (dom.locationInput) dom.locationInput.value = "";
   if (dom.locationStatus)
     dom.locationStatus.textContent =
@@ -316,11 +318,13 @@ function cacheDom() {
       try {
         dom.locationStep?.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (e) {}
+      try { updateStepIndicators(); } catch (e) {}
       // mount the map now that the container is visible — deferred so the
       // scroll animation completes before Leaflet measures the container size
+      // (stepReveal animation is 380ms; use 650ms to guarantee it finishes)
       setTimeout(() => {
         try { handleLocationStepVisible(); } catch (e) {}
-      }, 450);
+      }, 650);
 
       // clear any previously cached schedule while the new data loads
       scheduleState.workingDays = [];
@@ -366,7 +370,7 @@ function cacheDom() {
   dom.locationStatus = document.getElementById("locationStatus");
   dom.detectLocationBtn = document.getElementById("detectLocationBtn");
 
-  // Payment DOM  — only GCash (via PayMongo) and Cash
+  // Payment DOM  — manual GCash and Cash
   dom.paymentMethodInputs = Array.from(
     document.querySelectorAll('input[name="paymentMethod"]'),
   );
@@ -374,7 +378,14 @@ function cacheDom() {
   dom.gcashFields = document.getElementById("gcashFields");
   dom.cashFields  = document.getElementById("cashFields");
   dom.gcashNumber = document.getElementById("gcashNumber");
+  dom.gcashReference = document.getElementById("gcashReference");
+  dom.gcashProof = document.getElementById("gcashProof");
+  dom.gcashProofPreview = document.getElementById("gcashProofPreview");
   dom.gcashAmountDisplay = document.getElementById("gcashAmountDisplay");
+  dom.cashNumber = document.getElementById("cashNumber");
+  dom.cashReference = document.getElementById("cashReference");
+  dom.cashProof = document.getElementById("cashProof");
+  dom.cashProofPreview = document.getElementById("cashProofPreview");
   dom.cashNotes   = document.getElementById("cashNotes");
   dom.downpaymentAmt = document.getElementById("downpaymentAmt");
   dom.cashBreakdown  = document.getElementById("cashBreakdown");
@@ -894,17 +905,18 @@ function scrollToBookingStep(step) {
       node = document.getElementById("locationStep") || null;
       break;
     case 5:
-      // schedule step: show mode selector or whichever panel is visible
-      node = document.getElementById("modeSelection");
-      if (!node || node.classList.contains("d-none")) {
-        if (
-          document.getElementById("manualCalendar") &&
-          !document.getElementById("manualCalendar").classList.contains("d-none")
-        ) {
-          node = document.getElementById("manualCalendar");
-        } else {
-          node = document.getElementById("suggestedDates");
-        }
+      // schedule step: prefer to scroll to the active scheduling panel rather
+      // than the mode buttons so the user lands straight on the calendar or
+      // AI suggestions.  If no panel is visible we fall back to the mode
+      // selector.
+      const manual = document.getElementById("manualCalendar");
+      const suggested = document.getElementById("suggestedDates");
+      if (manual && !manual.classList.contains("d-none")) {
+        node = manual;
+      } else if (suggested && !suggested.classList.contains("d-none")) {
+        node = suggested;
+      } else {
+        node = document.getElementById("modeSelection");
       }
       break;
     case 6:
@@ -918,8 +930,10 @@ function scrollToBookingStep(step) {
   }
   if (!node) return;
   try {
-    node.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => window.scrollBy({ top: -80, behavior: "smooth" }), 120);
+    // scroll without animation to avoid jittery motion on each step change
+    node.scrollIntoView({ behavior: "auto", block: "center" });
+    // apply fixed offset in case header overlaps
+    setTimeout(() => window.scrollBy({ top: -80, behavior: "auto" }), 20);
   } catch (e) {
     /* noop */
   }
@@ -1226,7 +1240,12 @@ function toggleScheduleMode() {
     dom.manualCalendar?.classList.add("d-none");
     dom.locationStep?.classList.remove("d-none");
     try {
-      dom.locationStep?.scrollIntoView({ behavior: "smooth", block: "start" });
+      // only scroll if the location step is not already visible in the viewport
+      const rect = dom.locationStep?.getBoundingClientRect();
+      const alreadyVisible = rect && rect.top >= 0 && rect.bottom <= window.innerHeight;
+      if (!alreadyVisible) {
+        dom.locationStep?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     } catch (e) {}
     return;
   }
@@ -1422,9 +1441,10 @@ function setSelectedDate(date) {
     state.slot = null;
   }
 
-  // Re-render calendar and time slots
+  // Re-render calendar and time slots; scroll to the time-slot section after
+  // slots load because the user just picked a date from the calendar.
   renderCalendarDays();
-  renderTimeSlotsForDate(date);
+  renderTimeSlotsForDate(date, { scrollToSlots: true });
   try {
     updateStepIndicators();
   } catch (e) {}
@@ -1675,19 +1695,18 @@ function attachLocationHandlers() {
           "Address resolved and pinned on the map. Please verify the pin.",
           "success",
         );
-        revealPaymentSteps();
         // once we know where the customer is, expose scheduling mode controls
         dom.modeSelection?.classList.remove("d-none");
-        try {
-          dom.modeSelection?.scrollIntoView({ behavior: "smooth", block: "start" });
-        } catch (e) {}
-        // choose suggested mode by default if none selected
-        if (!state.mode) state.mode = "suggested";
+        // choose manual calendar mode by default once we have the location
+        if (!state.mode) state.mode = "manual";
         toggleScheduleMode();
         // map may not yet be initialized; ensure it appears
         attemptMapMount();
         adjustMapViewport();
-        scrollToLocationStep();
+        // advance the user to the scheduling panel rather than keep
+        // the viewport fixed on location
+        try { scrollToBookingStep(5); } catch (e) {}
+        try { updateStepIndicators(); } catch (e) {}
       } else if (
         item.placeId &&
         window.google &&
@@ -1718,16 +1737,13 @@ function attachLocationHandlers() {
                 "Address resolved and pinned on the map. Please verify the pin.",
                 "success",
               );
-              revealPaymentSteps();
               dom.modeSelection?.classList.remove("d-none");
-              try {
-                dom.modeSelection?.scrollIntoView({ behavior: "smooth", block: "start" });
-              } catch (e) {}
-              if (!state.mode) state.mode = "suggested";
+              if (!state.mode) state.mode = "manual";
               toggleScheduleMode();
               attemptMapMount();
               adjustMapViewport();
-              scrollToLocationStep();
+              try { scrollToBookingStep(5); } catch (e) {}
+              try { updateStepIndicators(); } catch (e) {}
             }
           },
         );
@@ -1766,15 +1782,15 @@ function attachLocationHandlers() {
         locationState.userCoords = coords;
         placeUserMarker(coords);
         setLocationStatus("Pinned custom coordinates on the map.", "success");
-        revealPaymentSteps();
+        try { updateStepIndicators(); } catch (e) {}
         // expose scheduling controls now that we have a location
         dom.modeSelection?.classList.remove("d-none");
-        if (!state.mode) state.mode = "suggested";
+        if (!state.mode) state.mode = "manual";
         toggleScheduleMode();
         // ensure map is mounted and sized correctly
         attemptMapMount();
         setTimeout(() => adjustMapViewport(), 150);
-        scrollToLocationStep();
+        try { scrollToBookingStep(5); } catch (e) {}
         return;
       }
 
@@ -1797,15 +1813,16 @@ function attachLocationHandlers() {
               "Address resolved and pinned on the map. Please verify the pin.",
               "success",
             );
-            revealPaymentSteps();
+            try { updateStepIndicators(); } catch (e) {}
             // expose scheduling controls now that we have a location
-            dom.modeSelection?.classList.remove("d-none");
-            if (!state.mode) state.mode = "suggested";
+            dom.modeSelection?.classList.remove("d:none");
+            if (!state.mode) state.mode = "manual";
             toggleScheduleMode();
             // ensure map is mounted and sized correctly
             attemptMapMount();
             setTimeout(() => adjustMapViewport(), 150);
-            scrollToLocationStep();
+            try { scrollToBookingStep(5); } catch (e) {}
+            try { updateStepIndicators(); } catch (e) {}
           } else {
             setLocationStatus(
               "Unable to resolve address. Please enter coordinates (lat, lng) or click the map to pin.",
@@ -1834,24 +1851,19 @@ function attachLocationHandlers() {
   }
 
   // helper utilities used above
-  function revealPaymentSteps() {
-    dom.feeStep?.classList.remove("d-none");
-    dom.paymentStep?.classList.remove("d-none");
-    try {
-      updateStepIndicators();
-    } catch (e) {}
-  }
   function scrollToLocationStep() {
-    // Keep Step 4 visible so user can see the location status
+    // Keep Step 4 visible so user can see the location status.
+    // Only scroll if not already in the viewport to avoid bouncing.
     setTimeout(() => {
       try {
-        dom.locationStep?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-        setTimeout(() => {
-          window.scrollBy({ top: -80, behavior: "smooth" });
-        }, 100);
+        const rect = dom.locationStep?.getBoundingClientRect();
+        const alreadyVisible = rect && rect.top >= 0 && rect.bottom <= window.innerHeight;
+        if (!alreadyVisible) {
+          dom.locationStep?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
       } catch (e) {}
     }, 100);
   }
@@ -1999,31 +2011,21 @@ function attemptGeolocation(triggeredByUser = false) {
           dom.locationInput.value = `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`;
         }
         placeUserMarker(coords);
-        setLocationStatus(
-          "Location detected. You can fine-tune the pin if needed.",
-          "success",
-        );
-
-        // Auto-reveal fee and payment steps (stay on Step 4 to see the status)
-        dom.feeStep?.classList.remove("d-none");
-        dom.paymentStep?.classList.remove("d-none");
-        // reveal scheduling controls and default to suggested mode
-        dom.modeSelection?.classList.remove("d-none");
-        if (!state.mode) state.mode = "suggested";
-        toggleScheduleMode();
-
-        // Keep Step 4 visible so user can see the location status
-        setTimeout(() => {
-          try {
-            dom.locationStep?.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-            setTimeout(() => {
-              window.scrollBy({ top: -80, behavior: "smooth" });
-            }, 100);
-          } catch (e) {}
-        }, 100);
+        // only run the first-time reveal/scroll once — subsequent GPS ticks just update the pin
+        if (!locationState._initialized) {
+          locationState._initialized = true;
+          setLocationStatus(
+            "Location detected. You can fine-tune the pin if needed.",
+            "success",
+          );
+          // reveal scheduling controls and default to manual calendar mode
+          dom.modeSelection?.classList.remove("d-none");
+          if (!state.mode) state.mode = "manual";
+          toggleScheduleMode();
+          // advance user to the scheduling step
+          try { scrollToBookingStep(5); } catch (e) {}
+          try { updateStepIndicators(); } catch (e) {}
+        }
       },
       (err) => {
         console.warn(
@@ -2080,16 +2082,12 @@ async function performIPGeolocation() {
         } catch (e) {}
       }, 100);
 
-      // Auto-reveal fee and payment steps (but don't scroll away from Step 4)
-      dom.feeStep?.classList.remove("d-none");
-      dom.paymentStep?.classList.remove("d-none");
-      try {
-        updateStepIndicators();
-      } catch (e) {}
-      // first reveal scheduling controls and choose default suggested mode
+      // reveal scheduling controls (don't show fee/payment yet)
       dom.modeSelection?.classList.remove("d-none");
-      if (!state.mode) state.mode = "suggested";
+      if (!state.mode) state.mode = "manual";
       toggleScheduleMode();
+      try { scrollToBookingStep(5); } catch (e) {}
+      try { updateStepIndicators(); } catch (e) {}
     } else {
       console.error("[Location] ✗ IP geolocation failed completely");
       setLocationStatus(
@@ -2206,39 +2204,22 @@ function placeUserMarker(coords) {
     mapState.markers.user.setLatLng([coords.lat, coords.lng]);
   }
   adjustMapViewport();
+  // Reset the route debounce so OSRM always recalculates immediately when
+  // the user places a new location pin — ensures road distance (not straight-
+  // line) is used from the very first placement.
+  mapState.lastRouteAt = 0;
   updateRoute();
   // Leaflet sometimes renders grey tiles when the container size was 0 at
   // mount time.  Force a second invalidate after the browser has repainted.
+  // Do NOT call adjustMapViewport here — it would trigger a second animated
+  // reposition immediately after the first one (causes visible bounce).
   setTimeout(() => {
     try {
       if (mapState.map) {
         mapState.map.invalidateSize();
-        adjustMapViewport();
       }
     } catch (e) {}
   }, 350);
-
-  // compute distance/cost if technician position available
-  if (mapState.markers.technician) {
-    const techPos = mapState.markers.technician.getLatLng();
-    const userPos = mapState.markers.user.getLatLng();
-    if (techPos && userPos) {
-      const km = haversineDistance(
-        techPos.lat,
-        techPos.lng,
-        userPos.lat,
-        userPos.lng,
-      );
-      const cost = (km * 40).toFixed(2); // ₱40 per km
-      const info = document.getElementById("mapDistanceInfo");
-      // rough ETA assuming average road speed ~40 km/h (0.67 km/min)
-      const eta = Math.round((km / 40) * 60);
-      if (info) {
-        info.textContent = `Distance: ${km.toFixed(1)} km • Fare: ₱${cost} • ETA: ${eta} min`;
-      }
-      updateMapInfoPanel(km, eta);
-    }
-  }
 }
 
 // helper used by multiple pieces of logic: update of estimated fee in step 5
@@ -2271,13 +2252,20 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 
 // Update the below-map info panel with distance, fare, and optional ETA
 function updateMapInfoPanel(km, etaMinutes) {
-  const FARE_PER_KM = 40;
+  const FARE_PER_KM = window._farePerKm || 40;
   const fare = (km * FARE_PER_KM).toFixed(2);
-  // store travel fare and time for other components (step 5 total calculation)
+  // store travel fare/time — actual conditional re-render is handled below
+
+  // only re-render time slots if travel time changed by more than 1 minute
+  // — avoids wiping the selected slot on every poll / route-redraw cycle
+  const prevTravelTime = typeof state.travelTime === "number" ? state.travelTime : -99;
   state.travelFare = parseFloat(fare) || 0;
   state.travelTime = typeof etaMinutes === "number" ? etaMinutes : 0;
-  // if a date is already selected, availability may change because travel time altered
-  if (state.calendar && state.calendar.selectedDate) {
+  if (
+    state.calendar &&
+    state.calendar.selectedDate &&
+    Math.abs(state.travelTime - prevTravelTime) > 1
+  ) {
     try {
       renderTimeSlotsForDate(state.calendar.selectedDate);
     } catch (e) {}
@@ -2385,9 +2373,82 @@ function bindPaymentHandlers() {
       formatGcashNumber(e.target),
     );
   }
+  if (dom.gcashReference) {
+    dom.gcashReference.addEventListener("input", (e) => {
+      e.target.value = e.target.value.replace(/[^0-9A-Za-z-]/g, "").slice(0, 32);
+    });
+  }
+  if (dom.cashReference) {
+    dom.cashReference.addEventListener("input", (e) => {
+      e.target.value = e.target.value.replace(/[^0-9A-Za-z-]/g, "").slice(0, 32);
+    });
+  }
+  if (dom.gcashProof) {
+    dom.gcashProof.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) {
+        state.paymentProof = null;
+        if (dom.gcashProofPreview) {
+          dom.gcashProofPreview.classList.add("d-none");
+          dom.gcashProofPreview.removeAttribute("src");
+        }
+        return;
+      }
+      if (!/^image\//i.test(file.type)) {
+        alert("Please upload an image file for your GCash receipt.");
+        e.target.value = "";
+        state.paymentProof = null;
+        return;
+      }
+      try {
+        const dataUrl = await readFileAsDataURL(file);
+        state.paymentProof = dataUrl;
+        if (dom.gcashProofPreview) {
+          dom.gcashProofPreview.src = dataUrl;
+          dom.gcashProofPreview.classList.remove("d-none");
+        }
+      } catch (err) {
+        console.warn("Failed to read receipt file", err && err.message);
+        alert("Could not read the selected receipt file. Please try another image.");
+      }
+    });
+  }
+  if (dom.cashProof) {
+    dom.cashProof.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) {
+        state.cashProof = null;
+        if (dom.cashProofPreview) {
+          dom.cashProofPreview.classList.add("d-none");
+          dom.cashProofPreview.removeAttribute("src");
+        }
+        return;
+      }
+      if (!/^image\//i.test(file.type)) {
+        alert("Please upload an image file for your receipt.");
+        e.target.value = "";
+        state.cashProof = null;
+        return;
+      }
+      try {
+        const dataUrl = await readFileAsDataURL(file);
+        state.cashProof = dataUrl;
+        if (dom.cashProofPreview) {
+          dom.cashProofPreview.src = dataUrl;
+          dom.cashProofPreview.classList.remove("d-none");
+        }
+      } catch (err) {
+        console.warn("Failed to read receipt file", err && err.message);
+        alert("Could not read the selected receipt file. Please try another image.");
+      }
+    });
+  }
   // Live breakdown update when downpayment amount changes
   if (dom.downpaymentAmt) {
     dom.downpaymentAmt.addEventListener("input", updateCashBreakdown);
+    // ensure fixed value for cash method
+    dom.downpaymentAmt.value = 400;
+    dom.downpaymentAmt.readOnly = true;
   }
   // Ensure confirm visibility reflects initial selection
   updateConfirmVisibility();
@@ -2475,6 +2536,16 @@ function formatGcashNumber(inputEl) {
   v = v.replace(/[^+0-9]/g, "");
   inputEl.value = v;
 }
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 function validatePayment() {
   const selected = document.querySelector(
     'input[name="paymentMethod"]:checked',
@@ -2483,21 +2554,35 @@ function validatePayment() {
     return { valid: false, message: "Please choose a payment method." };
 
   if (selected.value === "gcash") {
-    // GCash is processed via PayMongo redirect — no manual proof required.
-    // Optionally validate phone if the user entered one.
+    // Manual GCash flow: require sender number, reference and receipt proof.
     const phone = (dom.gcashNumber?.value || "").replace(/\s+/g, "");
-    if (phone && !/^(09|\+639)[0-9]{9}$/.test(phone) && !/^[0-9]{10,13}$/.test(phone.replace(/[^0-9]/g, ""))) {
-      return { valid: false, message: "Please enter a valid GCash mobile number or leave the field empty." };
+    if (!phone || (!/^(09|\+639)[0-9]{9}$/.test(phone) && !/^[0-9]{10,13}$/.test(phone.replace(/[^0-9]/g, "")))) {
+      return { valid: false, message: "Please enter a valid GCash mobile number used for payment." };
+    }
+    const reference = (dom.gcashReference?.value || "").trim();
+    if (!reference) {
+      return { valid: false, message: "Please enter your GCash reference number." };
+    }
+    if (!state.paymentProof) {
+      return { valid: false, message: "Please upload your GCash receipt screenshot." };
     }
     return { valid: true };
   }
 
   if (selected.value === "cash") {
-    // Downpayment is REQUIRED for cash bookings
-    const amt = parseFloat(dom.downpaymentAmt?.value || "0");
-    if (!amt || amt <= 0) {
-      return { valid: false, message: "A downpayment amount is required for cash bookings." };
+    // Manual cash flow: require phone, reference and receipt, downpayment fixed
+    const phone = (dom.cashNumber?.value || "").replace(/\s+/g, "");
+    if (!phone || (!/^(09|\+639)[0-9]{9}$/.test(phone) && !/^[0-9]{10,13}$/.test(phone.replace(/[^0-9]/g, "")))) {
+      return { valid: false, message: "Please enter a valid mobile number used for payment." };
     }
+    const reference = (dom.cashReference?.value || "").trim();
+    if (!reference) {
+      return { valid: false, message: "Please enter your payment reference number." };
+    }
+    if (!state.cashProof) {
+      return { valid: false, message: "Please upload your receipt screenshot." };
+    }
+    // downpayment is fixed 400 so no need to check
     return { valid: true };
   }
 
@@ -2583,14 +2668,20 @@ async function handleConfirmBooking(e) {
   if (selectedMethod) {
     payload.paymentMethod = selectedMethod;
     if (selectedMethod === "gcash") {
-      // GCash is processed via PayMongo redirect after booking creation.
-      // Only send optional phone number for our records.
       const phone = (dom.gcashNumber?.value || "").trim();
-      if (phone) payload.gcashPhone = phone;
+      const ref = (dom.gcashReference?.value || "").trim();
+      if (phone) payload.gcashNumber = phone;
+      if (ref) payload.paymentReference = ref;
+      if (state.paymentProof) payload.paymentProof = state.paymentProof;
     }
     if (selectedMethod === "cash") {
-      const amt = parseFloat(dom.downpaymentAmt?.value || "0") || 0;
-      payload.downpaymentAmount = amt;
+      // same fields as gcash but paymentMethod stays cod
+      const phone = (dom.cashNumber?.value || "").trim();
+      const ref = (dom.cashReference?.value || "").trim();
+      if (phone) payload.gcashNumber = phone;
+      if (ref) payload.paymentReference = ref;
+      if (state.cashProof) payload.paymentProof = state.cashProof;
+      payload.downpaymentAmount = 400;
       const notes = dom.cashNotes?.value?.trim();
       if (notes) payload.cashNotes = notes;
     }
@@ -2643,19 +2734,6 @@ async function handleConfirmBooking(e) {
       if (_feeEl && json.estimatedFee)
         _feeEl.textContent = "\u20b1" + Number(json.estimatedFee).toFixed(2);
 
-      // if the server returned a PayMongo redirect, follow it immediately
-      if (json.paymongo && json.paymongo.redirect) {
-        window.location = json.paymongo.redirect;
-        return;
-      }
-      // if clientSecret returned we could use PayMongo JS SDK to complete card/3DS
-      if (json.paymongo && json.paymongo.clientSecret) {
-        // example:
-        // const pm = PayMongo("pk_test_xxx");
-        // pm.confirmCardPayment(json.paymongo.clientSecret).then(...);
-        // for now just notify user to continue in new tab/window
-        alert("Payment intent created – please complete the checkout in the newly opened window.");
-      }
       // otherwise show the success modal as before
       if (_msgEl)
         _msgEl.textContent =
@@ -2757,7 +2835,7 @@ async function loadTechnicianOptions() {
   }
 }
 
-async function renderTimeSlotsForDate(date) {
+async function renderTimeSlotsForDate(date, { scrollToSlots = false } = {}) {
   if (!dom.timeSelection || !dom.timeSlots) return;
   dom.timeSlots.innerHTML = "";
 
@@ -2895,23 +2973,17 @@ async function renderTimeSlotsForDate(date) {
           // base fee only; travel portion will get added when available
           updateEstimatedFee();
         }
-        // Time slot confirmed — location is already step 4 (done earlier).
-        // Advance forward to the fee step.
-        requestAnimationFrame(() => {
-          dom.feeStep?.classList.remove("d-none");
-          dom.paymentStep?.classList.remove("d-none");
-          try { updateEstimatedFee(); } catch (e) {}
-          setTimeout(() => {
-            try {
-              dom.feeStep?.scrollIntoView({ behavior: "smooth", block: "start" });
-              setTimeout(() => window.scrollBy({ top: -80, behavior: "smooth" }), 100);
-            } catch (e) {}
-          }, 100);
-        });
-        try {
-          updateStepIndicators();
-          try { scrollToBookingStep(6); } catch (e) {}
-        } catch (e) {}
+        // Time slot confirmed — advance forward to the fee step.
+        dom.feeStep?.classList.remove("d-none");
+        dom.paymentStep?.classList.remove("d-none");
+        try { updateEstimatedFee(); } catch (e) {}
+        try { updateStepIndicators(); } catch (e) {}
+        // single, clean scroll to fee step — no competing scrollBy/scrollToBookingStep
+        setTimeout(() => {
+          try {
+            dom.feeStep?.scrollIntoView({ behavior: "smooth", block: "start" });
+          } catch (e) {}
+        }, 80);
       });
     }
     dom.timeSlots.appendChild(btn);
@@ -2937,20 +3009,29 @@ async function renderTimeSlotsForDate(date) {
     }
   }
 
-  // Scroll to show the 'Available Time Slots' section with proper spacing
-  setTimeout(() => {
-    try {
-      // Center the time selection to ensure header is fully visible
-      dom.timeSelection?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-      // Add extra scroll offset to show more context above
-      setTimeout(() => {
-        window.scrollBy({ top: -80, behavior: "smooth" });
-      }, 100);
-    } catch (e) {}
-  }, 150);
+  // Restore visual selection for the previously chosen slot (e.g. after a re-render
+  // triggered by a travel-time change). This must happen before the auto-suggestion
+  // block so both don't compete.
+  if (state.slotStart != null) {
+    const prevBtn = dom.timeSlots.querySelector(`[data-start="${state.slotStart}"]`);
+    if (prevBtn && !prevBtn.disabled) {
+      dom.timeSlots.querySelectorAll(".time-slot").forEach((n) => n.classList.remove("active"));
+      prevBtn.classList.add("active");
+    }
+  }
+
+  // Scroll after slots render:
+  // - when triggered by a calendar date click, scroll to the time slots section
+  // - otherwise scroll to Step 5 (Scheduling Mode) header so full context is visible
+  // - skip entirely if a slot is already chosen (user is further down the form)
+  if (!state.slot) {
+    setTimeout(() => {
+      try {
+        const target = scrollToSlots ? dom.timeSelection : dom.modeSelection;
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (e) {}
+    }, 150);
+  }
   // auto-activate if there's a suggestion for this date
   if (state.suggestion && isSameDate(state.suggestion.date, date)) {
     const match = dom.timeSlots.querySelector(
@@ -2964,20 +3045,47 @@ async function renderTimeSlotsForDate(date) {
 
 function adjustMapViewport() {
   if (!mapState.map || !window.L) return;
-  // Leaflet needs to be invalidated when container size changes
-  try {
-    mapState.map.invalidateSize();
-  } catch (e) {}
-  const bounds = [];
-  if (mapState.markers.technician) {
-    bounds.push(mapState.markers.technician.getLatLng());
+  // Debounce invalidateSize so rapid/polling calls don't thrash layout
+  if (!adjustMapViewport._debTimer) {
+    adjustMapViewport._debTimer = setTimeout(function () {
+      adjustMapViewport._debTimer = null;
+      try { mapState.map && mapState.map.invalidateSize(); } catch (e) {}
+    }, 120);
   }
-  if (mapState.markers.user) {
-    bounds.push(mapState.markers.user.getLatLng());
-  }
-  if (bounds.length) {
-    const leafletBounds = L.latLngBounds(bounds);
-    mapState.map.fitBounds(leafletBounds, { padding: [80, 80] });
+  // on first call, zoom to include both user and tech markers
+  if (!mapState._viewportInitialized) {
+    const bounds = [];
+    if (mapState.markers.technician) {
+      bounds.push(mapState.markers.technician.getLatLng());
+    }
+    if (mapState.markers.user) {
+      bounds.push(mapState.markers.user.getLatLng());
+    }
+    if (bounds.length) {
+      const leafletBounds = L.latLngBounds(bounds);
+      mapState.map.fitBounds(leafletBounds, { padding: [80, 80], animate: false });
+    }
+    mapState._viewportInitialized = true;
+  } else {
+    // thereafter only pan if a marker leaves the current view
+    try {
+      const bounds = mapState.map.getBounds();
+      if (mapState.markers.technician) {
+        const techPos = mapState.markers.technician.getLatLng();
+        if (techPos && !bounds.contains(techPos)) {
+          mapState.map.panTo(techPos, { animate: false });
+          return;
+        }
+      }
+      if (mapState.markers.user) {
+        const userPos = mapState.markers.user.getLatLng();
+        if (userPos && !bounds.contains(userPos)) {
+          mapState.map.panTo(userPos, { animate: false });
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
   }
 }
 
@@ -3050,7 +3158,8 @@ function updateRoute() {
         const durSeconds = json.routes[0].duration || 0;
         const km = distMeters / 1000;
         const mins = Math.round(durSeconds / 60);
-        const cost = (km * 40).toFixed(2);
+        const FARE = window._farePerKm || 40;
+        const cost = (km * FARE).toFixed(2);
         const info = document.getElementById("mapDistanceInfo");
         if (info) {
           info.textContent = `Distance: ${km.toFixed(1)} km • Fare: ₱${cost} • ETA: ${mins} min`;
@@ -3079,7 +3188,8 @@ function updateRoute() {
           userPos.lat,
           userPos.lng,
         );
-        const cost = (km * 40).toFixed(2);
+        const FARE = window._farePerKm || 40;
+        const cost = (km * FARE).toFixed(2);
         const info = document.getElementById("mapDistanceInfo");
         if (info) {
           info.textContent = `Distance (approx): ${km.toFixed(1)} km • Fare: ₱${cost}`;
@@ -3297,7 +3407,7 @@ function startTechPolling() {
   if (_techPollId) return;
   _techPollFailures = 0;
   fetchTechLocation();
-  _techPollId = setInterval(fetchTechLocation, 10000);
+  _techPollId = setInterval(fetchTechLocation, 5000);
 }
 
 // also fetch booked dates for the currently selected service so the calendar

@@ -282,7 +282,16 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // make sure modal is moved to document.body and above other elements
     const modalEl = document.getElementById('coreServiceModal');
+    if (modalEl && modalEl.parentElement !== document.body) {
+      document.body.appendChild(modalEl);
+    }
+    const css = document.createElement('style');
+    css.textContent = ".modal { z-index: 2050 !important; } .modal-backdrop { z-index: 2040 !important; }";
+    document.head.appendChild(css);
+
+    // re-use the previously obtained modalEl (already declared above)
     if (!modalEl) return;
     if (!window.bootstrap || !bootstrap.Modal) {
       console.error('Bootstrap JS not available');

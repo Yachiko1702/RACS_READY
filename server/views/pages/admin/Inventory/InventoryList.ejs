@@ -328,7 +328,7 @@
         totalValue +=
           (it.sellingPrice || it.costPrice || 0) * (it.quantity || 0);
         const row = document.createElement("tr");
-        row.innerHTML = `<td class="ps-4"><div class="d-flex align-items-center"><div class="bg-light rounded p-2 me-3 border d-flex align-items-center justify-content-center" style="width:48px;height:48px"><i class="bi bi-box-seam fs-4 text-secondary"></i></div><div><div class="fw-bold text-dark">${it.itemName}</div><div class="small text-muted">${it.brand ? it.brand.name || it.brand : ""}</div></div></div></td><td><span class="font-monospace text-muted small">${it.barcode || ""}</span></td><td>${it.category ? it.category.name : ""}</td><td class="fw-bold">${fmtPrice(it.sellingPrice || it.costPrice)}</td><td><div class="fw-bold text-dark">${it.quantity || 0}</div>${it.quantity <= it.minStockLevel ? `<div class="small text-danger" style="font-size:0.75rem">Reorder Point: ${it.minStockLevel}</div>` : ""}</td><td><span class="badge ${status === "Low Stock" ? "bg-danger-subtle text-danger border border-danger-subtle" : status === "In Stock" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}">${status}</span></td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary edit-inventory" data-id="${it._id}">Edit</button></td>`;
+        row.innerHTML = `<td class="ps-4"><div class="d-flex align-items-center"><div class="bg-light rounded p-2 me-3 border d-flex align-items-center justify-content-center" style="width:48px;height:48px"><i class="bi bi-box-seam fs-4 text-secondary"></i></div><div><div class="fw-bold text-dark">${it.itemName}</div><div class="small text-muted">${it.brand ? it.brand.name || it.brand : ""}</div></div></div></td><td><span class="font-monospace text-muted small">${it.barcode || ""}</span></td><td>${it.category ? it.category.name : ""}</td><td class="fw-bold">${fmtPrice(it.sellingPrice || it.costPrice)}</td><td><div class="fw-bold text-dark">${it.quantity || 0}</div>${it.quantity <= it.minStockLevel ? `<div class="small text-danger" style="font-size:0.75rem">Reorder Point: ${it.minStockLevel}</div>` : ""}</td><td><span class="badge ${status === "Low Stock" ? "bg-danger-subtle text-danger border border-danger-subtle" : status === "In Stock" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}">${status}</span></td><td class="text-end pe-4"><div class="d-flex gap-2 justify-content-end"><button class="btn btn-sm btn-outline-primary edit-inventory" data-id="${it._id}">Edit</button><button class="btn btn-sm btn-outline-danger delete-inventory" data-id="${it._id}">Delete</button></div></td>`;
         tbody.appendChild(row);
       });
       summary.innerText = `${items.length} item${items.length !== 1 ? "s" : ""}`;
@@ -388,6 +388,23 @@
         const id = e.target.dataset.id;
         const item = inventoryData.find((i) => i._id === id);
         if (item) openModal(item);
+      }
+      if (e.target.matches(".delete-inventory")) {
+        const id = e.target.dataset.id;
+        if (!id) return;
+        if (!confirm("Delete this tool item? This will archive it from active inventory.")) return;
+        fetch(`/api/admin/inventory/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        })
+          .then(async (r) => {
+            if (!r.ok) {
+              const j = await r.json().catch(() => ({}));
+              throw new Error(j.error || "Delete failed");
+            }
+            return r.json();
+          })
+          .then(() => loadInventory())
+          .catch((err) => alert(err.message || "Delete failed"));
       }
     });
 

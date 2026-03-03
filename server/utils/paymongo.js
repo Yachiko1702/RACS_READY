@@ -140,6 +140,16 @@ async function getSource(sourceId) {
   return resp.data?.data;
 }
 
+async function getPayment(paymentId) {
+  const key = getSecretKey();
+  const resp = await axios.get(`${API_BASE}/payments/${paymentId}`, {
+    auth:    { username: key, password: "" },
+    headers: { "Content-Type": "application/json" },
+    timeout: 10000,
+  });
+  return resp.data?.data;
+}
+
 /**
  * Create a Payment against an existing Source (chargeable source).
  * Called after the source becomes chargeable (webhook: source.chargeable).
@@ -218,6 +228,7 @@ module.exports = {
   createGcashSource,
   createPaymentLink,
   getSource,
+  getPayment,
   createPaymentFromSource,
   verifyWebhook,
 };

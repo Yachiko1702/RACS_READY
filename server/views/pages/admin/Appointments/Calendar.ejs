@@ -7,11 +7,104 @@
 
   <style>
     .appointments-calendar {
+        /* professional typography */
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.45;
+
       --cal-radius: 14px;
-      --cal-border: #e5e7eb;
-      --cal-muted: #6b7280;
-      --cal-title: #0f172a;
-      --cal-bg: #f8fafc;
+      --cal-border: #e5e7eb;       /* soft neutral border */
+      --cal-muted: #6b7280;        /* gray for secondary text */
+      --cal-title: #0f172a;        /* dark title text */
+      --cal-bg: #f8fafc;           /* light gray page background */
+      --cal-primary: #2563eb;      /* blue for active/confirmed events */
+      --cal-success: #16a34a;      /* green for completed */
+      --cal-danger: #dc2626;       /* red for cancelled/rejected */
+      --cal-warning: #f59e0b;      /* amber for pending */
+    }
+
+    /* event color utility classes */
+    .appointments-calendar .fc-event.confirmed { background: var(--cal-primary) !important; color:#fff !important; }
+    .appointments-calendar .fc-event.approved { background: var(--cal-primary) !important; color:#fff !important; }
+    .appointments-calendar .fc-event.completed { background: var(--cal-success) !important; color:#fff !important; }
+    .appointments-calendar .fc-event.cancelled { background: var(--cal-danger) !important; color:#fff !important; }
+    .appointments-calendar .fc-event.rejected { background: var(--cal-danger) !important; color:#fff !important; }
+    .appointments-calendar .fc-event.pending { background: var(--cal-warning) !important; color:#111827 !important; }
+    .appointments-calendar .fc-event { border: none !important; border-radius: 8px !important; }
+    .appointments-calendar .fc-event:hover { filter: brightness(0.9); }
+
+    /* legend removed */
+
+    /* loading spinner overlay */
+    .appointments-calendar .calendar-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(0,0,0,0.1);
+      border-top-color: var(--cal-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+      z-index: 10;
+    }
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    /* event pill initials bubble */
+    #adminAppointmentsCalendar .event-initials {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      text-align: center;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.1);
+      font-size: 0.7rem;
+      margin-right: 4px;
+      color: #333;
+      vertical-align: middle;
+    }
+
+    /* control buttons styling */
+    .icon-btn { display: inline-flex; align-items: center; justify-content: center; }
+    #adminAppointmentsCalendar .fc-prev-button,
+    #adminAppointmentsCalendar .fc-next-button {
+      border-radius: 50% !important;
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0 !important;
+    }
+    #adminAppointmentsCalendar .fc-prev-button:hover,
+    #adminAppointmentsCalendar .fc-next-button:hover {
+      background: rgba(37,99,235,.1) !important;
+    }
+    /* highlight the "Month" button in green */
+    #adminAppointmentsCalendar .fc-dayGridMonth-button {
+      background-color: var(--cal-success) !important;
+      color: #fff !important;
+      border-color: var(--cal-success) !important;
+    }
+    #adminAppointmentsCalendar .fc-dayGridMonth-button.fc-button-active {
+      background-color: #16a34a !important;
+      border-color: #16a34a !important;
+      box-shadow: none !important;
+    }
+    /* ensure focus outline for accessibility */
+    #adminAppointmentsCalendar .fc-toolbar button:focus {
+      outline: 2px solid var(--cal-primary);
+      outline-offset: 2px;
+    }
+    /* slide-in animation for selected date list */
+    .slide-in { animation: slideIn 0.3s ease forwards; }
+    @keyframes slideIn { from { transform: translateX(20px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+    /* event time label preceding title */
+    #adminAppointmentsCalendar .event-time {
+      font-weight: 600;
+      margin-right: 6px;
+      color: #fff; /* white text on colored event pill */
+      text-shadow: 0 0 2px rgba(0,0,0,0.5);
     }
 
     .appointments-calendar .page-shell {
@@ -33,15 +126,13 @@
     .appointments-calendar .list-head {
       padding: 14px 16px;
       border-bottom: 1px solid var(--cal-border);
-      background: linear-gradient(180deg, #ffffff, #fbfdff);
+      /* use light green background to match success theme */
+      background: #ecfdf5;
+      color: #047857;
     }
 
     .appointments-calendar .cal-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
+      display: none; /* toolbar is now built-in to FullCalendar */
     }
 
     .appointments-calendar .title-row {
@@ -55,12 +146,13 @@
       margin: 0;
       font-size: 1rem;
       font-weight: 700;
-      color: var(--cal-title);
+      /* keep dark text for heading */
+      color: #047857;
     }
 
     .appointments-calendar .title-row small,
     .appointments-calendar .list-head small {
-      color: var(--cal-muted);
+      color: #065f46; /* slightly darker green for subtitle */
     }
 
     .appointments-calendar .cal-tools {
@@ -71,8 +163,9 @@
     }
 
     .appointments-calendar .cal-body {
-      padding: 12px;
+      padding: 24px; /* more breathing room */
       background: var(--cal-bg);
+      position: relative; /* for spinner overlay */
     }
 
     .appointments-calendar #adminAppointmentsCalendar {
@@ -111,13 +204,35 @@
       background: #fff;
     }
 
+    /* individual appointment card in the list */
+    /* appointment card container */
     .appointments-calendar .appt-item {
+      background: #fff;
       border: 1px solid var(--cal-border);
       border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
+      /* left accent bar indicates status color */
+      border-left-width: 4px;
+      border-left-style: solid;
+      border-left-color: transparent;
+      cursor: pointer;
     }
+    .appointments-calendar .appt-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+      background: #fafafa;
+    }
+
+    .appointments-calendar .appt-item.confirmed,
+    .appointments-calendar .appt-item.approved { border-left-color: #2563eb; }
+    .appointments-calendar .appt-item.completed { border-left-color: #16a34a; }
+    .appointments-calendar .appt-item.cancelled,
+    .appointments-calendar .appt-item.rejected { border-left-color: #dc2626; }
+    .appointments-calendar .appt-item.pending { border-left-color: #f59e0b; }
 
     .appointments-calendar .appt-item:last-child {
       margin-bottom: 0;
@@ -128,12 +243,15 @@
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
     }
 
-    .appointments-calendar .appt-top {
+    .appointments-calendar .appt-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 8px;
       margin-bottom: 8px;
+      padding: 10px 0 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f3f4f6;
     }
 
     .appointments-calendar .appt-time {
@@ -144,18 +262,33 @@
       border-radius: 999px;
       padding: 3px 10px;
       white-space: nowrap;
+      min-width: 76px;
+      text-align: center;
     }
+    .appointments-calendar .appt-time.pill {
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      min-width: 80px;
+    }
+    .appointments-calendar .icon {
+      margin-right: 4px;
+      font-size: 0.9rem;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* colours can be overridden inline by renderDateList for per-status pills */
 
     .appointments-calendar .appt-name {
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: #111827;
-      line-height: 1.2;
+      line-height: 1.3;
     }
 
     .appointments-calendar .appt-sub {
       color: var(--cal-muted);
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       margin-top: 2px;
     }
 
@@ -177,10 +310,12 @@
     }
 
     .appointments-calendar .appt-actions {
-      margin-top: 10px;
+      margin-top: 12px;
       display: flex;
-      gap: 6px;
       justify-content: flex-end;
+    }
+    .appointments-calendar .appt-actions .btn {
+      margin: 0;
     }
 
     .appointments-calendar .empty-state {
@@ -194,7 +329,8 @@
     }
 
     .appointments-calendar .fc .fc-daygrid-day.fc-day-today {
-      background: rgba(59, 130, 246, 0.08);
+      /* changed from blue to green for month cell */
+      background: rgba(16, 185, 129, 0.15);
     }
 
     .appointments-calendar .fc .fc-daygrid-event {
@@ -203,6 +339,314 @@
       padding: 1px 6px;
       font-size: 0.78rem;
       font-weight: 600;
+    }
+
+    /* ══ FullCalendar — match Schedules.ejs look ═══════════════════════ */
+    #adminAppointmentsCalendar,
+    #adminAppointmentsCalendar .fc,
+    #adminAppointmentsCalendar .fc * {
+      font-family: "Poppins", sans-serif !important;
+    }
+    #adminAppointmentsCalendar .fc {
+      font-size: 0.9rem;
+    }
+
+    /* ── Toolbar ──────────────────────────────────────────────────── */
+    #adminAppointmentsCalendar .fc-toolbar {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      flex-wrap: wrap !important;
+      background: #fff !important;
+      border-radius: 12px !important;
+      padding: 0.5rem 1rem !important;
+      margin-bottom: 1rem !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+    }
+    #adminAppointmentsCalendar .fc-toolbar-title {
+      font-size: 1.25rem !important;
+      font-weight: 400 !important;
+      color: #111827 !important;
+    }
+
+    /* ── Navigation (prev / next) ────────────────────────────── */
+    #adminAppointmentsCalendar .fc-prev-button,
+    #adminAppointmentsCalendar .fc-next-button {
+      background-color: #2563eb !important;
+      border-color: #2563eb !important;
+      color: #fff !important;
+      border-radius: 50% !important;
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 1rem !important;
+      margin-right: 4px !important;
+      box-shadow: 0 1px 3px rgba(37,99,235,0.25) !important;
+    }
+    #adminAppointmentsCalendar .fc-prev-button:hover,
+    #adminAppointmentsCalendar .fc-next-button:hover {
+      background-color: #1d4ed8 !important;
+      border-color: #1d4ed8 !important;
+    }
+
+    /* ── Today button ──────────────────────────────────────── */
+    /* Button removed from toolbar; hide any remaining button just in case */
+    #adminAppointmentsCalendar .fc-today-button {
+      display: none !important;
+    }
+    #adminAppointmentsCalendar .fc-today-button:hover {
+      display: none !important;
+    }
+
+    /* ── View switcher (pill group) ──────────────────────── */
+    #adminAppointmentsCalendar .fc-button-group {
+      border: 1px solid #d1d5db !important;
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      box-shadow: none !important;
+    }
+    #adminAppointmentsCalendar .fc-button-group .fc-button {
+      background-color: #fff !important;
+      border: none !important;
+      border-right: 1px solid #d1d5db !important;
+      color: #374151 !important;
+      border-radius: 0 !important;
+      font-size: 0.82rem !important;
+      font-weight: 500 !important;
+      padding: 5px 14px !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+    #adminAppointmentsCalendar .fc-button-group .fc-button:last-child {
+      border-right: none !important;
+    }
+    #adminAppointmentsCalendar .fc-button-group .fc-button:hover {
+      background-color: #f3f4f6 !important;
+      color: #111827 !important;
+    }
+    #adminAppointmentsCalendar .fc-button-group .fc-button-active {
+      background-color: #2563eb !important;
+      color: #fff !important;
+      font-weight: 600 !important;
+    }
+    #adminAppointmentsCalendar .fc-button-group .fc-button-active:hover {
+      background-color: #1d4ed8 !important;
+      color: #fff !important;
+    }
+
+    /* ── Column headers ───────────────────────────────────── */
+    #adminAppointmentsCalendar .fc-col-header-cell {
+      background: #f9fafb !important;
+      font-weight: 600 !important;
+      font-size: 0.85rem !important;
+      color: #374151 !important;
+      padding: 10px 0 !important;
+      border-bottom: 2px solid #e5e7eb !important;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    #adminAppointmentsCalendar .fc-col-header-cell a,
+    #adminAppointmentsCalendar .fc-col-header-cell a:hover,
+    #adminAppointmentsCalendar .fc-col-header-cell a:focus {
+      color: #374151 !important;
+      text-decoration: none !important;
+      outline: none !important;
+    }
+
+    /* ── Day numbers ──────────────────────────────────────── */
+    #adminAppointmentsCalendar .fc-daygrid-day-top {
+      display: flex !important;
+      flex-direction: row-reverse !important;
+      padding: 6px 8px 2px 8px !important;
+    }
+    #adminAppointmentsCalendar .fc-daygrid-day-number {
+      font-size: 0.82rem !important;
+      font-weight: 500 !important;
+      color: #374151 !important;
+    }
+    #adminAppointmentsCalendar .fc-daygrid-day-number a {
+      color: inherit !important;
+      text-decoration: none !important;
+    }
+
+    /* ── Today cell ───────────────────────────────────────── */
+    #adminAppointmentsCalendar .fc-day-today {
+      background-color: rgba(37,99,235,0.03) !important;
+    }
+    #adminAppointmentsCalendar .fc-day-today .fc-daygrid-day-number {
+      background: transparent !important;
+      color: #374151 !important;
+      font-weight: 500 !important;
+    }
+
+    /* ── Grid borders ─────────────────────────────────────── */
+    #adminAppointmentsCalendar .fc-scrollgrid {
+      border: 1px solid #e5e7eb !important;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #adminAppointmentsCalendar .fc-scrollgrid td,
+    #adminAppointmentsCalendar .fc-scrollgrid th {
+      border-color: #e5e7eb !important;
+    }
+    #adminAppointmentsCalendar .fc-daygrid-day {
+      border: 1px solid #e5e7eb !important;
+    }
+
+    /* ── Month-view events ────────────────────────────────── */
+    #adminAppointmentsCalendar .fc-daygrid-event {
+      border-radius: 6px !important;
+      font-size: 0.78rem !important;
+      font-weight: 600 !important;
+      padding: 0.15rem 0.4rem !important;
+      margin: 0.1rem 0.2rem !important;
+      overflow: hidden !important;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      transition: transform 0.1s ease;
+    }
+    #adminAppointmentsCalendar .fc-daygrid-event:hover {
+      transform: scale(1.02);
+    }
+
+    /* ── Timegrid (Week / Day) ────────────────────────────── */
+    #adminAppointmentsCalendar .fc-timegrid-slot {
+      /* enforce a consistent slot height so the now indicator spans uniformly */
+      height: 96px !important; /* taller rows to match reference design */
+      min-height: 96px !important;
+      position: relative !important;
+      background: transparent !important;
+    }
+    #adminAppointmentsCalendar .fc-timegrid-slot-minor {
+      border-top: none !important;
+      /* allow some vertical space between minor grid lines */
+      min-height: 40px !important;
+    }
+    #adminAppointmentsCalendar .fc-timegrid-body {
+      background: #f8fafc !important;
+    }
+
+    /* Time-axis labels */
+    #adminAppointmentsCalendar .fc-timegrid-axis,
+    #adminAppointmentsCalendar .fc-timegrid-slot-label {
+      width: 72px !important;
+      min-width: 72px !important;
+      background: #fff !important;
+    }
+    #adminAppointmentsCalendar .fc-timegrid-slot-label-cushion {
+      font-size: 0.8rem !important;
+      font-weight: 500 !important;
+      color: #6b7280 !important;
+      padding: 0 12px 0 0 !important;
+      text-transform: lowercase;
+    }
+
+    /* Column separators */
+    #adminAppointmentsCalendar .fc-timegrid-col {
+      border-right: 1px solid #e5e7eb !important;
+    }
+    #adminAppointmentsCalendar .fc-timegrid-col:last-child {
+      border-right: none !important;
+    }
+
+    /* Slot grid lines */
+    #adminAppointmentsCalendar .fc-timegrid-slot {
+      border-bottom: 1px solid #d1d5db !important;
+    }
+    #adminAppointmentsCalendar .fc-timegrid-slot-minor {
+      border-bottom: 1px dashed #e5e7eb !important;
+    }
+
+    /* Timegrid events */
+    /* harness should occupy full width of its column cell */
+    #adminAppointmentsCalendar .fc-timegrid-event-harness {
+      overflow: hidden !important;
+      width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      position: relative !important;
+    }
+
+    #adminAppointmentsCalendar .fc-timegrid-event {
+      box-sizing: border-box !important;
+      border-radius: 6px !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+      font-size: 0.82rem !important;
+      padding: 6px 8px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      text-align: center !important;
+      white-space: normal !important;
+      word-break: normal !important;
+      overflow-wrap: break-word !important;
+      overflow: hidden !important;
+      height: 100% !important;
+      margin: 0 !important;
+      line-height: 1.35;
+      border-left: 3px solid currentColor !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+    }
+
+    /* hide scrollbar inside week/day timegrid */
+    #adminAppointmentsCalendar .fc-scroller::-webkit-scrollbar {
+      display: none !important;
+    }
+    #adminAppointmentsCalendar .fc-scroller {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    /* ── Current time indicator ───────────────────────────────── */
+    #adminAppointmentsCalendar .fc-now-indicator {
+      height: 2px !important;
+      background-color: #dc2626 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      z-index: 3 !important; /* appear above other elements */
+    }
+    #adminAppointmentsCalendar .fc-timegrid-event .fc-event-time {
+      font-size: 0.85rem !important; /* slightly bigger time */
+      font-weight: 600;
+      display: block !important;
+      white-space: normal !important; /* wrap if needed */
+      overflow: visible !important;
+      text-overflow: clip !important;
+      margin-bottom: 2px;
+      line-height: 1.2;
+    }
+    #adminAppointmentsCalendar .fc-timegrid-event .fc-event-title {
+      font-weight: 500;
+      font-size: 0.82rem !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+      line-height: 1.2;
+    }
+
+    /* Today column tint in timegrid */
+    #adminAppointmentsCalendar .fc-day-today.fc-timegrid-col {
+      background-color: rgba(37,99,235,0.02) !important;
+    }
+    /* Today header — no special highlight */
+    #adminAppointmentsCalendar .fc-col-header-cell.fc-day-today {
+      background: #fff !important;
+      border-bottom: 1px solid #e5e7eb !important;
+    }
+    #adminAppointmentsCalendar .fc-col-header-cell.fc-day-today a {
+      color: #374151 !important;
+      text-decoration: none !important;
     }
 
     @media (min-width: 1200px) {
@@ -229,27 +673,13 @@
     <section class="cal-card">
       <div class="cal-head">
         <div class="title-row">
-          <h5 id="calendarTitle">Schedule</h5>
+          <h5>Schedule</h5>
           <small id="calendarRangeLabel">&nbsp;</small>
-        </div>
-        <div class="cal-tools">
-          <button id="calPrev" class="btn btn-sm btn-outline-secondary" type="button">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button id="calToday" class="btn btn-sm btn-outline-secondary" type="button">
-            Today
-          </button>
-          <button id="calNext" class="btn btn-sm btn-outline-secondary" type="button">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-          <div class="btn-group btn-group-sm ms-1" role="group">
-            <button id="viewMonth" type="button" class="btn btn-outline-primary">Month</button>
-            <button id="viewWeek" type="button" class="btn btn-outline-primary">Week</button>
-            <button id="viewDay" type="button" class="btn btn-outline-primary">Day</button>
-          </div>
         </div>
       </div>
       <div class="cal-body">
+        <!-- spinner while data loads -->
+        <div id="calendarSpinner" class="calendar-spinner" role="status" aria-label="Loading appointments"></div>
         <div id="adminAppointmentsCalendar"></div>
       </div>
     </section>
@@ -283,17 +713,12 @@
 
       const dom = {
         calendarEl: byId("adminAppointmentsCalendar"),
-        calPrev: byId("calPrev"),
-        calToday: byId("calToday"),
-        calNext: byId("calNext"),
-        viewMonth: byId("viewMonth"),
-        viewWeek: byId("viewWeek"),
-        viewDay: byId("viewDay"),
         calendarRangeLabel: byId("calendarRangeLabel"),
         selectedDateLabel: byId("selectedDateLabel"),
         selectedDateSub: byId("selectedDateSub"),
         selectedDateCount: byId("selectedDateCount"),
         selectedDateList: byId("selectedDateList"),
+        calendarSpinner: byId("calendarSpinner"),
       };
 
       const state = {
@@ -317,6 +742,16 @@
           month: "long",
           day: "numeric",
         });
+      }
+
+      function adjustLayoutForWeekView(view) {
+        if (!calendar) return;
+        const isTimegrid = view.type === "timeGridWeek" || view.type === "timeGridDay";
+        if (isTimegrid) {
+          calendar.setOption("height", "calc(100vh - 220px)");
+        } else {
+          calendar.setOption("height", "auto");
+        }
       }
 
       function statusBadge(status) {
@@ -399,10 +834,10 @@
         return base;
       }
 
-      function setViewButtons(viewType) {
-        dom.viewMonth.classList.toggle("active", viewType === "dayGridMonth");
-        dom.viewWeek.classList.toggle("active", viewType === "timeGridWeek");
-        dom.viewDay.classList.toggle("active", viewType === "timeGridDay");
+      function updateRangeLabel(viewTitle) {
+        if (dom.calendarRangeLabel) {
+          dom.calendarRangeLabel.textContent = viewTitle;
+        }
       }
 
       function renderDateList() {
@@ -426,18 +861,30 @@
         dom.selectedDateList.innerHTML = dayItems
           .map((a) => {
             const id = a._id || a.id || "";
+            const s = String(a.status || "pending").toLowerCase();
+            // pick consistent colour for time pill (use token vars)
+            const pillColor =
+              s === "confirmed" || s === "approved"
+                ? "var(--cal-primary)"
+                : s === "completed"
+                ? "var(--cal-success)"
+                : s === "cancelled" || s === "rejected"
+                ? "var(--cal-danger)"
+                : "var(--cal-warning)";
             return `
-              <article class="appt-item">
-                <div class="appt-top">
+              <article class="appt-item ${s}" data-id="${id}">
+                <div class="appt-header">
                   <div>
                     <div class="appt-name">${customerName(a)}</div>
                     <div class="appt-sub">${serviceName(a)}</div>
                   </div>
-                  <div class="appt-time">${timeLabel(a)}</div>
+                  <div class="appt-time pill" style="background:${pillColor};color:#fff;">
+                    ${timeLabel(a)}
+                  </div>
                 </div>
                 <div class="appt-grid">
-                  <div class="k">Technician</div><div class="v">${technicianName(a)}</div>
-                  <div class="k">Status</div><div class="v"><span class="badge bg-${statusBadge(a.status)}">${a.status || "pending"}</span></div>
+                  <div class="k"><span class="icon">👤</span> Technician</div><div class="v">${technicianName(a)}</div>
+                  <div class="k"><span class="icon">✔️</span> Status</div><div class="v"><span class="badge bg-${statusBadge(a.status)}">${a.status || "pending"}</span></div>
                   <div class="k">Reference</div><div class="v">${a.bookingReference || "—"}</div>
                 </div>
                 <div class="appt-actions">
@@ -447,6 +894,18 @@
             `;
           })
           .join("");
+        // make entire card clickable
+        dom.selectedDateList.querySelectorAll('.appt-item').forEach(el => {
+          el.addEventListener('click', (ev) => {
+            const itemId = el.getAttribute('data-id');
+            if (!itemId) return;
+            if (ev.ctrlKey || ev.metaKey) {
+              window.open(`/admin/appointments?sel=${encodeURIComponent(itemId)}`, '_blank');
+            } else {
+              location.href = `/admin/appointments?sel=${encodeURIComponent(itemId)}`;
+            }
+          });
+        });
       }
 
       async function fetchAppointmentsForRange(start, end) {
@@ -467,77 +926,158 @@
         return json.items || json.appointments || [];
       }
 
+      // choose view based on screen size (list on small screens)
+      const initView = window.innerWidth < 600 ? "listWeek" : "dayGridMonth";
       const calendar = new FullCalendar.Calendar(dom.calendarEl, {
-        initialView: "dayGridMonth",
-        headerToolbar: false,
+        initialView: initView,
+        headerToolbar: {
+          left: "prev,next", // today button removed
+          center: "title",
+          right: "dayGridMonth", // only month view for now
+        },
+        buttonText: {
+          today: "Today",
+          month: "Month",
+          // prev/next icons will be injected via JS/CSS
+        },
+        buttonIcons: true,
+        // height will be adjusted dynamically for week/day views
         height: "auto",
+        slotMinTime: "06:00:00",
+        slotMaxTime: "20:00:00",
+        slotDuration: "01:00:00",
+        slotLabelInterval: "01:00",
+        slotLabelFormat: {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+          meridiem: "short",
+        },
+        allDaySlot: false,
+        dayMaxEvents: 4,
+        moreLinkContent: (args) => `+${args.num} more`,
         eventTimeFormat: { hour: "2-digit", minute: "2-digit", hour12: true },
         dateClick(info) {
           state.selectedDateKey = toDateKey(info.date);
           renderDateList();
         },
         eventClick(info) {
+          // clicking an event selects its date in the list on the right
           state.selectedDateKey = toDateKey(info.event.start || new Date());
           renderDateList();
+
+          // previous behaviour automatically redirected to the appointment
+          // details page. this was causing the calendar to “teleport” away
+          // as soon as you clicked anything. keep the navigation explicit
+          // – use the "Open Details" button in the list, or hold Ctrl/Cmd
+          // when clicking the event to open it in a new tab.
           const id = info.event.id;
-          if (id) {
-            location.href = `/admin/appointments?sel=${encodeURIComponent(id)}`;
+          if (id && (info.jsEvent.ctrlKey || info.jsEvent.metaKey)) {
+            // open in new tab when ctrl/cmd is pressed
+            window.open(`/admin/appointments?sel=${encodeURIComponent(id)}`, '_blank');
           }
         },
-        async datesSet(arg) {
-          dom.calendarRangeLabel.textContent = arg.view.title;
-          setViewButtons(arg.view.type);
-          const start = toDateKey(arg.start);
-          const endDate = new Date(arg.end.getTime() - 1);
-          const end = toDateKey(endDate);
-          try {
-            const appts = await fetchAppointmentsForRange(start, end);
-            state.appointments = appts;
-            calendar.removeAllEvents();
-            calendar.addEventSource(
-              appts.map((a) => {
-                const id = String(a._id || a.id || "");
-                const s = String(a.status || "pending").toLowerCase();
-                const color =
-                  s === "confirmed" || s === "approved"
-                    ? "#2563eb"
-                    : s === "completed"
-                      ? "#16a34a"
-                      : s === "cancelled" || s === "rejected"
-                        ? "#dc2626"
-                        : "#f59e0b";
-
-                return {
-                  id,
-                  title: `${customerName(a)} • ${serviceName(a)}`,
-                  start: eventStart(a),
-                  color,
-                  extendedProps: { raw: a },
-                };
-              }),
-            );
-            renderDateList();
-          } catch (err) {
-            console.error(err);
-            dom.selectedDateList.innerHTML =
-              '<div class="empty-state">Failed to load appointments for calendar range.</div>';
-            dom.selectedDateCount.textContent = "0";
+        eventContent(arg) {
+          // only show start time on the pill to save space
+          let timeStr = "";
+          const raw = arg.event.extendedProps.raw;
+          if (raw) {
+            timeStr = timeLabel(raw);
           }
+          return { html: `<span class="event-time">${timeStr}</span>` };
+        },
+
+        async datesSet(arg) {
+          // debounce rapid view changes to avoid flicker
+          if (window._debounceDatesSet) clearTimeout(window._debounceDatesSet);
+          window._debounceDatesSet = setTimeout(async () => {
+            updateRangeLabel(arg.view.title);
+            adjustLayoutForWeekView(arg.view);
+            const start = toDateKey(arg.start);
+            const endDate = new Date(arg.end.getTime() - 1);
+            const end = toDateKey(endDate);
+            // show loading indicator
+            if (dom.calendarSpinner) dom.calendarSpinner.style.display = "block";
+            try {
+              const appts = await fetchAppointmentsForRange(start, end);
+              state.appointments = appts;
+              calendar.removeAllEvents();
+              calendar.addEventSource(
+                appts.map((a) => {
+                  const id = String(a._id || a.id || "");
+                  const s = String(a.status || "pending").toLowerCase();
+                  const color =
+                    s === "confirmed" || s === "approved"
+                      ? "#2563eb"
+                      : s === "completed"
+                        ? "#16a34a"
+                        : s === "cancelled" || s === "rejected"
+                          ? "#dc2626"
+                          : "#f59e0b";
+
+                  // we also add a class for CSS theming
+                  return {
+                    id,
+                    title: `${customerName(a)} • ${serviceName(a)}`,
+                    start: eventStart(a),
+                    color,
+                    classNames: [s],
+                    extendedProps: { raw: a },
+                  };
+                }),
+              );
+              renderDateList();
+            } catch (err) {
+              console.error(err);
+              dom.selectedDateList.innerHTML =
+                '<div class="empty-state">Failed to load appointments for calendar range.</div>';
+              dom.selectedDateCount.textContent = "0";
+            } finally {
+              if (dom.calendarSpinner) dom.calendarSpinner.style.display = "none";
+            }
+          }, 150);
         },
       });
 
       calendar.render();
 
-      dom.calPrev.addEventListener("click", () => calendar.prev());
-      dom.calToday.addEventListener("click", () => {
-        calendar.today();
-        state.selectedDateKey = toDateKey(new Date());
-        renderDateList();
+      // helper to label nav buttons (also runs after view changes)
+      function updateNavButtons() {
+        const prevBtn = dom.calendarEl.querySelector('.fc-prev-button');
+        const nextBtn = dom.calendarEl.querySelector('.fc-next-button');
+        if (prevBtn) {
+          prevBtn.setAttribute('tabindex', '0');
+          prevBtn.setAttribute('aria-label', 'Previous');
+        }
+        if (nextBtn) {
+          nextBtn.setAttribute('tabindex', '0');
+          nextBtn.setAttribute('aria-label', 'Next');
+        }
+      }
+      // run initial labeling and after each view render
+      calendar.on('viewDidMount', updateNavButtons);
+      updateNavButtons();
+
+      // switch views on resize for small screens
+      window.addEventListener('resize', () => {
+        const newView = window.innerWidth < 600 ? 'listWeek' : 'dayGridMonth';
+        if (calendar.view && calendar.view.type !== newView) {
+          calendar.changeView(newView);
+        }
       });
-      dom.calNext.addEventListener("click", () => calendar.next());
-      dom.viewMonth.addEventListener("click", () => calendar.changeView("dayGridMonth"));
-      dom.viewWeek.addEventListener("click", () => calendar.changeView("timeGridWeek"));
-      dom.viewDay.addEventListener("click", () => calendar.changeView("timeGridDay"));
+
+      // animate appointment list when it updates
+      {
+        const orig = renderDateList;
+        renderDateList = function () {
+          orig();
+          const list = dom.selectedDateList;
+          if (list) {
+            list.classList.add('slide-in');
+            setTimeout(() => list.classList.remove('slide-in'), 400);
+          }
+        };
+      }
     });
   </script>
 </div>

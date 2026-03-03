@@ -743,6 +743,7 @@
                   <th>Service</th>
                   <th>Technician</th>
                   <th>Location</th>
+                  <th>Payment</th>
                   <th>Status</th>
                   <th style="width: 160px">Actions</th>
                 </tr>
@@ -809,7 +810,7 @@
             <div>
               <div class="fw-bold">Booking Request Validation Queue</div>
               <div class="muted-small">
-                Review requests, validate details, then approve or cancel.
+                Review requests, validate details, then confirm (this will also mark payment paid) or cancel.
               </div>
             </div>
           </div>
@@ -917,6 +918,14 @@
           >
             Close</button
           ><button
+            id="apptsModalComplete"
+            type="button"
+            class="btn btn-sm btn-success"
+            style="display:none;"
+          >
+            Mark Completed
+          </button>
+          <button
             id="apptsModalEdit"
             type="button"
             class="btn btn-sm btn-primary"
@@ -1086,6 +1095,12 @@
         list.slice(0, 200).forEach((a) => {
           const tr = document.createElement("tr");
           const date = a.bookingDate || a.date || a.start || new Date();
+          const badge = `<span class='badge bg-${statusBadgeClass(a.status)}'>${statusLabel(a.status)}</span>`;
+          const paymentBadge = `<span class='badge bg-${a.paymentStatus === "paid" ? "success" : a.paymentStatus === "failed" ? "danger" : "warning"} text-uppercase'>${a.paymentStatus || "pending"}</span>`;
+          const completeBtn =
+            a.status === "confirmed"
+              ? `<button class='btn btn-sm btn-outline-success complete-appt' data-id='${a._id || a.id || ""}' title='Complete'><i class='bi bi-check2-circle'></i></button>`
+              : "";
           tr.innerHTML = `<td>${new Date(date).toLocaleDateString()}</td><td>${a.startTime || a.time || ""}</td><td><strong>${a.customerName || (a.customer && a.customer.name) || a.customer || "Customer"}</strong><div class='small text-muted'>${a.customerEmail || ""}</div></td><td>${a.service || a.serviceType || ""}</td><td>${a.technicianName || (a.technician && a.technician.name) || a.technician || (a.technician && a.technician._id) || "TBD"}</td><td>${(() => {
             if (a.location && a.location.address) return a.location.address;
             if (
@@ -1097,7 +1112,7 @@
               return lat + ", " + lng;
             }
             return a.address || "";
-          })()}</td><td><span class='badge bg-${a.status === "confirmed" ? "success" : a.status === "pending" ? "warning" : "secondary"}'>${a.status || "n/a"}</span></td><td><div class='d-flex gap-2'><button class='btn btn-sm btn-outline-secondary view-appt' data-id='${a._id || a.id || ""}' title='View'><i class='bi bi-eye'></i></button><button class='btn btn-sm btn-outline-secondary edit-appt' data-id='${a._id || a.id || ""}' title='Edit'><i class='bi bi-pencil'></i></button></div></td>`;
+          })()}</td><td>${paymentBadge}</td><td>${badge}</td><td><div class='d-flex gap-2'><button class='btn btn-sm btn-outline-secondary view-appt' data-id='${a._id || a.id || ""}' title='View'><i class='bi bi-eye'></i></button><button class='btn btn-sm btn-outline-secondary edit-appt' data-id='${a._id || a.id || ""}' title='Edit'><i class='bi bi-pencil'></i></button>${completeBtn}</div></td>`;
           tbody.appendChild(tr);
         });
         document.getElementById("appointmentsCountCombined").innerText =
@@ -1107,6 +1122,28 @@
         );
         qsa(".edit-appt").forEach((b) =>
           b.addEventListener("click", onEditAppt),
+        );
+        qsa(".complete-appt").forEach((b) =>
+          b.addEventListener("click", async function () {
+            const id = this.getAttribute("data-id");
+            if (!id) return;
+            if (!confirm("Mark this appointment completed?")) return;
+            try {
+              const resp = await fetch(
+                `/appointments/${encodeURIComponent(id)}/complete`,
+                { method: "POST", credentials: "same-origin" },
+              );
+              if (resp.ok) {
+                window.notify?.success("Appointment marked completed");
+                await loadCombinedOverview();
+              } else {
+                const t = await resp.text();
+                window.notify?.error("Failed to complete: " + t);
+              }
+            } catch (err) {
+              window.notify?.error("Failed to complete appointment");
+            }
+          }),
         );
 
 
@@ -1122,6 +1159,35 @@
         const id = e.currentTarget.getAttribute("data-id");
         const appt =
           combinedAppointments.find((x) => (x._id || x.id || "") == id) || {};
+        // adjust complete button visibility
+        const completeBtn = document.getElementById("apptsModalComplete");
+        if (completeBtn) {
+          if (appt.status === "confirmed") {
+            completeBtn.style.display = "inline-block";
+          } else {
+            completeBtn.style.display = "none";
+          }
+          completeBtn.onclick = async () => {
+            if (!appt._id) return;
+            if (!confirm("Mark this appointment completed?")) return;
+            try {
+              const r = await fetch(`/appointments/${encodeURIComponent(
+                appt._id,
+              )}/complete`, { method: "POST", credentials: "same-origin" });
+              if (r.ok) {
+                window.notify?.success("Appointment marked completed");
+                appt.status = "completed";
+                await loadCombinedOverview();
+                new bootstrap.Modal(document.getElementById("apptsSharedModal")).hide();
+              } else {
+                const txt = await r.text();
+                window.notify?.error("Complete failed: " + txt);
+              }
+            } catch (e) {
+              window.notify?.error("Complete request failed");
+            }
+          };
+        }
 
         document.getElementById("apptsSharedModalBody").innerHTML =
           `<div><strong>${appt.service || appt.title || "Booking"}</strong></div><div class='small text-muted mb-2'>${appt.bookingDate || appt.date || ""} ${appt.startTime || appt.time || ""}</div><div><strong>Customer:</strong> ${appt.customerName || appt.customer || "—"}</div><div><strong>Technician:</strong> ${appt.technicianName || appt.technician || "—"}</div><div class='mt-2 small text-muted'>Status: ${appt.status || "—"}</div>`;
@@ -1165,7 +1231,8 @@
 
       function statusBadgeClass(status) {
         const s = statusLabel(status);
-        if (s === "confirmed" || s === "completed") return "success";
+        if (s === "confirmed") return "success";
+        if (s === "completed") return "info";
         if (s === "cancelled") return "danger";
         if (s === "re-scheduled") return "primary";
         return "warning";
@@ -1520,7 +1587,8 @@
       }
 
       function normalizeRequest(rq, index = 0) {
-        const id = rq._id || rq.id || rq.bookingId || `req-${index + 1}`;
+        // ensure we store a string id so comparisons with data-id attributes succeed
+        const id = String(rq._id || rq.id || rq.bookingId || `req-${index + 1}`);
         const date =
           rq.bookingDate || rq.date || rq.preferredDate || rq.createdAt;
         const time = rq.startTime || rq.time || rq.preferredTime || "";
@@ -1655,8 +1723,7 @@
               <td class="text-start">
                 <div class="d-flex gap-2 flex-wrap">
                   <button class="btn btn-sm btn-outline-secondary view-req-details" data-id="${rq.id}">Details</button>
-                  <button class="btn btn-sm btn-outline-success approve-req" data-id="${rq.id}" ${canValidate ? "" : "disabled"}>Approve</button>
-                  <button class="btn btn-sm btn-outline-danger reject-req" data-id="${rq.id}" ${canValidate ? "" : "disabled"}>Cancel</button>
+                  <button class="btn btn-sm btn-outline-secondary view-payment" data-id="${rq.id}" title="Go to payment"><i class="bi bi-credit-card-2-front-fill"></i></button>
                 </div>
               </td>
             `;
@@ -1671,50 +1738,25 @@
           b.addEventListener("click", function () {
             const id = this.getAttribute("data-id");
             const rq = bookingRequests.find((x) => x.id === id);
+            if (!rq) {
+              console.warn("booking request not found", id);
+              return;
+            }
             openBookingRequestDetails(rq);
           }),
         );
 
-        qsa(".approve-req").forEach((b) =>
-          b.addEventListener("click", async function () {
+        qsa(".view-payment").forEach((b) =>
+          b.addEventListener("click", function () {
             const id = this.getAttribute("data-id");
-            await processBookingRequest(id, "approve");
-          }),
-        );
-
-        qsa(".reject-req").forEach((b) =>
-          b.addEventListener("click", async function () {
-            const id = this.getAttribute("data-id");
-            await processBookingRequest(id, "cancel");
+            if (id) {
+              window.location.href = `/admin/payments?bookingId=${encodeURIComponent(id)}`;
+            }
           }),
         );
       }
 
-      async function processBookingRequest(id, action) {
-        if (!id) return;
-        const isCancel = action === "cancel";
-        if (isCancel && !confirm("Cancel this booking request?")) return;
-        try {
-          const res = await fetch(
-            `/appointments/${encodeURIComponent(id)}/${action}`,
-            { method: "POST", credentials: "same-origin" },
-          );
-          if (res.ok) {
-            window.notify?.success(
-              isCancel ? "Request cancelled" : "Request approved",
-            );
-            await loadBookingRequests();
-            await loadCombinedOverview();
-          } else {
-            const t = await res.text();
-            window.notify?.error(
-              `Failed to ${isCancel ? "cancel" : "approve"}: ${t}`,
-            );
-          }
-        } catch (e) {
-          window.notify?.error(`Failed to ${isCancel ? "cancel" : "approve"}`);
-        }
-      }
+      // no inline booking request processing - redirect to payment for all actions
 
       // Booking requests validation queue
       async function loadBookingRequests() {

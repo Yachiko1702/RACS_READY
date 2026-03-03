@@ -1,0 +1,291 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.css" />
+
+<div class="container py-5 page-min-height" id="customerTrackingRoot">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3 mb-0">Live Tracking</h1>
+      <div class="small text-muted">Track your assigned technician and compare with your location in real time.</div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Current Booking</div>
+          <div id="trackBookingText" class="fw-bold">No active booking selected</div>
+          <div class="small text-muted mt-2" id="trackStatus">Waiting for live updates…</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <label for="trackBookingSelect" class="form-label small text-muted mb-1">Booking</label>
+          <select id="trackBookingSelect" class="form-select"></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body p-0">
+      <div id="customerTrackMap" style="height: 460px; width:100%;"></div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h6 class="mb-3">Upcoming Schedule</h6>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Service</th>
+              <th>Technician</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="trackScheduleBody">
+            <tr><td colspan="5" class="text-center text-muted py-4">No upcoming bookings found.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js"></script>
+<script id="customerTrackInitialBookings" type="application/json"><%- JSON.stringify(initialBookings || []) %></script>
+<script id="customerTrackInitialBooking" type="application/json"><%- JSON.stringify(initialBooking || null) %></script>
+<script>
+  (function () {
+    const initialBookings = JSON.parse(
+      document.getElementById("customerTrackInitialBookings")?.textContent || "[]",
+    );
+    const initialBooking = JSON.parse(
+      document.getElementById("customerTrackInitialBooking")?.textContent || "null",
+    );
+
+    const selectEl = document.getElementById("trackBookingSelect");
+    const statusEl = document.getElementById("trackStatus");
+    const bookingTextEl = document.getElementById("trackBookingText");
+    const scheduleBody = document.getElementById("trackScheduleBody");
+
+    function normalizeStatus(status) {
+      const s = String(status || "").toLowerCase();
+      if (s === "approved") return "confirmed";
+      return s || "pending";
+    }
+
+    function statusBadgeClass(status) {
+      const s = normalizeStatus(status);
+      if (s === "confirmed") return "success";
+      if (s === "pending") return "warning";
+      if (s === "completed") return "secondary";
+      if (s === "cancelled") return "danger";
+      if (s === "re-scheduled") return "info";
+      return "secondary";
+    }
+
+    function formatDate(value) {
+      if (!value) return "—";
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
+    }
+
+    function formatTime(value) {
+      if (value === null || value === undefined || value === "") return "—";
+      const mins = Number(value);
+      if (!Number.isFinite(mins)) return String(value);
+      const hh = Math.floor(mins / 60);
+      const mm = mins % 60;
+      const ampm = hh >= 12 ? "PM" : "AM";
+      const hh12 = ((hh + 11) % 12) + 1;
+      return `${String(hh12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${ampm}`;
+    }
+
+    function getCustomerCoordsFromBooking(b) {
+      const arr = b && b.location && b.location.coordinates && b.location.coordinates.coordinates;
+      if (!Array.isArray(arr) || arr.length < 2) return null;
+      const lng = Number(arr[0]);
+      const lat = Number(arr[1]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      return [lat, lng];
+    }
+
+    function getTechnicianId(b) {
+      if (!b) return "";
+      if (b.technicianId && typeof b.technicianId === "object") {
+        return String(b.technicianId._id || "");
+      }
+      return String(b.technicianId || "");
+    }
+
+    function getTechnicianName(b) {
+      if (!b) return "—";
+      if (b.technicianName) return b.technicianName;
+      if (b.technician && b.technician.name) return b.technician.name;
+      if (b.technicianId && typeof b.technicianId === "object") {
+        return b.technicianId.name || b.technicianId.fullName || "—";
+      }
+      return "—";
+    }
+
+    function getServiceName(b) {
+      return (
+        (b.service && (b.service.name || b.service.title)) ||
+        (b.serviceId && typeof b.serviceId === "object" && (b.serviceId.name || b.serviceId.title)) ||
+        b.serviceType ||
+        "Service"
+      );
+    }
+
+    const bookings = (initialBookings || []).slice().sort((a, b) => {
+      const ad = new Date(a.bookingDate || 0).getTime();
+      const bd = new Date(b.bookingDate || 0).getTime();
+      if (ad !== bd) return ad - bd;
+      return Number(a.startTime || 0) - Number(b.startTime || 0);
+    });
+
+    if (!bookings.length) {
+      selectEl.innerHTML = '<option value="">No active booking</option>';
+      bookingTextEl.textContent = "No active booking selected";
+    } else {
+      selectEl.innerHTML = '<option value="">Select booking</option>';
+      bookings.forEach((b) => {
+        const id = String(b._id || b.id || "");
+        if (!id) return;
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = `${formatDate(b.bookingDate)} • ${formatTime(b.startTime)} • ${getServiceName(b)}`;
+        selectEl.appendChild(opt);
+      });
+      if (initialBooking && (initialBooking._id || initialBooking.id)) {
+        selectEl.value = String(initialBooking._id || initialBooking.id);
+      } else if (selectEl.options.length > 1) {
+        selectEl.selectedIndex = 1;
+      }
+    }
+
+    if (!bookings.length) {
+      scheduleBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No upcoming bookings found.</td></tr>';
+    } else {
+      scheduleBody.innerHTML = bookings.slice(0, 10).map((b) => {
+        const status = normalizeStatus(b.status);
+        return `
+          <tr>
+            <td>${formatDate(b.bookingDate)}</td>
+            <td>${formatTime(b.startTime)}</td>
+            <td>${getServiceName(b)}</td>
+            <td>${getTechnicianName(b)}</td>
+            <td><span class="badge bg-${statusBadgeClass(status)} text-capitalize">${status}</span></td>
+          </tr>`;
+      }).join("");
+    }
+
+    const map = L.map("customerTrackMap").setView([14.676049, 121.043731], 12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    let techMarker = null;
+    let customerMarker = null;
+    let linkLine = null;
+    let liveCustomerCoords = null;
+    let liveTechCoords = null;
+
+    function clearMapLayers() {
+      if (techMarker) map.removeLayer(techMarker);
+      if (customerMarker) map.removeLayer(customerMarker);
+      if (linkLine) map.removeLayer(linkLine);
+      techMarker = null;
+      customerMarker = null;
+      linkLine = null;
+    }
+
+    function redrawMap(selectedBooking) {
+      clearMapLayers();
+      const fallbackCustomerCoords = getCustomerCoordsFromBooking(selectedBooking);
+      const customerCoords = liveCustomerCoords || fallbackCustomerCoords;
+
+      if (liveTechCoords) {
+        techMarker = L.marker(liveTechCoords).addTo(map).bindPopup("Technician (live)");
+      }
+      if (customerCoords) {
+        customerMarker = L.marker(customerCoords).addTo(map).bindPopup("Customer");
+      }
+      if (liveTechCoords && customerCoords) {
+        linkLine = L.polyline([liveTechCoords, customerCoords], { color: "#2563eb" }).addTo(map);
+        map.fitBounds([liveTechCoords, customerCoords], { padding: [24, 24] });
+      } else if (customerCoords) {
+        map.setView(customerCoords, 14);
+      } else if (liveTechCoords) {
+        map.setView(liveTechCoords, 14);
+      }
+    }
+
+    async function refreshTechnicianLocation(selectedBooking) {
+      const techId = getTechnicianId(selectedBooking);
+      if (!techId) {
+        statusEl.textContent = "No assigned technician yet for this booking.";
+        liveTechCoords = null;
+        redrawMap(selectedBooking);
+        return;
+      }
+      try {
+        const resp = await fetch(`/api/services/technician-location?id=${encodeURIComponent(techId)}`);
+        if (!resp.ok) throw new Error("location fetch failed");
+        const data = await resp.json();
+        if (Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lng))) {
+          liveTechCoords = [Number(data.lat), Number(data.lng)];
+          statusEl.textContent = `Live tracking active • last update ${new Date().toLocaleTimeString()}`;
+        }
+      } catch (e) {
+        statusEl.textContent = "Unable to refresh technician location right now.";
+      }
+      redrawMap(selectedBooking);
+    }
+
+    function getSelectedBooking() {
+      const id = String(selectEl.value || "");
+      if (!id) return null;
+      return bookings.find((b) => String(b._id || b.id || "") === id) || null;
+    }
+
+    function updateBookingMeta(selectedBooking) {
+      if (!selectedBooking) {
+        bookingTextEl.textContent = "No active booking selected";
+        return;
+      }
+      bookingTextEl.textContent = `${getServiceName(selectedBooking)} • ${formatDate(selectedBooking.bookingDate)} ${formatTime(selectedBooking.startTime)}`;
+    }
+
+    async function refreshSelected() {
+      const selected = getSelectedBooking();
+      updateBookingMeta(selected);
+      await refreshTechnicianLocation(selected);
+    }
+
+    selectEl.addEventListener("change", refreshSelected);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          liveCustomerCoords = [pos.coords.latitude, pos.coords.longitude];
+          redrawMap(getSelectedBooking());
+        },
+        () => {
+          liveCustomerCoords = null;
+          redrawMap(getSelectedBooking());
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 },
+      );
+    }
+
+    refreshSelected();
+    setInterval(refreshSelected, 8000);
+  })();
+</script>

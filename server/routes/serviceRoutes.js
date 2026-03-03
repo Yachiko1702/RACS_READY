@@ -862,4 +862,18 @@ router.get("/:id/calendar", async (req, res) => {
   }
 });
 
+// GET /api/services/fare-per-km — public endpoint so the booking UI can
+// display the correct fare rate configured by the admin.
+router.get("/fare-per-km", async (req, res) => {
+  try {
+    const SiteSetting = require("../models/SiteSetting");
+    const setting = await SiteSetting.findOne({ key: "farePerKm" }).lean();
+    const farePerKm =
+      setting && typeof setting.value === "number" ? setting.value : 40;
+    return res.json({ farePerKm });
+  } catch (err) {
+    return res.json({ farePerKm: 40 });
+  }
+});
+
 module.exports = router;

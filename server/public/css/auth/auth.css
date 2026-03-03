@@ -1058,7 +1058,13 @@ html, body, .auth-panel-page { overflow-x: hidden; }
 
 /* Respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
+  /* global reduction for most elements; spinner kept active via override below */
   * { transition: none !important; animation: none !important; }
+  /* bootstrap spinner needs motion to show spinning; restore it explicitly */
+  .spinner-border,
+  .spinner-border * {
+    animation: spinner-border .75s linear infinite !important;
+  }
 }
 
 

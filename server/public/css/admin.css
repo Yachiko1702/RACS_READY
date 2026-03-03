@@ -59,7 +59,7 @@ body.admin-layout strong {
 }
 
 
-.admin-topbar{position:sticky;top:0;z-index:60;background:transparent}
+.admin-topbar{position:sticky;top:0;z-index:60;background:linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%) !important;}
 .admin-root{min-height:100vh;display:flex;position:relative}
 
 /* Sidebar */
@@ -70,7 +70,8 @@ body.admin-layout strong {
   align-self: flex-start; /* necessary for sticky inside flex container */
   height: calc(100vh - var(--admin-topbar-height));
   width:var(--sidebar-width);
-  background:var(--surface);
+  /* use the same gradient as scheduling header */
+  background: linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%);
   border-right:1px solid rgba(15,23,42,0.04);
   box-shadow: none;
   border-top-right-radius: 12px;
@@ -97,7 +98,7 @@ body.admin-layout strong {
   margin-top: 10px;
   border-radius: 12px;
   display:flex;align-items:center;justify-content:center;
-  background: #1A0F3E; /* match sidebar header color */
+  background: linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%);
   color: #ffffff;
   border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 12px 30px rgba(2,6,23,0.6);
@@ -116,12 +117,12 @@ body.admin-layout strong {
 
 .sidebar-handle:hover{
   transform: translateY(0) scale(1.03);
-  background: #1A0F3E;
+  background: linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%);
   box-shadow: 0 18px 44px rgba(2,6,23,0.7);
 }
 
 /* when sidebar is collapsed keep handle visible near left edge (still dark) */
-.admin-root.sidebar-collapsed .sidebar-handle{ left: 12px; background: #1A0F3E; border-color: rgba(255,255,255,0.06); }
+.admin-root.sidebar-collapsed .sidebar-handle{ left: 12px; background: linear-gradient(120deg, #4361ee 0%, #3a0ca3 100%); border-color: rgba(255,255,255,0.06); }
 .admin-root.sidebar-collapsed .sidebar-handle .bi{ transform: rotate(180deg); color: #fff; }
 .admin-root.sidebar-collapsed .sidebar-handle .handle-mark{ opacity:0.0; }
 
